@@ -323,7 +323,7 @@ function loadXML(input) {
 
         // Zastavit blikání tlačítka
         document.querySelector(".btn-file").classList.remove("pulse-animation");
-
+        drawBoard((;
         alert(`Úspěšně nahráno!\n${newMain.length} hlavních otázek\n${newSpare.length} náhradních otázek.\n\nHra začíná!`);
         updateStatus();
     };
