@@ -4,7 +4,32 @@ let board = Array(29).fill(0);
 let currentPlayer = 1; // 1 = Oranžoví, 2 = Modří
 let currentField = null;
 let isGameReady = false;
+// --- KONFIGURACE AI HLASU ---
+let voiceEnabled = true; // Přepínač pro vypnutí/zapnutí
 
+function cyberSpeak(text) {
+    if (!voiceEnabled) return; // Pokud je vypnuto, mlčíme
+
+    // Zrušíme předchozí mluvení, aby se nepřekřikovala
+    window.speechSynthesis.cancel();
+
+    const msg = new SpeechSynthesisUtterance();
+    msg.text = text;
+    msg.lang = 'cs-CZ'; // Čeština
+    msg.volume = 1;     // Hlasitost 0-1
+    msg.rate = 1.1;     // Rychlost (1 je normál, 1.1 je akčnější)
+    msg.pitch = 0.8;    // Hloubka (nižší = robotičtější)
+
+    // Pokusíme se najít nejlepší český hlas v systému
+    const voices = window.speechSynthesis.getVoices();
+    // Preferujeme hlasy od Google nebo Microsoftu, bývají kvalitnější
+    const csVoice = voices.find(v => v.lang.includes('cs') && (v.name.includes('Google') || v.name.includes('Microsoft'))) 
+                 || voices.find(v => v.lang.includes('cs'));
+    
+    if (csVoice) msg.voice = csVoice;
+
+    window.speechSynthesis.speak(msg);
+}
 // Sousedé pro kontrolu (mapa sousedů v pyramidě)
 const neighbors = {
     1:[2,3], 2:[1,3,4,5], 3:[1,2,5,6], 4:[2,5,7,8], 5:[2,3,4,6,8,9], 6:[3,5,9,10],
@@ -177,6 +202,7 @@ function showModal(q, a) {
     document.getElementById("answer-wrapper").style.display = "none";
     
     startTimer();
+    cyberSpeak("Příchozí data. " + q);
 }
 
 let timerInterval;
@@ -282,6 +308,7 @@ function triggerVictory(winnerId) {
     
     // Zobrazení overlaye (spustí CSS animace)
     overlay.style.display = "flex";
+    cyberSpeak("Bitva ukončena. Vítězí " + wName);
 }
 
 // Inicializace po načtení
@@ -314,10 +341,18 @@ function startNewRound() {
     
     alert("Pokračujeme! Otázky v zásobníku zůstaly zachovány.");
 }
-// Vlož na konec funkce showModal
-const msg = new SpeechSynthesisUtterance();
-msg.text = q; // Přečte text otázky
-msg.lang = 'cs-CZ'; // Nastaví češtinu
-msg.rate = 1.1; // Trochu rychlejší tempo
-msg.pitch = 0.8; // Hlubší, robotický hlas
-window.speechSynthesis.speak(msg);
+function toggleVoice() {
+    voiceEnabled = !voiceEnabled;
+    const btn = document.getElementById("btn-voice");
+    
+    if(voiceEnabled) {
+        btn.innerHTML = '<span class="btn-icon">🔊</span> Hlas: ZAP';
+        btn.style.borderBottomColor = "#2ecc71"; // Zelená
+        cyberSpeak("Hlasový modul aktivován.");
+    } else {
+        window.speechSynthesis.cancel(); // Okamžitě ztichne
+        btn.innerHTML = '<span class="btn-icon">🔇</span> Hlas: VYP';
+        btn.style.borderBottomColor = "#e74c3c"; // Červená
+    }
+}
+
