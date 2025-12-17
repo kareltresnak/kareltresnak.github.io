@@ -221,7 +221,23 @@ function showModal(q, a) {
     document.getElementById("answer-wrapper").style.display = "none";
     
     startTimer();
-    cyberSpeak("Příchozí data. " + q);
+    
+    // --- VYLEPŠENÝ AI HLAS (Náhodné fráze) ---
+    const prefixes = [
+        "Příchozí data.",
+        "Nová sekvence.",
+        "Otázka zní:",
+        "Analyzujte zadání:",
+        "Pozor, dotaz:",
+        "Dekódování zadání.",
+        "" // Někdy neřekne nic, jen přečte otázku (pro dynamiku)
+    ];
+    
+    // Náhodný výběr
+    const randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+    
+    // Přečte náhodný úvod + text otázky
+    cyberSpeak(randomPrefix + " " + q); 
 }
 
 let timerInterval;
@@ -238,11 +254,26 @@ function startTimer() {
 }
 
 function revealAnswer() {
+    // UI změny
     document.getElementById("btn-reveal").style.display = "none";
     document.getElementById("answer-wrapper").style.display = "block";
     clearInterval(timerInterval);
-}
 
+    // --- ČTENÍ ODPOVĚDI ---
+    // Získáme text odpovědi z HTML
+    const answerText = document.getElementById("correct-answer").textContent;
+    
+    const answerPrefixes = [
+        "Správná odpověď je:",
+        "Řešení:",
+        "Výsledek analýzy:",
+        "Odpověď zní:"
+    ];
+    const rnd = answerPrefixes[Math.floor(Math.random() * answerPrefixes.length)];
+
+    // Přečteme to
+    cyberSpeak(rnd + " " + answerText);
+}
 function finalizeTurn(success) {
     document.getElementById("modal-overlay").style.display = "none";
     if(success) {
@@ -263,13 +294,15 @@ function loadSpareQuestion() {
     if(spares.length === 0) { alert("Došly náhradní otázky!"); return; }
     const q = spares.pop();
     
-    // Reset modálu pro novou otázku
     document.getElementById("question-text").textContent = q.q;
     document.getElementById("correct-answer").textContent = q.a;
     document.getElementById("btn-reveal").style.display = "inline-block";
     document.getElementById("answer-wrapper").style.display = "none";
     startTimer();
     updateStatus();
+
+    // Hlas pro rozstřel
+    cyberSpeak("Rozstřelová otázka. " + q.q);
 }
 
 // --- KONTROLA VÝHRY (S GRANDIOZNÍM FINÁLE) ---
