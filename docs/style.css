@@ -63,7 +63,14 @@ body {
 @keyframes particleDrift { from { background-position: 0 0; } to { background-position: 100px 200px; } }
 
 .main-container {
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    
+    /* ZMĚNA: Místo center dáme flex-start + padding */
+    justify-content: flex-start; 
+    padding-top: 40px; /* Odstup od horního okraje */
+    
     width: 100%; max-width: 1400px; height: 100%; z-index: 1;
 }
 
@@ -96,12 +103,30 @@ h1 {
     padding: 2px;
 }
 .controls {
-    padding: 15px 30px; display: grid; grid-template-columns: 1fr auto 1fr;
-    align-items: center; margin: 0 auto 20px auto; width: 95%; max-width: 1100px;
+    padding: 15px 30px; 
+    display: grid; 
+    /* Stále 3 sloupce: Levý blok, Střed, Pravý blok */
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center; 
+    width: 95%; max-width: 1200px; /* Trochu širší, ať se to vejde */
     background: rgba(0,0,0,0.3);
     clip-path: polygon(18px 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%, 0 18px);
+    margin: 0 auto 20px auto; /* Vycentrování panelu */
 }
 
+/* Zarovnání obsahu ve sloupcích */
+.controls-left {
+    display: flex; justify-content: flex-start;
+}
+
+.controls-right {
+    display: flex; justify-content: flex-end; gap: 15px; /* Mezera mezi Hlasem a Restartem */
+}
+
+/* Ujistíme se, že tlačítka v pravém bloku se neroztahují divně */
+.controls-right .btn {
+    margin: 0; /* Reset případných marginů */
+}
 /* --- TLAČÍTKA --- */
 .btn {
     padding: 14px 28px; border: none; cursor: pointer;
