@@ -43,23 +43,28 @@
         <h1>AZ KVÍZ <span class="edition-badge">CYBER ARENA</span></h1>
         
         <div class="controls glass-panel">
-            <label class="btn btn-file">
-                <span class="btn-icon">📂</span> Nahrát Data
-                <input type="file" accept=".xml" onchange="loadXML(this)">
-            </label>
-            
-            <div class="status-box">
-                <div id="status-text">STATUS ARÉNY</div>
-                <div id="active-player-name" class="player-indicator orange-glow">ORANŽOVÍ</div>
-                <div id="deck-info">Čekám na inicializaci...</div>
-            </div>
-            <button class="btn" onclick="toggleVoice()" id="btn-voice" style="border-bottom: 3px solid #2ecc71;">
-                <span class="btn-icon">🔊</span> Hlas: ZAP
-            </button>
-            <button class="btn btn-reset" onclick="location.reload()">
-                <span class="btn-icon">🔄</span> Restart
-            </button>
-        </div>
+    <div class="controls-left">
+        <label class="btn btn-file">
+            <span class="btn-icon">📂</span> Nahrát Data
+            <input type="file" accept=".xml" onchange="loadXML(this)">
+        </label>
+    </div>
+    
+    <div class="status-box">
+        <div id="status-text">STATUS ARÉNY</div>
+        <div id="active-player-name" class="player-indicator orange-glow">ORANŽOVÍ</div>
+        <div id="deck-info">Čekám na inicializaci...</div>
+    </div>
+    
+    <div class="controls-right">
+        <button class="btn" onclick="toggleVoice()" id="btn-voice" style="border-bottom: 3px solid #2ecc71;">
+            <span class="btn-icon">🔊</span> HLAS: ZAP
+        </button>
+        
+        <button class="btn btn-reset" onclick="startNewRound()"> <span class="btn-icon">🔄</span> Restart
+        </button>
+    </div>
+</div>
 
         <div class="board-energy-ring">
             <div class="board-wrapper">
