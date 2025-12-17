@@ -124,12 +124,11 @@ function loadXML(input) {
 }
 
 function updateStatus() {
-    // 1. Určení barev a textů
+    // 1. Nastavení barev
     const pName = currentPlayer === 1 ? "ORANŽOVÍ" : "MODŘÍ";
-    // Definice barev: Oranžová vs. Modrá
-    const pColor = currentPlayer === 1 ? "#ff8800" : "#00aaff"; 
+    const pColor = currentPlayer === 1 ? "#ff8800" : "#00aaff"; // Oranžová vs. Modrá
     
-    // 2. Aktualizace textového indikátoru
+    // 2. Indikátor nahoře
     const indicator = document.getElementById("active-player-name");
     indicator.textContent = pName;
     indicator.style.color = pColor;
@@ -137,14 +136,20 @@ function updateStatus() {
     indicator.style.borderColor = pColor;
     indicator.style.boxShadow = `0 0 15px ${pColor}, inset 0 0 10px ${pColor}`;
 
-    // 3. DYNAMICKÁ ZMĚNA PRSTENCE (Energetické pole)
+    // 3. Energetický prstenec (Aréna)
     const ring = document.querySelector(".board-energy-ring");
     if (ring) {
-        // Toto přepíše proměnnou v CSS a kruh změní barvu
         ring.style.setProperty('--ring-color', pColor);
     }
+
+    // 4. --- NOVINKA: Přebarvení okna s otázkou (Modál) ---
+    const modal = document.getElementById("modal-content");
+    if (modal) {
+        modal.style.borderColor = pColor;
+        modal.style.boxShadow = `0 0 50px ${pColor}, inset 0 0 30px ${pColor}`;
+    }
     
-    // 4. Aktualizace počítadla otázek
+    // 5. Info o zásobníku
     const deckInfo = document.getElementById("deck-info");
     if (isGameReady) {
         deckInfo.innerText = `ZÁSOBNÍK: ${questions.length} | ROZSTŘEL: ${spares.length}`;
@@ -288,19 +293,24 @@ window.onload = () => {
 
 // --- FUNKCE PRO ZÁSOBNÍK (DALŠÍ KOLO) ---
 function startNewRound() {
-    // 1. Resetujeme pouze herní stav, ne data otázek
-    board.fill(0); // Vymaže obsazení polí
+    console.log("Startuji nové kolo..."); // Kontrola v konzoli
+    
+    // 1. Reset herního pole (logika)
+    board.fill(0); 
     currentField = null;
-    currentPlayer = 1; // Začínají opět Oranžoví
+    currentPlayer = 1; 
     
-    // 2. Skryjeme vítěznou obrazovku
-    document.getElementById("victory-overlay").style.display = "none";
+    // 2. Skrytí vítězné obrazovky
+    const victoryOverlay = document.getElementById("victory-overlay");
+    if (victoryOverlay) {
+        victoryOverlay.style.display = "none";
+        // Resetujeme třídy pro příští hru
+        victoryOverlay.classList.remove("win-orange", "win-blue");
+    }
     
-    // 3. Překreslíme čistou desku
+    // 3. Grafický reset
     drawBoard();
     updateStatus();
     
-    // 4. Info pro tebe do konzole
-    console.log(`Nové kolo zahájeno. V zásobníku zbývá: ${questions.length} otázek.`);
-    alert("Nové kolo připraveno! Otázky ze zásobníku pokračují.");
+    alert("Pokračujeme! Otázky v zásobníku zůstaly zachovány.");
 }
