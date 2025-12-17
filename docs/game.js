@@ -4,30 +4,49 @@ let board = Array(29).fill(0);
 let currentPlayer = 1; // 1 = Oranžoví, 2 = Modří
 let currentField = null;
 let isGameReady = false;
-// --- KONFIGURACE AI HLASU ---
-let voiceEnabled = true; // Přepínač pro vypnutí/zapnutí
+// --- ROBUSTNÍ KONFIGURACE AI HLASU ---
+let voiceEnabled = true;
+
+// Pomocná proměnná pro uložení hlasů
+let availableVoices = [];
+
+// Načteme hlasy hned jak to půjde (Chrome hack)
+window.speechSynthesis.onvoiceschanged = () => {
+    availableVoices = window.speechSynthesis.getVoices();
+    console.log(`Hlasy načteny: ${availableVoices.length} (Čeština dostupná: ${availableVoices.some(v => v.lang.includes('cs'))})`);
+};
 
 function cyberSpeak(text) {
-    if (!voiceEnabled) return; // Pokud je vypnuto, mlčíme
+    if (!voiceEnabled) return;
 
-    // Zrušíme předchozí mluvení, aby se nepřekřikovala
+    // Zrušíme frontu, aby neblabolil staré věci
     window.speechSynthesis.cancel();
+
+    // Pokud je seznam prázdný, zkusíme ho načíst znovu
+    if (availableVoices.length === 0) {
+        availableVoices = window.speechSynthesis.getVoices();
+    }
 
     const msg = new SpeechSynthesisUtterance();
     msg.text = text;
-    msg.lang = 'cs-CZ'; // Čeština
-    msg.volume = 1;     // Hlasitost 0-1
-    msg.rate = 1.1;     // Rychlost (1 je normál, 1.1 je akčnější)
-    msg.pitch = 0.8;    // Hloubka (nižší = robotičtější)
+    msg.volume = 1; 
+    msg.rate = 1.1; 
+    msg.pitch = 0.8; 
 
-    // Pokusíme se najít nejlepší český hlas v systému
-    const voices = window.speechSynthesis.getVoices();
-    // Preferujeme hlasy od Google nebo Microsoftu, bývají kvalitnější
-    const csVoice = voices.find(v => v.lang.includes('cs') && (v.name.includes('Google') || v.name.includes('Microsoft'))) 
-                 || voices.find(v => v.lang.includes('cs'));
+    // Hledáme český hlas
+    const csVoice = availableVoices.find(v => v.lang.includes('cs') || v.lang.includes('cz'));
     
-    if (csVoice) msg.voice = csVoice;
+    if (csVoice) {
+        msg.voice = csVoice;
+        // console.log("Vybrán hlas:", csVoice.name); // Pro ladění
+    } else {
+        console.warn("Český hlas nenalezen, použiji výchozí.");
+        msg.lang = 'cs-CZ'; // Doufáme, že systém pochopí aspoň toto
+    }
 
+    // Debuggování chyb
+    msg.onerror = (e) => console.error("Chyba při mluvení:", e);
+    
     window.speechSynthesis.speak(msg);
 }
 // Sousedé pro kontrolu (mapa sousedů v pyramidě)
