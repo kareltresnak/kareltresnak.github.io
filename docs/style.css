@@ -11,7 +11,6 @@
     /* Holografické sklo */
     --holo-bg: rgba(10, 10, 30, 0.7);
     --holo-border: rgba(100, 200, 255, 0.2);
-    --ring-color: #00aaff; /* Definice na nejvyšší úrovni */
 }
 
 * { box-sizing: border-box; }
@@ -163,31 +162,44 @@ h1 {
 /* --- HEXAGONY (KRYSTALICKÁ PYRAMIDA V ENERGETICKÉM POLI) --- */
 
 /* Energetický kruh kolem desky */
+/* Kontejner prstence */
 .board-energy-ring {
-    --ring-color: #00aaff;
+    --ring-color: #00aaff; /* Zde JS bude měnit barvu */
     position: relative;
+    width: 100%;
+    min-height: 550px; 
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 100%;
-    min-height: 500px; /* PŘIDÁNO: Minimální výška zajistí, že pole nezmizí */
-    margin-top: 20px;
-    transition: all 0.5s ease;
+    margin: 20px 0;
 }
 
+/* Samotné herní pole (SVG) */
+#game-board {
+    width: 100%;
+    max-width: 600px;
+    height: auto;
+    display: block !important; /* Vynutíme zobrazení */
+    z-index: 20;
+    overflow: visible;
+}
+
+/* Prstenec jako pseudo-element */
 .board-energy-ring::before {
-    content: ''; position: absolute; width: 90%; height: 90%; border-radius: 50%;
-    border: 3px solid transparent; /* Trochu tlustší čára */
-    
-    /* Dynamický gradient využívající --ring-color */
+    content: '';
+    position: absolute;
+    width: 650px;
+    height: 650px;
+    border-radius: 50%;
+    border: 4px solid transparent;
     background: linear-gradient(var(--bg-void), var(--bg-void)) padding-box,
-                conic-gradient(from 0deg, var(--ring-color), var(--neon-purple), var(--ring-color)) border-box;
-    
+                conic-gradient(from 0deg, var(--ring-color), #bc13fe, var(--ring-color)) border-box;
     mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor; mask-composite: exclude;
-    animation: spinRing 10s linear infinite; 
-    opacity: 0.6;
-    filter: drop-shadow(0 0 15px var(--ring-color));
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    animation: spinRing 12s linear infinite;
+    filter: drop-shadow(0 0 20px var(--ring-color));
+    pointer-events: none;
 }
 @keyframes spinRing { to { transform: rotate(360deg); } }
 
