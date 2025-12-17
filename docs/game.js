@@ -183,20 +183,25 @@ function updateStatus() {
     const pName = currentPlayer === 1 ? "ORANŽOVÍ" : "MODŘÍ";
     const pColor = currentPlayer === 1 ? "#ff8800" : "#00aaff"; 
     
-    // 1. Změna textu
+    // 1. Jméno týmu
     const indicator = document.getElementById("active-player-name");
     indicator.textContent = pName;
     indicator.style.color = pColor;
     indicator.style.textShadow = `0 0 20px ${pColor}`;
 
-    // 2. Vynucení barvy prstence přes style atribut přímo v HTML
-    const energyRing = document.querySelector(".board-energy-ring");
-    if (energyRing) {
-        energyRing.style.setProperty('--ring-color', pColor, 'important');
+    // 2. OPRAVA BARVY: Cílíme přímo na kontejner, který má definovanou proměnnou
+    const ringElement = document.querySelector(".board-energy-ring");
+    if (ringElement) {
+        ringElement.style.setProperty('--ring-color', pColor);
     }
 
-    // 3. Pomocný indikátor pro tebe (změní i barvu pozadí celého webu velmi jemně)
-    // document.body.style.shadow = `inset 0 0 100px ${pColor}33`; // Volitelné: jemná záře u okrajů obrazovky
+    // 3. POJISTKA ZOBRAZENÍ: Vynutíme zobrazení pole, pokud by náhodou zmizelo
+    const boardEl = document.getElementById("game-board");
+    if (boardEl) {
+        boardEl.style.display = "block";
+        boardEl.style.visibility = "visible";
+        boardEl.style.opacity = "1";
+    }
     
     const deckInfo = document.getElementById("deck-info");
     if (isGameReady) {
