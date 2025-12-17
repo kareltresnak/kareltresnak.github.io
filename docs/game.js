@@ -314,3 +314,10 @@ function startNewRound() {
     
     alert("Pokračujeme! Otázky v zásobníku zůstaly zachovány.");
 }
+// Vlož na konec funkce showModal
+const msg = new SpeechSynthesisUtterance();
+msg.text = q; // Přečte text otázky
+msg.lang = 'cs-CZ'; // Nastaví češtinu
+msg.rate = 1.1; // Trochu rychlejší tempo
+msg.pitch = 0.8; // Hlubší, robotický hlas
+window.speechSynthesis.speak(msg);
