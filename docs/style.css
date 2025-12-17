@@ -11,6 +11,7 @@
     /* Holografické sklo */
     --holo-bg: rgba(10, 10, 30, 0.7);
     --holo-border: rgba(100, 200, 255, 0.2);
+    --ring-color: #00aaff; /* Definice na nejvyšší úrovni */
 }
 
 * { box-sizing: border-box; }
