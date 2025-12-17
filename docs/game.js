@@ -180,19 +180,43 @@ function finalizeTurn(success) {
 
 function updateStatus() {
     const pName = currentPlayer === 1 ? "ORANŽOVÍ" : "MODŘÍ";
-    const pColor = currentPlayer === 1 ? "#ff9f1a" : "#18dcff";
+    const pColor = currentPlayer === 1 ? "#ff8800" : "#00aaff"; // Barvy z CSS proměnných
     
     const indicator = document.getElementById("active-player-name");
     indicator.textContent = pName;
     indicator.style.color = pColor;
-    indicator.style.textShadow = `0 0 20px ${pColor}`;
+    indicator.style.textShadow = `0 0 20px ${pColor}, 0 0 40px ${pColor}`;
+    indicator.style.borderColor = pColor;
+
+    // --- NOVINKA: Změna barvy energetického prstence ---
+    const energyRing = document.querySelector(".board-energy-ring");
+    if (energyRing) {
+        // Nastavení CSS proměnné pro prstenec (vyžaduje úpravu v CSS níže)
+        energyRing.style.setProperty('--ring-color', pColor);
+    }
     
-    // Pokud je hra připravena, ukaž počty. Jinak ukaž varování.
     const deckInfo = document.getElementById("deck-info");
     if (isGameReady) {
-        deckInfo.innerText = `Otázky: ${questions.length} | Černé: ${spares.length}`;
-        deckInfo.style.color = "#ccc";
+        deckInfo.innerText = `V ZÁSOBNÍKU: ${questions.length} | ROZSTŘEL: ${spares.length}`;
+        deckInfo.style.color = pColor;
     }
+}
+
+// Funkce pro "Novou hru" z vítězné obrazovky (bez resetu otázek)
+function startNewRound() {
+    // Reset herního pole v paměti
+    board.fill(0);
+    currentField = null;
+    currentPlayer = 1; // Začíná oranžový
+    
+    // Skrytí vítězné obrazovky
+    document.getElementById("victory-overlay").style.display = "none";
+    
+    // Překreslení prázdné plochy
+    drawBoard();
+    updateStatus();
+    
+    console.log("Nové kolo spuštěno. Otázky v zásobníku zůstávají.");
 }
 
 // --- KONTROLA VÝHRY ---
