@@ -19,7 +19,8 @@ let isGameReady = false; // Nová proměnná: Hra není připravena
 const neighbors = [[],[2,3],[1,3,4,5],[1,2,5,6],[2,5,7,8],[2,3,4,6,8,9],[3,5,9,10],[4,8,11,12],[4,5,7,9,12,13],[5,6,8,10,13,14],[6,9,14,15],[7,12,16,17],[7,8,11,13,17,18],[8,9,12,14,18,19],[9,10,13,15,19,20],[10,14,20,21],[11,17,22,23],[11,12,16,18,23,24],[12,13,17,19,24,25],[13,14,18,20,25,26],[14,15,19,21,26,27],[15,20,27,28],[16,23],[16,17,22,24],[17,18,23,25],[18,19,24,26],[19,20,25,27],[20,21,26,28],[21,27]];
 
 const svg = document.getElementById("game-board");
-
+// Změna proměnné globálně pro celý dokument
+document.documentElement.style.setProperty('--ring-color', pColor);
 // --- INICIALIZACE ---
 function initGame() {
     // Zamknout plochu při startu
