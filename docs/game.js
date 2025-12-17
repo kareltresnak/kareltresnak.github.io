@@ -1,232 +1,220 @@
-// --- STAV HRY A PROMĚNNÉ ---
-// Výchozí pole jsou nyní prázdná - musí se nahrát
-let dbMain = [];
-let dbSpare = [];
-
-let questions = [];
-let spares = [];
-
-// Stav herní plochy
-// 0 = Volné, 1 = Oranž, 2 = Modrá, 3 = Černé
-const board = new Array(29).fill(0);
-
-let currentPlayer = 1; 
+let dbMain = [], dbSpare = [];
+let questions = [], spares = [];
+let board = Array(29).fill(0);
+let currentPlayer = 1; // 1 = Oranžoví, 2 = Modří
 let currentField = null;
-let timerInterval = null;
-let timeLeft = 20;
-let isGameReady = false; // Nová proměnná: Hra není připravena
+let isGameReady = false;
 
-const neighbors = [[],[2,3],[1,3,4,5],[1,2,5,6],[2,5,7,8],[2,3,4,6,8,9],[3,5,9,10],[4,8,11,12],[4,5,7,9,12,13],[5,6,8,10,13,14],[6,9,14,15],[7,12,16,17],[7,8,11,13,17,18],[8,9,12,14,18,19],[9,10,13,15,19,20],[10,14,20,21],[11,17,22,23],[11,12,16,18,23,24],[12,13,17,19,24,25],[13,14,18,20,25,26],[14,15,19,21,26,27],[15,20,27,28],[16,23],[16,17,22,24],[17,18,23,25],[18,19,24,26],[19,20,25,27],[20,21,26,28],[21,27]];
+// Sousedé pro kontrolu (mapa sousedů v pyramidě)
+const neighbors = {
+    1:[2,3], 2:[1,3,4,5], 3:[1,2,5,6], 4:[2,5,7,8], 5:[2,3,4,6,8,9], 6:[3,5,9,10],
+    7:[4,8,11,12], 8:[4,5,7,9,12,13], 9:[5,6,8,10,13,14], 10:[6,9,14,15],
+    11:[7,12,16,17], 12:[7,8,11,13,17,18], 13:[8,9,12,14,18,19], 14:[9,10,13,15,19,20], 15:[10,14,20,21],
+    16:[11,17,22,23], 17:[11,12,16,18,23,24], 18:[12,13,17,19,24,25], 19:[13,14,18,20,25,26], 20:[14,15,19,21,26,27], 21:[15,20,27,28],
+    22:[16,23], 23:[16,17,22,24], 24:[17,18,23,25], 25:[18,19,24,26], 26:[19,20,25,27], 27:[20,21,26,28], 28:[21,27]
+};
 
-const svg = document.getElementById("game-board");
-// Změna proměnné globálně pro celý dokument
-document.documentElement.style.setProperty('--ring-color', pColor);
-// --- INICIALIZACE ---
 function initGame() {
-    // Zamknout plochu při startu
-    const boardEl = document.getElementById("game-board");
-    boardEl.classList.add("board-locked");
-    
-    // Rozblikat tlačítko nahrát
-    document.querySelector(".btn-file").classList.add("pulse-animation");
-    
-    // Nastavit status
-    document.getElementById("deck-info").innerText = "⛔ ČEKÁM NA SOUBOR OTÁZEK";
-    document.getElementById("deck-info").style.color = "#e74c3c";
-
     drawBoard();
     updateStatus();
 }
 
-// --- RENDEROVÁNÍ PLOCHY ---
 function drawBoard() {
-    svg.innerHTML = ''; 
-    svg.innerHTML += '<defs><linearGradient id="grad-orange" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#f39c12"/><stop offset="100%" style="stop-color:#d35400"/></linearGradient><linearGradient id="grad-blue" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#3498db"/><stop offset="100%" style="stop-color:#2980b9"/></linearGradient></defs>';
-    
-    const r = 40; const h = Math.sqrt(3) * r;
-    const startX = 325; const startY = 50;
-    const structure = [[1], [2,3], [4,5,6], [7,8,9,10], [11,12,13,14,15], [16,17,18,19,20,21], [22,23,24,25,26,27,28]];
+    const svg = document.getElementById("game-board");
+    svg.innerHTML = "";
+    const rows = [1, 2, 3, 4, 5, 6, 7];
+    let count = 1;
+    // Původní rozměry pro funkčnost
+    const size = 38; 
+    const dy = 60;
+    const dx = 70;
 
-    structure.forEach((row, rIdx) => {
-        const y = startY + (rIdx * h * 0.88);
-        const rowWidth = row.length * h;
-        const rowStartX = startX - (rowWidth / 2) + (h/2);
-        row.forEach((id, cIdx) => {
-            createHex(rowStartX + (cIdx * h), y, r, id);
-        });
+    rows.forEach((rCount, rIdx) => {
+        const startX = 325 - (rCount - 1) * (dx / 2);
+        for (let i = 0; i < rCount; i++) {
+            const x = startX + i * dx;
+            const y = 50 + rIdx * dy;
+            createHex(svg, x, y, count++);
+        }
     });
 }
 
-function createHex(x, y, r, id) {
-    let pts = "";
-    for(let i=0; i<6; i++) {
-        const angle = (60 * i - 30) * Math.PI / 180;
-        pts += `${x + r * Math.cos(angle)},${y + r * Math.sin(angle)} `;
+function createHex(svg, x, y, id) {
+    const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    g.setAttribute("class", "hex-group");
+    if(!isGameReady) {
+        // V CSS se o zbytek postará třída board-locked
     }
-    const hex = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
-    hex.setAttribute("points", pts);
-    hex.setAttribute("class", "hex");
+
+    // Body pro hexagon
+    const points = [];
+    for (let i = 0; i < 6; i++) {
+        const angle = (i * 60 - 30) * Math.PI / 180;
+        points.push(`${x + 35 * Math.cos(angle)},${y + 35 * Math.sin(angle)}`);
+    }
+
+    const poly = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+    poly.setAttribute("points", points.join(" "));
+    poly.setAttribute("class", "hex"); // Základní třída
     
-    const st = board[id];
-    if(st === 1) hex.classList.add("player1");
-    else if(st === 2) hex.classList.add("player2");
-    else if(st === 3) hex.classList.add("black-active");
+    // Aplikace barev
+    if(board[id] === 0) {
+        // Volné pole (třída hex už má gradient v CSS)
+    } else if(board[id] === 1) {
+        poly.classList.add("player1");
+    } else if(board[id] === 2) {
+        poly.classList.add("player2");
+    } else if(board[id] === 3) {
+        poly.classList.add("black-active");
+    }
 
-    hex.onclick = () => handleHexClick(id);
+    const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    text.setAttribute("x", x);
+    text.setAttribute("y", y + 5); // Jemná korekce vertikálně
+    text.setAttribute("class", "hex-text");
+    text.textContent = id;
 
-    const txt = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    txt.setAttribute("x", x); txt.setAttribute("y", y);
-    txt.setAttribute("class", "hex-text");
-    txt.setAttribute("dy", "0.35em");
-    txt.textContent = id;
-
-    svg.appendChild(hex);
-    svg.appendChild(txt);
+    g.appendChild(poly);
+    g.appendChild(text);
+    
+    g.onclick = () => onFieldClick(id);
+    
+    svg.appendChild(g);
 }
 
-// --- LOGIKA KLIKNUTÍ ---
-function handleHexClick(id) {
-    // Pojistka: Pokud hra není ready, nic nedělej (i když CSS pointer-events to blokuje taky)
-    if (!isGameReady) {
-        alert("Nejdříve musíte nahrát soubor s otázkami!");
-        return;
-    }
-
-    const st = board[id];
-    
-    if(st === 1 || st === 2) {
-        alert("Toto pole je již obsazené!");
-        return;
-    }
-
-    currentField = id;
-
-    // Pokud nemáme otázky (což by se nemělo stát díky isGameReady, ale pro jistotu)
-    if (questions.length === 0 && spares.length === 0) {
-        alert("Došly otázky! Nahrajte nový soubor.");
-        return;
-    }
-
-    // Černé pole -> Náhradní
-    if (st === 3) {
-        if(spares.length === 0) {
-            // Pokud dojdou náhradní, recyklujeme
-            spares = [...dbSpare].sort(()=>Math.random()-0.5);
+function loadXML(input) {
+    const f = input.files[0];
+    if(!f) return;
+    const r = new FileReader();
+    r.onload = e => {
+        const p = new DOMParser();
+        const x = p.parseFromString(e.target.result, "text/xml");
+        const n = x.getElementsByTagName("otazka");
+        
+        let newMain = [], newSpare = [];
+        for(let el of n) {
+            try {
+                const t = el.getElementsByTagName("text")[0].textContent;
+                const a = el.getElementsByTagName("odpoved")[0].textContent;
+                const typ = el.getAttribute("typ");
+                if(typ==="nahradni") newSpare.push({q:t, a:a}); else newMain.push({q:t, a:a});
+            } catch(e){}
         }
-        showModal(spares.pop(), "ČERNÉ POLE (ANO / NE)");
+        
+        dbMain = [...newMain];
+        dbSpare = [...newSpare];
+        questions = [...dbMain].sort(()=>Math.random()-0.5);
+        spares = [...dbSpare].sort(()=>Math.random()-0.5);
+        
+        isGameReady = true;
+        
+        // Odemčení desky - odstranění board-locked a přidání board-active
+        const boardWrapper = document.getElementById("game-board");
+        // boardWrapper je SVG, ale třídu board-locked/active dáváme obvykle na kontejner nebo přímo na SVG
+        // V CSS je board-locked definováno, aplikujeme ho.
+        boardWrapper.classList.remove("board-locked");
+        boardWrapper.classList.add("board-active");
+
+        document.querySelector(".btn-file").style.borderColor = "#00ff00";
+        alert("Data nahrána! Aréna aktivována.");
+        drawBoard();
+        updateStatus();
+    };
+    r.readAsText(f);
+}
+
+function updateStatus() {
+    const pName = currentPlayer === 1 ? "ORANŽOVÍ" : "MODŘÍ";
+    const indicator = document.getElementById("active-player-name");
+    
+    indicator.textContent = pName;
+    if(currentPlayer === 1) {
+        indicator.style.color = "var(--neon-orange)";
+        indicator.style.boxShadow = "0 0 20px var(--neon-orange), inset 0 0 10px var(--neon-orange)";
+        indicator.style.borderColor = "var(--neon-orange)";
     } else {
-        // Bílé pole -> Hlavní
-        if(questions.length === 0) {
-             questions = [...dbMain].sort(()=>Math.random()-0.5);
-        }
-        showModal(questions.pop(), `Otázka o pole ${id}`);
+        indicator.style.color = "var(--neon-blue)";
+        indicator.style.boxShadow = "0 0 20px var(--neon-blue), inset 0 0 10px var(--neon-blue)";
+        indicator.style.borderColor = "var(--neon-blue)";
+    }
+    
+    const deckInfo = document.getElementById("deck-info");
+    if(isGameReady) {
+        deckInfo.innerText = `OTÁZKY: ${questions.length} | ROZSTŘEL: ${spares.length}`;
     }
 }
 
-function loadSpareQuestion() {
-    if (!isGameReady) return;
-    if(spares.length === 0) spares = [...dbSpare].sort(()=>Math.random()-0.5);
-    showModal(spares.pop(), "ČERNÉ POLE (ANO / NE)");
+function onFieldClick(id) {
+    if(!isGameReady || board[id] !== 0) return;
+    if(questions.length === 0) { alert("Došly otázky!"); return; }
+    
+    currentField = id;
+    const q = questions.pop();
+    showModal(q.q, q.a);
+    updateStatus();
 }
 
-function showModal(qData, title) {
-    const m = document.getElementById("modal-overlay");
-    m.style.display = "flex";
-    document.getElementById("question-label").textContent = title;
-    document.getElementById("question-text").textContent = qData.q;
-    document.getElementById("correct-answer").textContent = qData.a;
+function showModal(q, a) {
+    document.getElementById("question-text").textContent = q;
+    document.getElementById("correct-answer").textContent = a;
     
-    document.getElementById("btn-reveal").style.display = "block";
+    const overlay = document.getElementById("modal-overlay");
+    overlay.style.display = "flex";
+    
+    document.getElementById("btn-reveal").style.display = "inline-block";
     document.getElementById("answer-wrapper").style.display = "none";
+    
     startTimer();
 }
 
-// --- ČASOVAČ ---
+let timerInterval;
 function startTimer() {
-    timeLeft = 20;
-    const t = document.getElementById("timer");
-    t.textContent = timeLeft;
+    let t = 20;
+    const el = document.getElementById("timer");
+    el.textContent = t;
     clearInterval(timerInterval);
     timerInterval = setInterval(() => {
-        timeLeft--;
-        t.textContent = timeLeft;
-        if(timeLeft <= 0) {
-            clearInterval(timerInterval);
-            revealAnswer();
-        }
+        t--;
+        el.textContent = t;
+        if(t <= 0) clearInterval(timerInterval);
     }, 1000);
 }
 
 function revealAnswer() {
-    clearInterval(timerInterval);
     document.getElementById("btn-reveal").style.display = "none";
     document.getElementById("answer-wrapper").style.display = "block";
+    clearInterval(timerInterval);
 }
 
-// --- VYHODNOCENÍ TAHU ---
 function finalizeTurn(success) {
     document.getElementById("modal-overlay").style.display = "none";
-    
-    if (success) {
+    if(success) {
         board[currentField] = currentPlayer;
         checkWin(currentPlayer);
     } else {
-        board[currentField] = 3;
+        // Pokud odpověděli špatně, pole zčerná (blokováno)
+        // V AZ kvízu se obvykle stává neutrálním nebo černým, zde dáme 3 (černá)
+        board[currentField] = 3; 
     }
-
+    
     currentPlayer = currentPlayer === 1 ? 2 : 1;
     drawBoard();
     updateStatus();
 }
 
-function updateStatus() {
-    const pName = currentPlayer === 1 ? "ORANŽOVÍ" : "MODŘÍ";
-    const pColor = currentPlayer === 1 ? "#ff8800" : "#00aaff"; 
+function loadSpareQuestion() {
+    if(spares.length === 0) { alert("Došly náhradní otázky!"); return; }
+    const q = spares.pop();
     
-    // 1. Jméno týmu
-    const indicator = document.getElementById("active-player-name");
-    indicator.textContent = pName;
-    indicator.style.color = pColor;
-    indicator.style.textShadow = `0 0 20px ${pColor}`;
-
-    // 2. OPRAVA BARVY: Cílíme přímo na kontejner, který má definovanou proměnnou
-    const ringElement = document.querySelector(".board-energy-ring");
-    if (ringElement) {
-        ringElement.style.setProperty('--ring-color', pColor);
-    }
-
-    // 3. POJISTKA ZOBRAZENÍ: Vynutíme zobrazení pole, pokud by náhodou zmizelo
-    const boardEl = document.getElementById("game-board");
-    if (boardEl) {
-        boardEl.style.display = "block";
-        boardEl.style.visibility = "visible";
-        boardEl.style.opacity = "1";
-    }
-    
-    const deckInfo = document.getElementById("deck-info");
-    if (isGameReady) {
-        deckInfo.innerText = `V ZÁSOBNÍKU: ${questions.length} | ROZSTŘEL: ${spares.length}`;
-        deckInfo.style.color = pColor;
-    }
-}
-// Funkce pro "Novou hru" z vítězné obrazovky (bez resetu otázek)
-function startNewRound() {
-    // Reset herního pole v paměti
-    board.fill(0);
-    currentField = null;
-    currentPlayer = 1; // Začíná oranžový
-    
-    // Skrytí vítězné obrazovky
-    document.getElementById("victory-overlay").style.display = "none";
-    
-    // Překreslení prázdné plochy
-    drawBoard();
+    // Reset modálu pro novou otázku
+    document.getElementById("question-text").textContent = q.q;
+    document.getElementById("correct-answer").textContent = q.a;
+    document.getElementById("btn-reveal").style.display = "inline-block";
+    document.getElementById("answer-wrapper").style.display = "none";
+    startTimer();
     updateStatus();
-    
-    console.log("Nové kolo spuštěno. Otázky v zásobníku zůstávají.");
 }
 
-// --- KONTROLA VÝHRY ---
 // --- KONTROLA VÝHRY (S GRANDIOZNÍM FINÁLE) ---
 function checkWin(p) {
     const sides = { L: [1,2,4,7,11,16,22], R: [1,3,6,10,15,21,28], B: [22,23,24,25,26,27,28] };
@@ -284,56 +272,9 @@ function triggerVictory(winnerId) {
     overlay.style.display = "flex";
 }
 
-// --- NAČÍTÁNÍ XML (ZDE SE ODEMYKÁ HRA) ---
-function loadXML(input) {
-    const f = input.files[0];
-    if(!f) return;
-    const r = new FileReader();
-    r.onload = e => {
-        const p = new DOMParser();
-        const x = p.parseFromString(e.target.result, "text/xml");
-        const n = x.getElementsByTagName("otazka");
-        
-        // Reset polí pro nová data
-        const newMain = [];
-        const newSpare = [];
-        
-        for(let el of n) {
-            try {
-                const t = el.getElementsByTagName("text")[0].textContent;
-                const a = el.getElementsByTagName("odpoved")[0].textContent;
-                const typ = el.getAttribute("typ");
-                if(typ==="nahradni") newSpare.push({q:t, a:a}); else newMain.push({q:t, a:a});
-            }catch(e){}
-        }
-
-        if (newMain.length === 0 && newSpare.length === 0) {
-            alert("Chyba: V souboru nebyly nalezeny žádné otázky!");
-            return;
-        }
-
-        // Uložení do globálních proměnných
-        dbMain = [...newMain];
-        dbSpare = [...newSpare];
-        questions = [...dbMain].sort(()=>Math.random()-0.5);
-        spares = [...dbSpare].sort(()=>Math.random()-0.5);
-
-        // --- ODEMČENÍ HRY ---
-        isGameReady = true;
-        
-        // Vizuální odemčení
-        const boardEl = document.getElementById("game-board");
-        boardEl.classList.remove("board-locked");
-        boardEl.classList.add("board-active");
-
-        // Zastavit blikání tlačítka
-        document.querySelector(".btn-file").classList.remove("pulse-animation");
-        drawBoard();
-        alert(`Úspěšně nahráno!\n${newMain.length} hlavních otázek\n${newSpare.length} náhradních otázek.\n\nHra začíná!`);
-        updateStatus();
-    };
-    r.readAsText(f);
-}
-
-// Spuštění
-initGame();
+// Inicializace po načtení
+window.onload = () => {
+    initGame();
+    // Zamkneme desku na začátku (vizuálně)
+    document.getElementById("game-board").classList.add("board-locked");
+};
