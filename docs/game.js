@@ -181,20 +181,22 @@ function finalizeTurn(success) {
 
 function updateStatus() {
     const pName = currentPlayer === 1 ? "ORANŽOVÍ" : "MODŘÍ";
-    const pColor = currentPlayer === 1 ? "#ff8800" : "#00aaff"; // Barvy z CSS proměnných
+    const pColor = currentPlayer === 1 ? "#ff8800" : "#00aaff"; 
     
+    // 1. Změna textu
     const indicator = document.getElementById("active-player-name");
     indicator.textContent = pName;
     indicator.style.color = pColor;
-    indicator.style.textShadow = `0 0 20px ${pColor}, 0 0 40px ${pColor}`;
-    indicator.style.borderColor = pColor;
+    indicator.style.textShadow = `0 0 20px ${pColor}`;
 
-    // --- NOVINKA: Změna barvy energetického prstence ---
+    // 2. Vynucení barvy prstence přes style atribut přímo v HTML
     const energyRing = document.querySelector(".board-energy-ring");
     if (energyRing) {
-        // Nastavení CSS proměnné pro prstenec (vyžaduje úpravu v CSS níže)
-        energyRing.style.setProperty('--ring-color', pColor);
+        energyRing.style.setProperty('--ring-color', pColor, 'important');
     }
+
+    // 3. Pomocný indikátor pro tebe (změní i barvu pozadí celého webu velmi jemně)
+    // document.body.style.shadow = `inset 0 0 100px ${pColor}33`; // Volitelné: jemná záře u okrajů obrazovky
     
     const deckInfo = document.getElementById("deck-info");
     if (isGameReady) {
@@ -202,7 +204,6 @@ function updateStatus() {
         deckInfo.style.color = pColor;
     }
 }
-
 // Funkce pro "Novou hru" z vítězné obrazovky (bez resetu otázek)
 function startNewRound() {
     // Reset herního pole v paměti
