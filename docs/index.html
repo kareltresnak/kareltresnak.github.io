@@ -37,7 +37,9 @@
         </defs>
     </svg>
 
-    <div class="stage-floor"></div> <div class="light-beams"></div> <div class="particles"></div>   <div class="main-container">
+    <div class="stage-floor"></div> <div class="light-beams"></div> <div class="particles"></div>   
+    
+    <div class="main-container">
         <h1>AZ KVÍZ <span class="edition-badge">CYBER ARENA</span></h1>
         
         <div class="controls glass-panel">
@@ -88,13 +90,16 @@
             </div>
         </div>
     </div>
+
     <div id="victory-overlay">
         <div class="victory-content">
-            <div class="victory-sparks"></div> <h1 class="victory-title">VÍTĚZSTVÍ!</h1>
+            <div class="victory-sparks"></div> 
+            <h1 class="victory-title">VÍTĚZSTVÍ!</h1>
             <h2 id="winner-name" class="winner-team-name">ORANŽOVÍ</h2>
-            <button class="btn btn-reset victory-reset-btn" onclick="startNewRound()">DALŠÍ KOLO (ZACHOVAT OTÁZKY)</button>
+            <button class="btn btn-reset victory-reset-btn" onclick="location.reload()">NOVÁ HRA</button>
         </div>
     </div>
+
     <script src="game.js"></script>
 </body>
 </html>
