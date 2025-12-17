@@ -1,2 +1,1 @@
-# kareltresnak.github.io
-GitHub Pages
+# AZ-Kvíz - Gemini 3 Pro
