@@ -298,7 +298,29 @@ h1 {
     transition: 0.3s; box-shadow: 0 0 15px rgba(188, 19, 254, 0.3);
 }
 .btn-spare:hover { background: var(--neon-purple); color: white; box-shadow: 0 0 30px var(--neon-purple); }
-#answer-wrapper { display: none; margin-top: 40px; border-top: 2px dashed rgba(255,255,255,0.2); padding-top: 30px; }
+#answer-wrapper {
+    display: none; 
+    margin-top: 40px; 
+    border-top: 2px dashed rgba(255,255,255,0.2); 
+    padding-top: 30px;
+    
+    /* PŘIDÁNO: Animace příletu */
+    animation: slideInGlitch 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+    transform-origin: top;
+}
+
+@keyframes slideInGlitch {
+    0% { 
+        opacity: 0; 
+        transform: scaleY(0); 
+        filter: blur(10px);
+    }
+    100% { 
+        opacity: 1; 
+        transform: scaleY(1); 
+        filter: blur(0);
+    }
+}
 .label-answer { color: #2ecc71; font-size: 1rem; letter-spacing: 3px; font-weight: 700; margin-bottom: 10px; font-family: monospace; }
 #correct-answer { 
     font-size: 1.8rem; color: #fff; font-weight: 900; margin-bottom: 30px; 
