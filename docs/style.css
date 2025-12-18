@@ -84,7 +84,14 @@ body {
     
     width: 100%; max-width: 1400px; height: 100%; z-index: 1;
 }
-
+/* Najdi .logo-box nebo přidej toto: */
+.logo-box {
+    text-align: center;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
 /* --- NADPIS --- */
 h1 {
     font-size: 2.8rem; font-weight: 900; margin: 5px 0 25px 0; letter-spacing: 5px;
