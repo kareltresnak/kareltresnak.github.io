@@ -428,26 +428,43 @@ window.onload = () => {
 
 // --- FUNKCE PRO ZÁSOBNÍK (DALŠÍ KOLO) ---
 function startNewRound() {
-    console.log("Startuji nové kolo..."); // Kontrola v konzoli
+    // 1. Pojistka proti nechtěnému kliknutí
+    if(!confirm("Opravdu chcete restartovat celou hru? Herní pole bude vyčištěno.")) return;
+
+    // 2. Vymazání herního pole (logika)
+    board = Array(28).fill(0); 
     
-    // 1. Reset herního pole (logika)
-    board.fill(0); 
-    currentField = null;
-    currentPlayer = 1; 
-    
-    // 2. Skrytí vítězné obrazovky
-    const victoryOverlay = document.getElementById("victory-overlay");
-    if (victoryOverlay) {
-        victoryOverlay.style.display = "none";
-        // Resetujeme třídy pro příští hru
-        victoryOverlay.classList.remove("win-orange", "win-blue");
+    // 3. Vymazání herního pole (grafika)
+    const hexes = document.querySelectorAll('.hex');
+    hexes.forEach(hex => {
+        hex.classList.remove('orange', 'blue', 'black');
+    });
+
+    // 4. Reset hráče na začátek (Oranžoví)
+    currentPlayer = 1;
+
+    // 5. KLÍČOVÉ: Obnovení otázek ze zálohy a jejich ZAMÍCHÁNÍ
+    // (Vezme data, co jste nahráli, a znovu je náhodně seřadí)
+    if (typeof dbMain !== 'undefined' && dbMain.length > 0) {
+        questions = shuffleArray([...dbMain]); 
+        spares = shuffleArray([...dbSpare]);
+        cyberSpeak("Restart systému. Otázky byly promíchány.");
+    } else {
+        questions = [];
+        spares = [];
+        cyberSpeak("Systém restartován. Žádná data v paměti.");
     }
+
+    // 6. Schování všech oken (pokud by nějaké viselo)
+    document.getElementById("modal-overlay").style.display = "none";
+    document.getElementById("victory-overlay").style.display = "none";
+    document.getElementById("datacenter-overlay").style.display = "none";
     
-    // 3. Grafický reset
-    drawBoard();
+    // 7. Reset časovače
+    if (typeof timerInterval !== 'undefined') clearInterval(timerInterval);
+
+    // 8. Aktualizace textů a barev
     updateStatus();
-    
-    alert("Pokračujeme! Otázky v zásobníku zůstaly zachovány.");
 }
 function toggleVoice() {
     voiceEnabled = !voiceEnabled;
