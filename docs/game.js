@@ -232,35 +232,41 @@ function onFieldClick(id) {
     updateStatus();
 }
 
-function showModal(q, a) {
+function showModal(q, a, isSpare = false) {
     document.getElementById("question-text").textContent = q;
     document.getElementById("correct-answer").textContent = a;
     
+    // Reset zobrazení (Schováme odpověď, ukážeme tlačítko)
     const overlay = document.getElementById("modal-overlay");
     overlay.style.display = "flex";
-    
     document.getElementById("btn-reveal").style.display = "inline-block";
     document.getElementById("answer-wrapper").style.display = "none";
     
+    // Spustíme odpočet (ten po skončení NIC neudělá, jen se zastaví - přesně jak chceš)
     startTimer();
     
-    // --- VYLEPŠENÝ AI HLAS (Náhodné fráze) ---
-    const prefixes = [
-        "Příchozí data.",
-        "Nová sekvence.",
-        "Otázka zní:",
-        "Analyzujte zadání:",
-        "Pozor, dotaz:",
-        "Dekódování zadání.",
-        "" // Někdy neřekne nic, jen přečte otázku (pro dynamiku)
-    ];
-    
-    // Náhodný výběr
-    const randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
-    
-    // Přečte náhodný úvod + text otázky
-    cyberSpeak(randomPrefix + " " + q); 
-}
+    // --- AI HLAS a ZMĚNA NADPISU ---
+    const labelEl = document.getElementById("question-label");
+
+    if (isSpare) {
+        // SPECIÁLNÍ REŽIM PRO ČERNÉ POLE
+        if(labelEl) labelEl.textContent = "// ROZSTŘEL (ANO/NE) //";
+        if(labelEl) labelEl.style.color = "#ff3f34"; // Červený text pro efekt
+        
+        cyberSpeak("Černé pole. Otázka Ano nebo Ne: " + q);
+    } else {
+        // KLASICKÝ REŽIM
+        if(labelEl) labelEl.textContent = "// PŘÍCHOZÍ DATA //";
+        if(labelEl) labelEl.style.color = "var(--neon-blue)";
+
+        const prefixes = [
+            "Příchozí data.", "Otázka zní:", "Analyzujte zadání:", 
+            "Pozor, dotaz:", "Nová sekvence.", ""
+        ];
+        const randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+        cyberSpeak(randomPrefix + " " + q);
+    }
+    }
 
 let timerInterval;
 function startTimer() {
