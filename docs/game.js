@@ -201,32 +201,35 @@ function updateStatus() {
     }
 }
 function onFieldClick(id) {
-    // 1. Povolíme kliknutí, pokud je pole prázdné (0) NEBO černé (3)
     const isFree = board[id] === 0;
     const isBlack = board[id] === 3;
 
-    if (!isGameReady) return; // Hra musí běžet
-    if (!isFree && !isBlack) return; // Pokud je pole už něčí (1 nebo 2), nejde na něj klikat
+    if (!isGameReady) return;
+    // Kliknout jde jen na prázdné nebo černé pole
+    if (!isFree && !isBlack) return; 
 
-    if(questions.length === 0) { 
-        alert("Došly otázky v zásobníku!"); 
-        return; 
-    }
-    
-    // 2. Nastavíme aktuální pole
+    // Kontrola, zda máme dostatek otázek v příslušném zásobníku
+    if (isFree && questions.length === 0) { alert("Došly základní otázky!"); return; }
+    if (isBlack && spares.length === 0) { alert("Došly náhradní otázky (ANO/NE)!"); return; }
+
     currentField = id;
-    
-    // 3. Vybereme otázku a zobrazíme ji
-    const q = questions.pop();
-    showModal(q.q, q.a);
-    
-    // 4. Aktualizace statusu (aby se odečetl počet otázek)
-    updateStatus();
+    let qObj;
+    let isSpare = false;
 
-    // Hlasový doprovod (pokud chceš)
+    // --- ROZHODOVÁNÍ O TYPU OTÁZKY ---
     if (isBlack) {
-        cyberSpeak("Pokus o získání černého pole. " + q.q);
-    } 
+        // Klikl jsi na černé -> bere se náhradní (ANO/NE)
+        qObj = spares.pop();
+        isSpare = true; 
+    } else {
+        // Klikl jsi na prázdné -> bere se normální
+        qObj = questions.pop();
+        isSpare = false;
+    }
+
+    // Pošleme informaci do modálu (isSpare = true/false)
+    showModal(qObj.q, qObj.a, isSpare);
+    updateStatus();
 }
 
 function showModal(q, a) {
