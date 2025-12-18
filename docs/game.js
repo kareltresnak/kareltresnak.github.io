@@ -281,46 +281,58 @@ function finalizeTurn(success) {
     document.getElementById("modal-overlay").style.display = "none";
     
     const isSpare = board[currentField] === 3; // Je to černé pole?
+    
+    // Proměnná, která určí, zda se má na konci přepnout hráč
+    // Defaultně se hráči střídají (true), ale existují výjimky
+    let shouldSwapPlayer = true;
 
     if (isSpare) {
         // --- PRAVIDLA PRO ČERNÉ POLE ---
         if (success) {
-            board[currentField] = currentPlayer; // Získal pole
-            currentPlayer = currentPlayer === 1 ? 2 : 1; // Střídání
+            // Odpověděl správně -> získal pole -> střídání
+            board[currentField] = currentPlayer; 
         } else {
             // Špatně -> Pole získává SOUPEŘ
             const opponent = currentPlayer === 1 ? 2 : 1;
             board[currentField] = opponent;
-            // A hráč hraje ZNOVU (neměníme currentPlayer)
+            
+            // PRAVIDLO: Ten co odpověděl špatně na černém poli, hraje ZNOVU
+            shouldSwapPlayer = false; 
             cyberSpeak("Chyba na černém poli. Pole získává soupeř, hrajete znovu.");
         }
     } else {
         // --- PRAVIDLA PRO NORMÁLNÍ POLE ---
         if (success) {
             if (isStealing) {
-                // Ukradl a odpověděl správně -> pole je jeho
-                board[currentField] = tempPlayer;
+                // Soupeř ukradl otázku a odpověděl správně
+                board[currentField] = tempPlayer; // Pole má zloděj
+                
+                // OPRAVA: Pokud soupeř ukradl otázku, tah se vrací původnímu týmu (tomu, co nevěděl).
+                // Protože 'currentPlayer' je stále nastaven na ten původní tým, NESMÍME ho přepnout.
+                shouldSwapPlayer = false; 
+                
             } else {
-                // Normálně odpověděl -> pole je jeho
+                // Hráč normálně odpověděl -> pole je jeho -> střídání
                 board[currentField] = currentPlayer;
             }
         } else {
-            // Nikdo neodpověděl -> černé pole
+            // Nikdo neodpověděl (ani po kradení) -> černé pole -> střídání
             board[currentField] = 3; 
         }
-        
-        // Vždy střídáme tah u normálních otázek
+    }
+
+    // Provedení změny tahu, pokud je to potřeba
+    if (shouldSwapPlayer) {
         currentPlayer = currentPlayer === 1 ? 2 : 1;
     }
 
     drawBoard();
     updateStatus();
     
-    // Kontrola výhry (pro oba, kdyby se něco změnilo na černém poli)
+    // Kontrola výhry pro oba týmy (kdyby se něco změnilo krádeží nebo chybou)
     checkWin(1);
     checkWin(2);
 }
-
 // ==========================================
 // 5. VÝHERNÍ LOGIKA (BFS)
 // ==========================================
