@@ -689,3 +689,151 @@ window.addEventListener('resize', () => {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 });
+// --- POMOCNÁ FUNKCE: MÍCHÁNÍ (SHUFFLE) ---
+// Důležité: Aby po nahrání souboru nešly otázky popořadě, ale náhodně
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
+// --- CENTRÁLNÍ DATOVÉ CENTRUM (Bez generátoru) ---
+
+function openDataCenter() {
+    document.getElementById("datacenter-overlay").style.display = "flex";
+    checkIntegrity(); 
+}
+
+function closeDataCenter() {
+    document.getElementById("datacenter-overlay").style.display = "none";
+    
+    // Pokud máme data, odemkneme hru
+    if (questions.length > 0) {
+        isGameReady = true; 
+        
+        const board = document.getElementById("game-board");
+        if(board) {
+            board.classList.remove("board-locked");
+            board.classList.add("board-active");
+        }
+        
+        updateStatus();
+        cyberSpeak("Systém aktivní. Aréna připravena.");
+    }
+}
+
+// Funkce pro kontrolu počtů (Červená/Zelená)
+function checkIntegrity() {
+    const mainCount = questions.length;
+    const spareCount = spares.length;
+
+    const indMain = document.getElementById("ind-main");
+    const indSpare = document.getElementById("ind-spare");
+
+    if (mainCount >= 28) {
+        indMain.className = "status-indicator valid";
+        indMain.innerText = `🟢 ZÁKLADNÍ OTÁZKY: ${mainCount} / 28 (OK)`;
+    } else {
+        indMain.className = "status-indicator invalid";
+        indMain.innerText = `🔴 ZÁKLADNÍ OTÁZKY: ${mainCount} / 28 (CHYBÍ ${28 - mainCount})`;
+    }
+
+    if (spareCount >= 28) {
+        indSpare.className = "status-indicator valid";
+        indSpare.innerText = `🟢 PRO ČERNÁ POLE: ${spareCount} / 28 (OK)`;
+    } else {
+        indSpare.className = "status-indicator invalid";
+        indSpare.innerText = `🔴 PRO ČERNÁ POLE: ${spareCount} / 28 (CHYBÍ ${28 - spareCount})`;
+    }
+}
+
+// Nahrání souboru + MÍCHÁNÍ
+function loadXMLInCenter(input) {
+    const f = input.files[0];
+    if(!f) return;
+    const r = new FileReader();
+    r.onload = e => {
+        const p = new DOMParser();
+        const x = p.parseFromString(e.target.result, "text/xml");
+        const n = x.getElementsByTagName("otazka");
+        
+        let newMain = [], newSpare = [];
+        for(let el of n) {
+            try {
+                const t = el.getElementsByTagName("text")[0].textContent;
+                const a = el.getElementsByTagName("odpoved")[0].textContent;
+                const typ = el.getAttribute("typ");
+                if(typ === "nahradni") newSpare.push({q:t, a:a}); else newMain.push({q:t, a:a});
+            } catch(err) {}
+        }
+        
+        // ZDE PROBÍHÁ ZAMÍCHÁNÍ (aby nešly popořadě)
+        questions = shuffleArray(newMain);
+        spares = shuffleArray(newSpare);
+        
+        dbMain = [...questions]; 
+        dbSpare = [...spares];
+        
+        checkIntegrity(); 
+        cyberSpeak("Data importována a promíchána.");
+    };
+    r.readAsText(f);
+}
+
+// Ruční přidání otázky
+function addQFromCenter() {
+    const qText = document.getElementById("dc-q-text").value.trim();
+    const qAns = document.getElementById("dc-q-ans").value.trim();
+    const type = document.querySelector('input[name="dc-type"]:checked').value;
+
+    if (!qText || !qAns) {
+        alert("Chyba: Vyplňte otázku i odpověď.");
+        return;
+    }
+
+    const newQ = { q: qText, a: qAns };
+
+    if (type === "spare") {
+        spares.push(newQ);
+        dbSpare.push(newQ);
+    } else {
+        questions.push(newQ);
+        dbMain.push(newQ);
+    }
+
+    document.getElementById("dc-q-text").value = "";
+    document.getElementById("dc-q-ans").value = "";
+    document.getElementById("dc-q-text").focus();
+    
+    checkIntegrity(); 
+    cyberSpeak("Položka přidána.");
+}
+
+// Export do XML
+function downloadXML() {
+    let xmlContent = '<?xml version="1.0" encoding="UTF-8"?>\n<kviz>\n';
+    
+    questions.forEach(q => {
+        xmlContent += `    <otazka typ="zakladni">\n        <text>${q.q}</text>\n        <odpoved>${q.a}</odpoved>\n    </otazka>\n`;
+    });
+
+    spares.forEach(q => {
+        xmlContent += `    <otazka typ="nahradni">\n        <text>${q.q}</text>\n        <odpoved>${q.a}</odpoved>\n    </otazka>\n`;
+    });
+
+    xmlContent += '</kviz>';
+
+    const blob = new Blob([xmlContent], { type: "text/xml" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "az_kviz_databaze.xml";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    cyberSpeak("Databáze uložena.");
+}
