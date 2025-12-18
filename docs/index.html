@@ -16,19 +16,16 @@
                 <stop offset="50%" style="stop-color:#ff7b00; stop-opacity:1" />
                 <stop offset="100%" style="stop-color:#ff0000; stop-opacity:1" />
             </linearGradient>
-            
             <linearGradient id="grad-blue" x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" style="stop-color:#00ffff; stop-opacity:1" />
                 <stop offset="50%" style="stop-color:#008cff; stop-opacity:1" />
                 <stop offset="100%" style="stop-color:#0000ff; stop-opacity:1" />
             </linearGradient>
-
             <radialGradient id="grad-black" cx="50%" cy="50%" r="60%" fx="50%" fy="50%">
                 <stop offset="0%" style="stop-color:#333333; stop-opacity:1" />
                 <stop offset="80%" style="stop-color:#0a0a0a; stop-opacity:1" />
                 <stop offset="100%" style="stop-color:#220000; stop-opacity:1" />
             </radialGradient>
-
             <linearGradient id="grad-free" x1="0%" y1="0%" x2="100%" y2="100%" gradientTransform="rotate(30)">
                 <stop offset="0%" style="stop-color:#ffffff; stop-opacity:1" />
                 <stop offset="40%" style="stop-color:#dcdde1; stop-opacity:1" />
@@ -43,27 +40,27 @@
         <h1>AZ KVÍZ <span class="edition-badge">CYBER ARENA</span></h1>
         
         <div class="controls glass-panel">
-    <div class="controls-group left">
-        <button class="btn" onclick="openDataCenter()" style="border-bottom: 3px solid #f1c40f;">
-            <span class="btn-icon">💾</span> DATABÁZE & DATA
-        </button>
-    </div>
-    
-    <div class="status-box">
-        <div id="status-text">STATUS ARÉNY</div>
-        <div id="active-player-name" class="player-indicator orange-glow">ORANŽOVÍ</div>
-        <div id="deck-info">Čekám na data...</div>
-    </div>
-    
-    <div class="controls-group right">
-        <button class="btn" onclick="toggleVoice()" id="btn-voice" style="border-bottom: 3px solid #2ecc71;">
-            <span class="btn-icon">🔊</span> ZVUK: ZAP
-        </button>
-        <button class="btn btn-reset" onclick="startNewRound()">
-            <span class="btn-icon">🔄</span> Restart
-        </button>
-    </div>
-</div>
+            <div class="controls-group left">
+                <button class="btn" onclick="openDataCenter()" style="border-bottom: 3px solid #f1c40f;">
+                    <span class="btn-icon">💾</span> DATABÁZE & DATA
+                </button>
+            </div>
+            
+            <div class="status-box">
+                <div id="status-text">STATUS ARÉNY</div>
+                <div id="active-player-name" class="player-indicator orange-glow">ORANŽOVÍ</div>
+                <div id="deck-info">Čekám na data...</div>
+            </div>
+            
+            <div class="controls-group right">
+                <button class="btn" onclick="toggleVoice()" id="btn-voice" style="border-bottom: 3px solid #2ecc71;">
+                    <span class="btn-icon">🔇</span> ZVUK: VYP
+                </button>
+                <button class="btn btn-reset" onclick="startNewRound()">
+                    <span class="btn-icon">🔄</span> Restart
+                </button>
+            </div>
+        </div>
 
         <div class="board-energy-ring">
             <div class="board-wrapper">
@@ -79,6 +76,15 @@
             <div class="timer-container">
                 <div class="timer-ring" id="timer">20</div>
             </div>
+
+            <div id="steal-wrapper" style="display:none;">
+                <div class="label-answer" style="color: #f1c40f; font-size: 1.2rem;">⏳ ŠPATNÁ ODPOVĚĎ</div>
+                <p style="color: white; margin: 15px 0; font-size: 1.2rem; font-weight: bold;">CHCE ODPOVÍDAT SOUPEŘ?</p>
+                <div class="buttons-row">
+                    <button class="mod-btn btn-steal-yes" onclick="stealQuestion(true)">ANO (Zkusit)</button>
+                    <button class="mod-btn btn-steal-no" onclick="stealQuestion(false)">NE (Odkrýt)</button>
+                </div>
+            </div>
             
             <div id="question-label">// PŘÍCHOZÍ DATA //</div>
             <div id="question-text">...</div>
@@ -89,7 +95,7 @@
                 <div class="label-answer">// ANALÝZA ODPOVĚDI //</div>
                 <div id="correct-answer">...</div>
 
-                <div class="buttons-row">
+                <div class="buttons-row" id="moderator-buttons">
                     <button class="mod-btn btn-ok" onclick="finalizeTurn(true)">SCHVÁLIT</button>
                     <button class="mod-btn btn-fail" onclick="finalizeTurn(false)">ZAMÍTNOUT</button>
                 </div>
@@ -105,57 +111,58 @@
             <button class="btn btn-reset victory-reset-btn" onclick="startNewRound()">DALŠÍ KOLO (ZACHOVAT OTÁZKY)</button>
         </div>
     </div>
+
     <div id="datacenter-overlay" style="display:none;">
-    <div class="datacenter-window glass-panel">
-        <h2 class="editor-title">SPRÁVA DATABÁZE</h2>
-        
-        <div class="db-status-panel">
-            <div class="status-indicator" id="ind-main">
-                🔴 ZÁKLADNÍ OTÁZKY: 0 / 28
-            </div>
-            <div class="status-indicator" id="ind-spare">
-                🔴 PRO ČERNÁ POLE: 0 / 28
-            </div>
-        </div>
-
-        <div class="datacenter-grid">
-            <div class="dc-column">
-                <h3>📂 NAHRÁT SOUBOR (XML)</h3>
-                <label class="drop-zone">
-                    <span class="btn-icon">📥</span> Klikni pro výběr souboru
-                    <input type="file" accept=".xml" onchange="loadXMLInCenter(this)">
-                </label>
-                <p class="small-info">⚠️ Nahrání souboru přepíše aktuální seznam.</p>
-            </div>
-
-            <div class="dc-column right-col">
-                <h3>✏️ RUČNÍ ZADÁNÍ</h3>
-                <input type="text" id="dc-q-text" class="cyber-input" placeholder="Znění otázky...">
-                <input type="text" id="dc-q-ans" class="cyber-input" placeholder="Správná odpověď...">
-                
-                <div class="type-selector">
-                    <label class="radio-label">
-                        <input type="radio" name="dc-type" value="main" checked> Základní
-                    </label>
-                    <label class="radio-label">
-                        <input type="radio" name="dc-type" value="spare"> Černé pole (Ano/Ne)
-                    </label>
+        <div class="datacenter-window glass-panel">
+            <h2 class="editor-title">SPRÁVA DATABÁZE</h2>
+            
+            <div class="db-status-panel">
+                <div class="status-indicator" id="ind-main">
+                    🔴 ZÁKLADNÍ OTÁZKY: 0 / 28
                 </div>
-                
-                <button class="btn btn-small" onclick="addQFromCenter()">➕ PŘIDAT OTÁZKU</button>
+                <div class="status-indicator" id="ind-spare">
+                    🔴 PRO ČERNÁ POLE: 0 / 28
+                </div>
             </div>
-        </div>
 
-        <div class="editor-actions">
-            <button class="btn btn-save" onclick="downloadXML()">
-                <span class="btn-icon">⬇️</span> STÁHNOUT XML
-            </button>
-            <button class="btn btn-close" onclick="closeDataCenter()">
-                ✅ HOTOVO & ZAVŘÍT
-            </button>
+            <div class="datacenter-grid">
+                <div class="dc-column">
+                    <h3>📂 NAHRÁT SOUBOR (XML)</h3>
+                    <label class="drop-zone">
+                        <span class="btn-icon">📥</span> Klikni pro výběr souboru
+                        <input type="file" accept=".xml" onchange="loadXMLInCenter(this)">
+                    </label>
+                    <p class="small-info">⚠️ Nahrání souboru přepíše aktuální seznam.</p>
+                </div>
+
+                <div class="dc-column right-col">
+                    <h3>✏️ RUČNÍ ZADÁNÍ</h3>
+                    <input type="text" id="dc-q-text" class="cyber-input" placeholder="Znění otázky...">
+                    <input type="text" id="dc-q-ans" class="cyber-input" placeholder="Správná odpověď...">
+                    
+                    <div class="type-selector">
+                        <label class="radio-label">
+                            <input type="radio" name="dc-type" value="main" checked> Základní
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="dc-type" value="spare"> Černé pole (Ano/Ne)
+                        </label>
+                    </div>
+                    
+                    <button class="btn btn-small" onclick="addQFromCenter()">➕ PŘIDAT OTÁZKU</button>
+                </div>
+            </div>
+
+            <div class="editor-actions">
+                <button class="btn btn-save" onclick="downloadXML()">
+                    <span class="btn-icon">⬇️</span> STÁHNOUT XML
+                </button>
+                <button class="btn btn-close" onclick="closeDataCenter()">
+                    ✅ HOTOVO & ZAVŘÍT
+                </button>
+            </div>
         </div>
     </div>
-</div>
     <script src="game.js"></script>
 </body>
 </html>
