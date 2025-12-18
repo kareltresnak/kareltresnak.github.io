@@ -619,3 +619,53 @@ function downloadXML() {
     
     cyberSpeak("Databáze uložena na disk.");
 }
+// --- MATRIX EFEKT NA POZADÍ ---
+const canvas = document.getElementById('matrix-bg');
+const ctx = canvas.getContext('2d');
+
+// Nastavení přes celou obrazovku
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@#$%^&*()_+=-{}[]|;:,.<>?/CYBERARENA";
+const fontSize = 14;
+const columns = canvas.width / fontSize;
+
+// Pole pro kapky (každý sloupec má svou y-pozici)
+const drops = [];
+for (let x = 0; x < columns; x++) {
+    drops[x] = 1;
+}
+
+function drawMatrix() {
+    // Jemné zatmavování předchozího snímku (vytváří stopu)
+    ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = "#0F0"; // Zelený text (klasika)
+    // Pokud chceš modrý styl Arény, odkomentuj tento řádek:
+    // ctx.fillStyle = "#00aaff"; 
+
+    ctx.font = fontSize + "px monospace";
+
+    for (let i = 0; i < drops.length; i++) {
+        const text = chars.charAt(Math.floor(Math.random() * chars.length));
+        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+        // Reset kapky na začátek (s náhodností)
+        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+            drops[i] = 0;
+        }
+
+        drops[i]++;
+    }
+}
+
+// Spustíme animaci (30 snímků za sekundu)
+setInterval(drawMatrix, 33);
+
+// Oprava při změně velikosti okna
+window.addEventListener('resize', () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+});
