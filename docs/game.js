@@ -447,6 +447,64 @@ function toggleVoice() {
     btn.innerHTML = voiceEnabled ? '<span class="btn-icon">🔊</span> ZVUK: ZAP' : '<span class="btn-icon">🔇</span> ZVUK: VYP';
 }
 
-// Matrix kód zůstává stejný
+// ==========================================
+// MATRIX POZADÍ (CANVAS)
+// ==========================================
+
 const canvas = document.getElementById('matrix-bg');
-if(canvas) { /* ... kód z minula pro matrix ... */ }
+if(canvas) {
+    const ctx = canvas.getContext('2d');
+
+    // Nastavení velikosti plátna
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    // Znaky, které budou padat (Katana + Latinka + Čísla)
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@#$%^&*()_+=-{}[]|;:,.<>?/CYBERARENA";
+    
+    const fontSize = 14;
+    const columns = canvas.width / fontSize; // Počet sloupců
+    
+    // Pole pro sledování Y souřadnice každého sloupce
+    // Na začátku jsou všechny nahoře (1)
+    const drops = [];
+    for (let x = 0; x < columns; x++) {
+        drops[x] = 1;
+    }
+
+    function drawMatrix() {
+        // Černé pozadí s velmi malou průhledností (vytváří stopu/duchy)
+        ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Nastavení textu (Zelená + Font)
+        ctx.fillStyle = "#0F0"; 
+        ctx.font = fontSize + "px monospace";
+
+        // Vykreslení znaků
+        for (let i = 0; i < drops.length; i++) {
+            // Náhodný znak
+            const text = chars.charAt(Math.floor(Math.random() * chars.length));
+            
+            // Vykreslení znaku na pozici [x, y]
+            ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+            // Reset kapky na začátek, pokud vyjede z obrazovky (s náhodnou šancí pro nepravidelnost)
+            if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                drops[i] = 0;
+            }
+
+            // Posun kapky dolů
+            drops[i]++;
+        }
+    }
+
+    // Smyčka animace (cca 30 FPS)
+    setInterval(drawMatrix, 33);
+
+    // Automatická změna velikosti při změně okna
+    window.addEventListener('resize', () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    });
+}
