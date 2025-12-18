@@ -1,13 +1,13 @@
 // ==========================================
-// HLAVNÍ PROMĚNNÉ A NASTAVENÍ
+// 1. HLAVNÍ PROMĚNNÉ A NASTAVENÍ
 // ==========================================
 
-let dbMain = [];
-let dbSpare = [];
-let questions = [];
-let spares = [];
+let dbMain = [];  // Záloha všech otázek
+let dbSpare = []; // Záloha náhradních otázek
+let questions = []; // Aktivní balíček
+let spares = [];    // Aktivní balíček náhradních
 
-let board = Array(29).fill(0);
+let board = Array(29).fill(0); // Herní pole (0=prázdné, 1=Oranž, 2=Modrá, 3=Černá)
 let currentPlayer = 1; // 1 = Oranžoví, 2 = Modří
 let currentField = null;
 let isGameReady = false;
@@ -16,8 +16,9 @@ let timerInterval;
 
 // Proměnné pro logiku kradení otázky
 let isStealing = false; // Zda právě odpovídá druhý tým (kradení)
-let tempPlayer = 0;     // Kdo odpovídá v rámci kradení
+let tempPlayer = 0;     // Kdo odpovídá v rámci kradení (pro barvy)
 
+// Mapa sousedů (pro kontrolu výhry)
 const neighbors = {
     1:[2,3], 2:[1,3,4,5], 3:[1,2,5,6], 4:[2,5,7,8], 5:[2,3,4,6,8,9], 6:[3,5,9,10],
     7:[4,8,11,12], 8:[4,5,7,9,12,13], 9:[5,6,8,10,13,14], 10:[6,9,14,15],
@@ -27,7 +28,7 @@ const neighbors = {
 };
 
 // ==========================================
-// KLÍČOVÉ FUNKCE
+// 2. KLÍČOVÉ FUNKCE (INIT, RESTART)
 // ==========================================
 
 function shuffleArray(array) {
@@ -40,8 +41,10 @@ function shuffleArray(array) {
 
 window.onload = () => {
     initGame();
+    // Zamkneme desku na začátku
     const boardEl = document.getElementById("game-board");
     if(boardEl) boardEl.classList.add("board-locked");
+    checkIntegrity(); // Aktualizace počítadel v databázi
 };
 
 function initGame() {
@@ -52,15 +55,19 @@ function initGame() {
 function startNewRound() {
     if(!confirm("Opravdu chcete restartovat celou hru?")) return;
 
+    // Reset proměnných
     board = Array(29).fill(0); 
     currentPlayer = 1;
     isStealing = false;
+    tempPlayer = 0;
 
+    // Reset grafiky hexů
     const hexes = document.querySelectorAll('.hex');
     hexes.forEach(hex => {
         hex.classList.remove('player1', 'player2', 'black-active');
     });
 
+    // Obnovení otázek ze zálohy
     if (dbMain.length > 0) {
         questions = shuffleArray([...dbMain]); 
         spares = shuffleArray([...dbSpare]);
@@ -71,16 +78,18 @@ function startNewRound() {
         cyberSpeak("Systém restartován. Zásobník je prázdný.");
     }
 
+    // Reset UI
     document.getElementById("modal-overlay").style.display = "none";
     document.getElementById("victory-overlay").style.display = "none";
     document.getElementById("datacenter-overlay").style.display = "none";
+    document.getElementById("steal-wrapper").style.display = "none";
     
     if (timerInterval) clearInterval(timerInterval);
     updateStatus();
 }
 
 // ==========================================
-// HRACÍ DESKA
+// 3. HRACÍ DESKA & LOGIKA TAHU
 // ==========================================
 
 function drawBoard() {
@@ -103,6 +112,8 @@ function drawBoard() {
 
 function createHex(svg, x, y, id) {
     const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    
+    // Výpočet bodů polygonu
     const points = [];
     for (let i = 0; i < 6; i++) {
         const angle = (i * 60 - 30) * Math.PI / 180;
@@ -113,6 +124,7 @@ function createHex(svg, x, y, id) {
     poly.setAttribute("points", points.join(" "));
     poly.setAttribute("class", "hex");
     
+    // Barvy podle stavu
     if(board[id] === 1) poly.classList.add("player1");
     else if(board[id] === 2) poly.classList.add("player2");
     else if(board[id] === 3) poly.classList.add("black-active");
@@ -131,11 +143,14 @@ function createHex(svg, x, y, id) {
 
 function onFieldClick(id) {
     if (!isGameReady) return;
+    
     const isFree = board[id] === 0;
     const isBlack = board[id] === 3;
 
+    // Kliknout jde jen na volné nebo černé pole
     if (!isFree && !isBlack) return; 
 
+    // Kontrola zásobníku
     if (isFree && questions.length === 0) { alert("Došly základní otázky!"); return; }
     if (isBlack && spares.length === 0) { alert("Došly náhradní otázky!"); return; }
 
@@ -143,7 +158,7 @@ function onFieldClick(id) {
     let qObj;
     let isSpare = false;
 
-    // Reset proměnných pro kradení
+    // Reset logiky kradení pro nové kolo
     isStealing = false;
     tempPlayer = currentPlayer; 
 
@@ -156,25 +171,27 @@ function onFieldClick(id) {
     }
 
     showModal(qObj.q, qObj.a, isSpare);
-    updateStatus(); // Aktualizace barev (ringu)
+    updateStatus(); 
 }
 
 // ==========================================
-// MODÁL, ČASOVAČ A KRADENÍ
+// 4. MODÁLNÍ OKNO, ČASOVAČ A KRADENÍ
 // ==========================================
 
 function showModal(q, a, isSpare = false) {
-    // Reset UI modálu
     document.getElementById("question-text").textContent = q;
     document.getElementById("correct-answer").textContent = a;
-    document.getElementById("modal-overlay").style.display = "flex";
     
+    const overlay = document.getElementById("modal-overlay");
+    overlay.style.display = "flex";
+    
+    // Reset zobrazení tlačítek
     document.getElementById("btn-reveal").style.display = "inline-block";
     document.getElementById("answer-wrapper").style.display = "none";
-    document.getElementById("steal-wrapper").style.display = "none"; // Skrýt kradení
-    document.getElementById("timer").style.display = "flex"; // Zobrazit časovač
+    document.getElementById("steal-wrapper").style.display = "none";
+    document.getElementById("timer").style.display = "flex";
 
-    // Vizuál pro černé pole
+    // Textace podle typu otázky
     const labelEl = document.getElementById("question-label");
     if (isSpare) {
         labelEl.textContent = "// ROZSTŘEL (ANO/NE) //";
@@ -190,7 +207,7 @@ function showModal(q, a, isSpare = false) {
 }
 
 function startTimer(isSpare) {
-    let t = 20; // 20 sekund
+    let t = 20;
     const el = document.getElementById("timer");
     el.textContent = t;
     
@@ -202,47 +219,43 @@ function startTimer(isSpare) {
         
         if(t <= 0) {
             clearInterval(timerInterval);
-            handleTimeout(isSpare); // Čas vypršel -> řešíme co dál
+            handleTimeout(isSpare);
         }
     }, 1000);
 }
 
-// --- LOGIKA PO VYPRŠENÍ ČASU ---
 function handleTimeout(isSpare) {
+    // Pokud je to rozstřel nebo už druhá šance (kradení), rovnou konec
     if (isSpare || isStealing) {
-        // Pokud je to rozstřel (černé pole) nebo už je to kradená otázka,
-        // nemůže se znovu krást -> rovnou odhalit
         revealAnswer();
     } else {
-        // Normální otázka -> nabídnout kradení
-        document.getElementById("timer").style.display = "none"; // Skrýt čas
-        document.getElementById("steal-wrapper").style.display = "block"; // Zobrazit volbu
-        document.getElementById("btn-reveal").style.display = "none"; // Skrýt tlačítko pro normální odhalení
+        // Vypršel čas prvnímu týmu -> nabídnout druhému
+        document.getElementById("timer").style.display = "none";
+        document.getElementById("steal-wrapper").style.display = "block";
+        document.getElementById("btn-reveal").style.display = "none";
         
         const opponentName = currentPlayer === 1 ? "MODŘÍ" : "ORANŽOVÍ";
         cyberSpeak("Čas vypršel. Chtějí odpovídat " + opponentName + "?");
     }
 }
 
-// --- FUNKCE PRO TLAČÍTKA V KRADENÍ ---
 function stealQuestion(wantToSteal) {
     document.getElementById("steal-wrapper").style.display = "none";
     
     if (wantToSteal) {
-        // Soupeř chce odpovídat
         isStealing = true;
-        tempPlayer = currentPlayer === 1 ? 2 : 1; // Dočasně přepneme aktivního hráče (jen pro barvy)
+        // Dočasně prohodíme hráče jen pro účely zobrazení a logiky
+        tempPlayer = currentPlayer === 1 ? 2 : 1;
         
-        // Změna barev UI na barvy zloděje
-        updateStatus(true); 
+        updateStatus(true); // Aktualizuj barvy na zloděje
         
         document.getElementById("timer").style.display = "flex";
         document.getElementById("btn-reveal").style.display = "inline-block";
         
         cyberSpeak("Odpovídá druhý tým.");
-        startTimer(false); // Restart časovače (už nejde znovu ukrást, viz handleTimeout)
+        startTimer(false); // Nový čas
     } else {
-        // Soupeř nechce -> zobrazit odpověď a brát jako chybu původního hráče
+        // Nechtějí odpovídat -> ukázat odpověď (původní tým prohrál otázku)
         document.getElementById("btn-reveal").style.display = "inline-block";
         revealAnswer();
     }
@@ -252,59 +265,64 @@ function revealAnswer() {
     document.getElementById("btn-reveal").style.display = "none";
     document.getElementById("steal-wrapper").style.display = "none";
     document.getElementById("answer-wrapper").style.display = "block";
+    
     clearInterval(timerInterval);
 
     const answerEl = document.getElementById("correct-answer");
     animateDecode(answerEl);
     
-    // Pokud jsme kradli a vypršel čas i podruhé, rovnou označujeme jako fail
-    // (tlačítka Schválit/Zamítnout zůstávají pro moderátora)
+    // Přečtení odpovědi po chvíli
+    setTimeout(() => {
+        cyberSpeak("Správná odpověď: " + answerEl.textContent);
+    }, 500);
 }
 
 function finalizeTurn(success) {
     document.getElementById("modal-overlay").style.display = "none";
     
-    const isSpare = board[currentField] === 3; // Bylo to černé pole?
+    const isSpare = board[currentField] === 3; // Je to černé pole?
 
     if (isSpare) {
-        // --- LOGIKA PRO ČERNÉ POLE ---
+        // --- PRAVIDLA PRO ČERNÉ POLE ---
         if (success) {
-            // Správně -> Získává ten, kdo je na tahu (current)
-            board[currentField] = currentPlayer;
-            currentPlayer = currentPlayer === 1 ? 2 : 1; // Změna tahu
+            board[currentField] = currentPlayer; // Získal pole
+            currentPlayer = currentPlayer === 1 ? 2 : 1; // Střídání
         } else {
             // Špatně -> Pole získává SOUPEŘ
             const opponent = currentPlayer === 1 ? 2 : 1;
             board[currentField] = opponent;
-            // A hráč hraje ZNOVU (tzn. neměníme currentPlayer)
+            // A hráč hraje ZNOVU (neměníme currentPlayer)
             cyberSpeak("Chyba na černém poli. Pole získává soupeř, hrajete znovu.");
         }
     } else {
-        // --- LOGIKA PRO NORMÁLNÍ OTÁZKU ---
+        // --- PRAVIDLA PRO NORMÁLNÍ POLE ---
         if (success) {
             if (isStealing) {
-                // Pokud ukradl a odpověděl správně -> získává pole zloděj (tempPlayer)
+                // Ukradl a odpověděl správně -> pole je jeho
                 board[currentField] = tempPlayer;
             } else {
-                // Normální výhra
+                // Normálně odpověděl -> pole je jeho
                 board[currentField] = currentPlayer;
             }
         } else {
-            // Chyba -> Pole zčerná
+            // Nikdo neodpověděl -> černé pole
             board[currentField] = 3; 
         }
         
-        // U normálních otázek se tah vždy střídá (i po kradení)
+        // Vždy střídáme tah u normálních otázek
         currentPlayer = currentPlayer === 1 ? 2 : 1;
     }
 
     drawBoard();
     updateStatus();
-    if(success) checkWin(currentPlayer === 1 ? 2 : 1); // Kontrola pro toho, kdo právě získal pole
+    
+    // Kontrola výhry (pro oba, kdyby se něco změnilo na černém poli)
+    checkWin(1);
+    checkWin(2);
 }
 
 // ==========================================
-// VÝHERNÍ LOGIKA
+// 5. VÝHERNÍ LOGIKA (BFS)
 // ==========================================
 
 function checkWin(p) {
@@ -359,27 +377,135 @@ function triggerVictory(winnerId) {
 }
 
 // ==========================================
-// DATOVÉ CENTRUM
+// 6. DATOVÉ CENTRUM & SPRÁVA OTÁZEK
 // ==========================================
-// (Zůstává stejné jako v původní verzi, jen zkráceně zde pro kontext)
-function openDataCenter() { document.getElementById("datacenter-overlay").style.display = "flex"; checkIntegrity(); }
-function closeDataCenter() { 
-    document.getElementById("datacenter-overlay").style.display = "none"; 
-    if (questions.length > 0) isGameReady = true;
-    updateStatus();
+
+function openDataCenter() {
+    document.getElementById("datacenter-overlay").style.display = "flex";
+    checkIntegrity(); 
 }
-function checkIntegrity() { /* ... kód z minula ... */ }
-function loadXMLInCenter(input) { /* ... kód z minula ... */ }
-function addQFromCenter() { /* ... kód z minula ... */ }
-function downloadXML() { /* ... kód z minula ... */ }
+
+function closeDataCenter() {
+    document.getElementById("datacenter-overlay").style.display = "none";
+    if (questions.length > 0) {
+        isGameReady = true; 
+        const boardEl = document.getElementById("game-board");
+        if(boardEl) {
+            boardEl.classList.remove("board-locked");
+            boardEl.classList.add("board-active");
+        }
+        updateStatus();
+    }
+}
+
+function checkIntegrity() {
+    const mainCount = questions.length + dbMain.length - questions.length; // Trochu hack, počítáme prostě aktuální stav
+    const spareCount = spares.length + dbSpare.length - spares.length;
+
+    // Počítáme raději z dbMain, pokud hra ještě nezačala, nebo questions pokud běží
+    const currentMain = questions.length > 0 ? questions.length : dbMain.length;
+    const currentSpare = spares.length > 0 ? spares.length : dbSpare.length;
+
+    const indMain = document.getElementById("ind-main");
+    const indSpare = document.getElementById("ind-spare");
+
+    if(indMain) indMain.innerText = `OTÁZKY: ${currentMain}`;
+    if(indSpare) indSpare.innerText = `ROZSTŘEL: ${currentSpare}`;
+}
+
+// Import XML
+function loadXMLInCenter(input) {
+    const f = input.files[0];
+    if(!f) return;
+    const r = new FileReader();
+    r.onload = e => {
+        const p = new DOMParser();
+        const x = p.parseFromString(e.target.result, "text/xml");
+        const n = x.getElementsByTagName("otazka");
+        
+        let newMain = [], newSpare = [];
+        for(let el of n) {
+            try {
+                const t = el.getElementsByTagName("text")[0].textContent;
+                const a = el.getElementsByTagName("odpoved")[0].textContent;
+                const typ = el.getAttribute("typ");
+                if(typ === "nahradni") newSpare.push({q:t, a:a}); else newMain.push({q:t, a:a});
+            } catch(err) {}
+        }
+        
+        questions = shuffleArray(newMain);
+        spares = shuffleArray(newSpare);
+        
+        // Záloha
+        dbMain = [...questions]; 
+        dbSpare = [...spares];
+        
+        checkIntegrity(); 
+        alert("Databáze nahrána! Otázek: " + questions.length);
+        cyberSpeak("Data importována.");
+    };
+    r.readAsText(f);
+}
+
+// Ruční přidání
+function addQFromCenter() {
+    const qText = document.getElementById("dc-q-text").value.trim();
+    const qAns = document.getElementById("dc-q-ans").value.trim();
+    
+    // Zjištění typu (radio button)
+    let type = "main";
+    const radios = document.getElementsByName("dc-type");
+    for(let r of radios) { if(r.checked) type = r.value; }
+
+    if (!qText || !qAns) {
+        alert("Vyplňte otázku i odpověď.");
+        return;
+    }
+    const newQ = { q: qText, a: qAns };
+
+    if (type === "spare") {
+        spares.push(newQ);
+        dbSpare.push(newQ);
+    } else {
+        questions.push(newQ);
+        dbMain.push(newQ);
+    }
+
+    document.getElementById("dc-q-text").value = "";
+    document.getElementById("dc-q-ans").value = "";
+    document.getElementById("dc-q-text").focus();
+    
+    checkIntegrity(); 
+    cyberSpeak("Položka přidána.");
+}
+
+function downloadXML() {
+    let xmlContent = '<?xml version="1.0" encoding="UTF-8"?>\n<kviz>\n';
+    // Uložíme aktuální stav dbMain a dbSpare
+    dbMain.forEach(q => {
+        xmlContent += `    <otazka typ="zakladni">\n        <text>${q.q}</text>\n        <odpoved>${q.a}</odpoved>\n    </otazka>\n`;
+    });
+    dbSpare.forEach(q => {
+        xmlContent += `    <otazka typ="nahradni">\n        <text>${q.q}</text>\n        <odpoved>${q.a}</odpoved>\n    </otazka>\n`;
+    });
+    xmlContent += '</kviz>';
+
+    const blob = new Blob([xmlContent], { type: "text/xml" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "az_kviz_export.xml";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
 
 // ==========================================
-// VIZUÁLNÍ EFEKTY A UPDATE STATUSU
+// 7. VIZUÁL A EFEKTY
 // ==========================================
 
 function updateStatus(forceStealColor = false) {
-    // Určení, koho zobrazovat jako "aktivního" (pro barvy UI)
-    // Pokud se krade (isStealing nebo forceStealColor), používáme tempPlayer
     let activeP = currentPlayer;
     if (isStealing || forceStealColor) {
         activeP = tempPlayer;
@@ -407,8 +533,9 @@ function updateStatus(forceStealColor = false) {
     }
     
     const deckInfo = document.getElementById("deck-info");
-    if (deckInfo && questions.length > 0) {
-        deckInfo.textContent = `ZÁSOBNÍK: ${questions.length} | ROZSTŘEL: ${spares.length}`;
+    if (deckInfo) {
+        if(questions.length > 0) deckInfo.textContent = `ZÁSOBNÍK: ${questions.length} | ROZSTŘEL: ${spares.length}`;
+        else deckInfo.textContent = "Čekám na data...";
     }
 }
 
@@ -426,9 +553,7 @@ function animateDecode(element) {
     }, 30); 
 }
 
-// ==========================================
-// ZVUK & MATRIX
-// ==========================================
+// Audio
 let availableVoices = [];
 window.speechSynthesis.onvoiceschanged = () => { availableVoices = window.speechSynthesis.getVoices(); };
 
@@ -444,65 +569,43 @@ function cyberSpeak(text) {
 function toggleVoice() {
     voiceEnabled = !voiceEnabled;
     const btn = document.getElementById("btn-voice");
-    btn.innerHTML = voiceEnabled ? '<span class="btn-icon">🔊</span> ZVUK: ZAP' : '<span class="btn-icon">🔇</span> ZVUK: VYP';
+    if(voiceEnabled) {
+        btn.innerHTML = '<span class="btn-icon">🔊</span> ZVUK: ZAP';
+        btn.style.borderBottomColor = "#2ecc71";
+    } else {
+        window.speechSynthesis.cancel();
+        btn.innerHTML = '<span class="btn-icon">🔇</span> ZVUK: VYP';
+        btn.style.borderBottomColor = "#e74c3c";
+    }
 }
 
 // ==========================================
-// MATRIX POZADÍ (CANVAS)
+// 8. MATRIX POZADÍ
 // ==========================================
-
 const canvas = document.getElementById('matrix-bg');
 if(canvas) {
     const ctx = canvas.getContext('2d');
-
-    // Nastavení velikosti plátna
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-
-    // Znaky, které budou padat (Katana + Latinka + Čísla)
     const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@#$%^&*()_+=-{}[]|;:,.<>?/CYBERARENA";
-    
     const fontSize = 14;
-    const columns = canvas.width / fontSize; // Počet sloupců
-    
-    // Pole pro sledování Y souřadnice každého sloupce
-    // Na začátku jsou všechny nahoře (1)
+    const columns = canvas.width / fontSize;
     const drops = [];
-    for (let x = 0; x < columns; x++) {
-        drops[x] = 1;
-    }
+    for (let x = 0; x < columns; x++) drops[x] = 1;
 
     function drawMatrix() {
-        // Černé pozadí s velmi malou průhledností (vytváří stopu/duchy)
         ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        // Nastavení textu (Zelená + Font)
         ctx.fillStyle = "#0F0"; 
         ctx.font = fontSize + "px monospace";
-
-        // Vykreslení znaků
         for (let i = 0; i < drops.length; i++) {
-            // Náhodný znak
             const text = chars.charAt(Math.floor(Math.random() * chars.length));
-            
-            // Vykreslení znaku na pozici [x, y]
             ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-
-            // Reset kapky na začátek, pokud vyjede z obrazovky (s náhodnou šancí pro nepravidelnost)
-            if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-                drops[i] = 0;
-            }
-
-            // Posun kapky dolů
+            if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
             drops[i]++;
         }
     }
-
-    // Smyčka animace (cca 30 FPS)
     setInterval(drawMatrix, 33);
-
-    // Automatická změna velikosti při změně okna
     window.addEventListener('resize', () => {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
