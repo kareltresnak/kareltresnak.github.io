@@ -170,15 +170,17 @@ function loadXML(input) {
 function updateStatus() {
     // 1. Nastavení barev
     const pName = currentPlayer === 1 ? "ORANŽOVÍ" : "MODŘÍ";
-    const pColor = currentPlayer === 1 ? "#ff8800" : "#00aaff"; // Oranžová vs. Modrá
+    const pColor = currentPlayer === 1 ? "#ff8800" : "#00aaff";
     
     // 2. Indikátor nahoře
     const indicator = document.getElementById("active-player-name");
-    indicator.textContent = pName;
-    indicator.style.color = pColor;
-    indicator.style.textShadow = `0 0 20px ${pColor}`;
-    indicator.style.borderColor = pColor;
-    indicator.style.boxShadow = `0 0 15px ${pColor}, inset 0 0 10px ${pColor}`;
+    if (indicator) {
+        indicator.textContent = pName;
+        indicator.style.color = pColor;
+        indicator.style.textShadow = `0 0 20px ${pColor}`;
+        indicator.style.borderColor = pColor;
+        indicator.style.boxShadow = `0 0 15px ${pColor}, inset 0 0 10px ${pColor}`;
+    }
 
     // 3. Energetický prstenec (Aréna)
     const ring = document.querySelector(".board-energy-ring");
@@ -186,18 +188,27 @@ function updateStatus() {
         ring.style.setProperty('--ring-color', pColor);
     }
 
-    // 4. --- NOVINKA: Přebarvení okna s otázkou (Modál) ---
+    // 4. Přebarvení okna s otázkou (Modál)
     const modal = document.getElementById("modal-content");
     if (modal) {
         modal.style.borderColor = pColor;
         modal.style.boxShadow = `0 0 50px ${pColor}, inset 0 0 30px ${pColor}`;
     }
     
-    // 5. Info o zásobníku
+    // 5. --- OPRAVA: Info o zásobníku ---
     const deckInfo = document.getElementById("deck-info");
-    if (isGameReady) {
-        deckInfo.innerText = `ZÁSOBNÍK: ${questions.length} | ROZSTŘEL: ${spares.length}`;
-        deckInfo.style.color = pColor;
+    
+    if (deckInfo) {
+        // ZMĚNA: Ptáme se, jestli máme otázky, NE jestli je hra "ready"
+        if (questions.length > 0) {
+            deckInfo.textContent = `ZÁSOBNÍK: ${questions.length} | ROZSTŘEL: ${spares.length}`;
+            deckInfo.style.color = "#2ecc71"; // Zelená (OK)
+            deckInfo.style.textShadow = "0 0 10px rgba(46, 204, 113, 0.5)";
+        } else {
+            deckInfo.textContent = "Čekám na data...";
+            deckInfo.style.color = "#95a5a6"; // Šedá (Čekání)
+            deckInfo.style.textShadow = "none";
+        }
     }
 }
 function onFieldClick(id) {
@@ -494,14 +505,23 @@ function openDataCenter() {
 }
 
 function closeDataCenter() {
-    // Varování, pokud není dost otázek
-    if (questions.length < 28 || spares.length < 28) {
-        if(!confirm("POZOR: Nemáte plný počet otázek (28 + 28). Hra nemusí fungovat správně. Opravdu zavřít?")) {
-            return;
-        }
-    }
     document.getElementById("datacenter-overlay").style.display = "none";
-    updateStatus(); // Aktualizace hlavního panelu
+    
+    // Pokud máme data, HNUJEME hru kupředu
+    if (questions.length > 0) {
+        isGameReady = true; // DŮLEŽITÉ: Přepneme stav hry
+        
+        // Odemkneme grafiku
+        const board = document.getElementById("game-board");
+        if(board) {
+            board.classList.remove("board-locked");
+            board.classList.add("board-active");
+        }
+        
+        // Spustíme aktualizaci textů
+        updateStatus();
+        cyberSpeak("Systém aktivní. Aréna připravena.");
+    }
 }
 
 // Funkce pro kontrolu počtů (Červená/Zelená)
