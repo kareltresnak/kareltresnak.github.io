@@ -79,7 +79,14 @@
             <div class="timer-container">
                 <div class="timer-ring" id="timer">20</div>
             </div>
-            
+            <div id="steal-wrapper" style="display:none;">
+                <div class="label-answer" style="color: #f1c40f;">⏳ ČAS VYPRŠEL</div>
+                <p style="margin: 10px 0;">CHCE ODPOVÍDAT SOUPEŘ?</p>
+                <div class="buttons-row">
+                    <button class="mod-btn btn-steal-yes" onclick="stealQuestion(true)">ANO (Zkusit)</button>
+                    <button class="mod-btn btn-steal-no" onclick="stealQuestion(false)">NE (Odkrýt)</button>
+                </div>
+            </div>
             <div id="question-label">// PŘÍCHOZÍ DATA //</div>
             <div id="question-text">...</div>
 
