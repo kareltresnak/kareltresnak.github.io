@@ -295,25 +295,29 @@ function startTimer() {
 }
 
 function revealAnswer() {
-    // UI změny
+    // 1. Schováme tlačítko a ukážeme kontejner
     document.getElementById("btn-reveal").style.display = "none";
-    document.getElementById("answer-wrapper").style.display = "block";
+    const ansWrapper = document.getElementById("answer-wrapper");
+    ansWrapper.style.display = "block";
+    
+    // Zastavíme časovač
     clearInterval(timerInterval);
 
-    // --- ČTENÍ ODPOVĚDI ---
-    // Získáme text odpovědi z HTML
-    const answerText = document.getElementById("correct-answer").textContent;
+    // 2. Najdeme element s odpovědí
+    const answerEl = document.getElementById("correct-answer");
     
-    const answerPrefixes = [
-        "Správná odpověď je:",
-        "Řešení:",
-        "Výsledek analýzy:",
-        "Odpověď zní:"
-    ];
-    const rnd = answerPrefixes[Math.floor(Math.random() * answerPrefixes.length)];
+    // 3. --- SPUŠTĚNÍ DEKÓDOVACÍ ANIMACE ---
+    animateDecode(answerEl);
 
-    // Přečteme to
-    cyberSpeak(rnd + " " + answerText);
+    // 4. --- AI HLAS (S malým zpožděním, aby to nezačalo dřív než animace) ---
+    const answerText = answerEl.textContent;
+    const ansPrefixes = ["Správná odpověď je:", "Řešení:", "Výsledek analýzy:", "Odpověď zní:", ""];
+    const rnd = ansPrefixes[Math.floor(Math.random() * ansPrefixes.length)];
+    
+    // Počkáme 500ms, než se text trochu "vyloupne", pak začne mluvit
+    setTimeout(() => {
+        cyberSpeak(rnd + " " + answerText);
+    }, 500);
 }
 function finalizeTurn(success) {
     document.getElementById("modal-overlay").style.display = "none";
@@ -448,4 +452,37 @@ function toggleVoice() {
         btn.style.borderBottomColor = "#e74c3c"; // Červená
     }
 }
-
+// --- EFEKT DEKÓDOVÁNÍ TEXTU ---
+function animateDecode(element) {
+    const originalText = element.textContent;
+    // Znaky, které budou problikávat (kybernetická abeceda)
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*()_+-=[]{}|;':,./<>?";
+    
+    let iteration = 0;
+    let interval = null;
+    
+    clearInterval(interval);
+    
+    interval = setInterval(() => {
+        element.textContent = originalText
+            .split("")
+            .map((letter, index) => {
+                // Pokud už jsme za hranicí iterace, ukaž správné písmeno
+                if(index < iteration) {
+                    return originalText[index];
+                }
+                // Jinak ukaž náhodný znak (prostor pro mezeru necháme prázdný)
+                if(originalText[index] === ' ') return ' ';
+                return chars[Math.floor(Math.random() * chars.length)];
+            })
+            .join("");
+        
+        // Konec animace
+        if(iteration >= originalText.length){ 
+            clearInterval(interval);
+            element.textContent = originalText; // Pojistka pro správný text na konci
+        }
+        
+        iteration += 1 / 2; // Rychlost odkrývání (menší číslo = pomalejší)
+    }, 30); // Rychlost měnění znaků (v ms)
+}
