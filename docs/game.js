@@ -201,13 +201,32 @@ function updateStatus() {
     }
 }
 function onFieldClick(id) {
-    if(!isGameReady || board[id] !== 0) return;
-    if(questions.length === 0) { alert("Došly otázky!"); return; }
+    // 1. Povolíme kliknutí, pokud je pole prázdné (0) NEBO černé (3)
+    const isFree = board[id] === 0;
+    const isBlack = board[id] === 3;
+
+    if (!isGameReady) return; // Hra musí běžet
+    if (!isFree && !isBlack) return; // Pokud je pole už něčí (1 nebo 2), nejde na něj klikat
+
+    if(questions.length === 0) { 
+        alert("Došly otázky v zásobníku!"); 
+        return; 
+    }
     
+    // 2. Nastavíme aktuální pole
     currentField = id;
+    
+    // 3. Vybereme otázku a zobrazíme ji
     const q = questions.pop();
     showModal(q.q, q.a);
+    
+    // 4. Aktualizace statusu (aby se odečetl počet otázek)
     updateStatus();
+
+    // Hlasový doprovod (pokud chceš)
+    if (isBlack) {
+        cyberSpeak("Pokus o získání černého pole. " + q.q);
+    } 
 }
 
 function showModal(q, a) {
