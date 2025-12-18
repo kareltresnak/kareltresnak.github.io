@@ -498,3 +498,27 @@ h1 {
 .editor-actions { display: flex; justify-content: center; gap: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; }
 .btn-save { border-bottom: 3px solid #9b59b6; }
 .btn-close { border-bottom: 3px solid #2ecc71; }
+/* Styl pro panel kradení otázky */
+#steal-wrapper {
+    background: rgba(0, 0, 0, 0.6);
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid #f1c40f;
+    margin-bottom: 20px;
+    animation: fadeIn 0.3s ease;
+}
+
+.btn-steal-yes {
+    background: linear-gradient(45deg, #3498db, #2980b9); /* Modrá */
+    border-bottom: 3px solid #1abc9c;
+    font-size: 1rem;
+    padding: 10px 20px;
+}
+/* Pokud krade oranžový, JS to může změnit, ale defaultně modrá je ok pro kontrast */
+
+.btn-steal-no {
+    background: linear-gradient(45deg, #7f8c8d, #34495e);
+    border-bottom: 3px solid #2c3e50;
+    font-size: 1rem;
+    padding: 10px 20px;
+}
