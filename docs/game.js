@@ -486,3 +486,136 @@ function animateDecode(element) {
         iteration += 1 / 2; // Rychlost odkrývání (menší číslo = pomalejší)
     }, 30); // Rychlost měnění znaků (v ms)
 }
+// --- CENTRÁLNÍ DATOVÉ CENTRUM ---
+
+function openDataCenter() {
+    document.getElementById("datacenter-overlay").style.display = "flex";
+    checkIntegrity(); // Okamžitá kontrola počtů
+}
+
+function closeDataCenter() {
+    // Varování, pokud není dost otázek
+    if (questions.length < 28 || spares.length < 28) {
+        if(!confirm("POZOR: Nemáte plný počet otázek (28 + 28). Hra nemusí fungovat správně. Opravdu zavřít?")) {
+            return;
+        }
+    }
+    document.getElementById("datacenter-overlay").style.display = "none";
+    updateStatus(); // Aktualizace hlavního panelu
+}
+
+// Funkce pro kontrolu počtů (Červená/Zelená)
+function checkIntegrity() {
+    const mainCount = questions.length;
+    const spareCount = spares.length;
+
+    const indMain = document.getElementById("ind-main");
+    const indSpare = document.getElementById("ind-spare");
+
+    // Kontrola hlavních otázek (Cíl: 28)
+    if (mainCount >= 28) {
+        indMain.className = "status-indicator valid";
+        indMain.innerText = `🟢 ZÁKLADNÍ OTÁZKY: ${mainCount} / 28 (OK)`;
+    } else {
+        indMain.className = "status-indicator invalid";
+        indMain.innerText = `🔴 ZÁKLADNÍ OTÁZKY: ${mainCount} / 28 (CHYBÍ ${28 - mainCount})`;
+    }
+
+    // Kontrola černých polí (Cíl: 28)
+    if (spareCount >= 28) {
+        indSpare.className = "status-indicator valid";
+        indSpare.innerText = `🟢 PRO ČERNÁ POLE: ${spareCount} / 28 (OK)`;
+    } else {
+        indSpare.className = "status-indicator invalid";
+        indSpare.innerText = `🔴 PRO ČERNÁ POLE: ${spareCount} / 28 (CHYBÍ ${28 - spareCount})`;
+    }
+}
+
+// Nahrání souboru uvnitř datového centra
+function loadXMLInCenter(input) {
+    const f = input.files[0];
+    if(!f) return;
+    const r = new FileReader();
+    r.onload = e => {
+        const p = new DOMParser();
+        const x = p.parseFromString(e.target.result, "text/xml");
+        const n = x.getElementsByTagName("otazka");
+        
+        let newMain = [], newSpare = [];
+        for(let el of n) {
+            try {
+                const t = el.getElementsByTagName("text")[0].textContent;
+                const a = el.getElementsByTagName("odpoved")[0].textContent;
+                const typ = el.getAttribute("typ");
+                if(typ === "nahradni") newSpare.push({q:t, a:a}); else newMain.push({q:t, a:a});
+            } catch(err) {}
+        }
+        
+        // Přepíšeme globální proměnné
+        questions = newMain;
+        spares = newSpare;
+        
+        checkIntegrity(); // Aktualizujeme kontrolky
+        cyberSpeak("Data importována. Probíhá analýza integrity.");
+        alert(`Nahráno: ${newMain.length} základních a ${newSpare.length} náhradních otázek.`);
+    };
+    r.readAsText(f);
+}
+
+// Ruční přidání otázky
+function addQFromCenter() {
+    const qText = document.getElementById("dc-q-text").value.trim();
+    const qAns = document.getElementById("dc-q-ans").value.trim();
+    const type = document.querySelector('input[name="dc-type"]:checked').value;
+
+    if (!qText || !qAns) {
+        alert("Chyba: Vyplňte otázku i odpověď.");
+        return;
+    }
+
+    const newQ = { q: qText, a: qAns };
+
+    if (type === "spare") {
+        spares.push(newQ);
+    } else {
+        questions.push(newQ);
+    }
+
+    // Vyčistit pole
+    document.getElementById("dc-q-text").value = "";
+    document.getElementById("dc-q-ans").value = "";
+    document.getElementById("dc-q-text").focus();
+    
+    checkIntegrity(); // Aktualizovat počty
+    
+    // Zvuková odezva
+    const count = type === "spare" ? spares.length : questions.length;
+    cyberSpeak(`Otázka přidána. Celkem ${count}.`);
+}
+
+// Export do XML
+function downloadXML() {
+    let xmlContent = '<?xml version="1.0" encoding="UTF-8"?>\n<kviz>\n';
+    
+    questions.forEach(q => {
+        xmlContent += `    <otazka typ="zakladni">\n        <text>${q.q}</text>\n        <odpoved>${q.a}</odpoved>\n    </otazka>\n`;
+    });
+
+    spares.forEach(q => {
+        xmlContent += `    <otazka typ="nahradni">\n        <text>${q.q}</text>\n        <odpoved>${q.a}</odpoved>\n    </otazka>\n`;
+    });
+
+    xmlContent += '</kviz>';
+
+    const blob = new Blob([xmlContent], { type: "text/xml" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "az_kviz_databaze.xml";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    cyberSpeak("Databáze uložena na disk.");
+}
