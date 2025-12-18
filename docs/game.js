@@ -268,16 +268,29 @@ function showModal(q, a, isSpare = false) {
     }
     }
 
+// --- OPRAVA ČASOVAČE (AUTO-ODHALENÍ) ---
 let timerInterval;
+
 function startTimer() {
-    let t = 20;
+    // 1. Nastavíme čas (20 sekund)
+    let t = 20; 
     const el = document.getElementById("timer");
-    el.textContent = t;
+    if(el) el.textContent = t;
+    
+    // 2. Zrušíme starý interval, aby se nepraly
     clearInterval(timerInterval);
+    
+    // 3. Spustíme nový odpočet
     timerInterval = setInterval(() => {
         t--;
-        el.textContent = t;
-        if(t <= 0) clearInterval(timerInterval);
+        if(el) el.textContent = t;
+        
+        // 4. KDYŽ ČAS VYPRŠÍ (nula)
+        if(t <= 0) {
+            clearInterval(timerInterval);
+            // --- ZMĚNA: Automaticky odhalíme odpověď ---
+            revealAnswer();
+        }
     }, 1000);
 }
 
