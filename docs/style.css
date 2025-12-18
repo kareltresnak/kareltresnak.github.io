@@ -1,524 +1,95 @@
-/* --- AZ KVÍZ: ULTIMATE CYBER ARENA STYL --- */
 :root {
     --bg-void: #02020a;
-    --bg-grid: #0a0a1f;
     --neon-orange: #ff8800;
     --neon-blue: #00aaff;
     --neon-purple: #bc13fe;
-    --text-color: #ffffff;
     --holo-bg: rgba(10, 10, 30, 0.7);
     --holo-border: rgba(100, 200, 255, 0.2);
 }
 
 * { box-sizing: border-box; }
-
 body {
     font-family: 'Montserrat', sans-serif;
     background: var(--bg-void);
-    color: var(--text-color);
+    color: #fff;
     margin: 0; padding: 10px;
     height: 100vh; width: 100vw;
     display: flex; flex-direction: column;
-    justify-content: center; align-items: center;
+    justify-content: flex-start; align-items: center;
     overflow: hidden; position: relative;
     perspective: 1000px;
 }
-/* --- MATRIX POZADÍ --- */
-#matrix-bg {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -1; /* Důležité: Musí být POD hrou */
-    opacity: 0.15; /* Jemná viditelnost */
-    background: #000; /* Černý podklad */
-}
 
-/* --- PROSTŘEDÍ ARÉNY (Pozadí) --- */
-.stage-floor {
-    position: absolute; bottom: 0; left: -50%; width: 200%; height: 50%;
-    background: 
-        linear-gradient(transparent 20%, var(--bg-void) 100%),
-        repeating-linear-gradient(90deg, rgba(0, 170, 255, 0.1) 0px, rgba(0, 170, 255, 0.1) 1px, transparent 1px, transparent 40px),
-        repeating-linear-gradient(0deg, rgba(0, 170, 255, 0.1) 0px, rgba(0, 170, 255, 0.1) 1px, transparent 1px, transparent 40px);
-    transform: rotateX(60deg);
-    z-index: -3; pointer-events: none;
-}
+#matrix-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.15; background: #000; }
+.stage-floor { position: absolute; bottom: 0; left: -50%; width: 200%; height: 50%; background: linear-gradient(transparent 20%, var(--bg-void) 100%), repeating-linear-gradient(90deg, rgba(0, 170, 255, 0.1) 0px, rgba(0, 170, 255, 0.1) 1px, transparent 1px, transparent 40px), repeating-linear-gradient(0deg, rgba(0, 170, 255, 0.1) 0px, rgba(0, 170, 255, 0.1) 1px, transparent 1px, transparent 40px); transform: rotateX(60deg); z-index: -3; pointer-events: none; }
 
-.light-beams {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    z-index: -2; pointer-events: none;
-}
-.light-beams::before, .light-beams::after {
-    content: ''; position: absolute; top: -20%; width: 40%; height: 150%;
-    filter: blur(50px); opacity: 0.4; mix-blend-mode: screen;
-    animation: beamPulse 8s infinite alternate ease-in-out;
-}
-.light-beams::before {
-    left: -10%; background: linear-gradient(to bottom, var(--neon-blue), transparent);
-    transform: rotate(-15deg);
-}
-.light-beams::after {
-    right: -10%; background: linear-gradient(to bottom, var(--neon-orange), transparent);
-    transform: rotate(15deg); animation-delay: -4s;
-}
-@keyframes beamPulse { 0% { opacity: 0.2; transform: rotate(-15deg) scaleX(0.8); } 100% { opacity: 0.5; transform: rotate(-10deg) scaleX(1.1); } }
+.main-container { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 1400px; height: 100%; z-index: 1; padding-top: 20px; }
 
-.particles {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
-    background-image: radial-gradient(circle, rgba(255,255,255,0.5) 1px, transparent 1px);
-    background-size: 60px 60px; opacity: 0.3;
-    animation: particleDrift 60s linear infinite;
-}
-@keyframes particleDrift { from { background-position: 0 0; } to { background-position: 100px 200px; } }
+h1 { font-size: 2.8rem; font-weight: 900; margin: 5px 0 20px 0; text-align: center; text-shadow: 0 0 20px rgba(0, 170, 255, 0.8); }
+.edition-badge { display: block; font-size: 0.35em; color: var(--neon-blue); background: rgba(0,0,0,0.5); padding: 4px 15px; border-radius: 4px; margin: 5px auto 0 auto; letter-spacing: 5px; width: fit-content; border: 1px solid var(--neon-blue); }
 
-.main-container {
-    display: flex; 
-    flex-direction: column; 
-    align-items: center; 
-    
-    /* ZMĚNA: Místo center dáme flex-start + padding */
-    justify-content: flex-start; 
-    padding-top: 40px; /* Odstup od horního okraje */
-    
-    width: 100%; max-width: 1400px; height: 100%; z-index: 1;
-}
-/* Najdi .logo-box nebo přidej toto: */
-.logo-box {
-    text-align: center;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-/* --- NADPIS --- */
-h1 {
-    font-size: 2.8rem; font-weight: 900; margin: 5px 0 25px 0; letter-spacing: 5px;
-    color: #fff; text-align: center; line-height: 0.9;
-    text-shadow: 
-        0 1px 0 #ccc, 0 2px 0 #c9c9c9, 0 3px 0 #bbb,
-        0 0 20px rgba(0, 170, 255, 0.8), 0 0 40px rgba(188, 19, 254, 0.5);
-}
-.edition-badge {
-    display: block; font-size: 0.35em; color: var(--neon-blue);
-    background: rgba(0,0,0,0.5); padding: 6px 20px; border-radius: 4px;
-    margin: 10px auto 0 auto; letter-spacing: 8px; width: fit-content;
-    border: 1px solid var(--neon-blue);
-    box-shadow: 0 0 15px rgba(0, 170, 255, 0.3), inset 0 0 10px rgba(0, 170, 255, 0.2);
-    text-transform: uppercase; font-weight: 700;
-}
+.glass-panel { background: var(--holo-bg); backdrop-filter: blur(20px); border: 1px solid var(--holo-border); box-shadow: 0 20px 40px rgba(0,0,0,0.6); padding: 2px; }
+.controls { width: 95%; max-width: 1200px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 10px 30px; margin-bottom: 10px; background: rgba(0,0,0,0.3); clip-path: polygon(18px 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%, 0 18px); }
+.controls-group.left { justify-self: start; display: flex; }
+.controls-group.right { justify-self: end; display: flex; gap: 10px; }
+.status-box { justify-self: center; text-align: center; min-width: 200px; }
 
-/* --- OVLÁDACÍ PANEL --- */
-.glass-panel {
-    background: var(--holo-bg);
-    backdrop-filter: blur(20px) contrast(120%);
-    -webkit-backdrop-filter: blur(20px) contrast(120%);
-    border: 1px solid var(--holo-border);
-    border-image: linear-gradient(45deg, var(--neon-blue), var(--neon-purple), var(--neon-orange)) 1;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.6), inset 0 0 30px rgba(0,0,0,0.8);
-    clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px);
-    padding: 2px;
-}
-.controls {
-    /* Nastavení velikosti a pozice */
-    width: 95%; 
-    max-width: 1200px;
-    margin: 0 auto 20px auto; /* "auto" na stranách zajistí vycentrování panelu */
-    
-    /* Grid systém */
-    display: grid; 
-    /* 1fr (Levá) | auto (Střed) | 1fr (Pravá) */
-    grid-template-columns: 1fr auto 1fr; 
-    align-items: center; 
-    
-    /* Vzhled */
-    padding: 15px 30px; 
-    background: rgba(0,0,0,0.3);
-    clip-path: polygon(18px 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%, 0 18px);
-}
+.btn { padding: 10px 20px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.4); color: white; font-weight: 800; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 8px; clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); }
+.btn:hover { border-color: var(--neon-blue); box-shadow: 0 0 15px rgba(0,170,255,0.3); transform: translateY(-2px); }
+.btn-reset { border-bottom: 3px solid #e74c3c; }
 
-/* LEVÁ STRANA: Zabere celý prostor a zarovná obsah doleva */
-.controls-group.left {
-    justify-self: start;
-    width: 100%; /* Důležité: Roztáhne se, aby vyvážila pravou stranu */
-    display: flex;
-}
+#status-text { font-size: 0.7rem; color: var(--neon-blue); letter-spacing: 4px; font-weight: 700; }
+.player-indicator { font-size: 1.5rem; font-weight: 900; padding: 5px 15px; background: rgba(0,0,0,0.5); border-radius: 50px; border: 1px solid currentColor; box-shadow: 0 0 15px currentColor; margin: 5px 0; }
+#deck-info { font-size: 0.7rem; opacity: 0.6; font-family: monospace; }
 
-/* PRAVÁ STRANA: Zabere celý prostor a zarovná obsah doprava */
-.controls-group.right {
-    justify-self: end;
-    width: 100%; /* Důležité: Roztáhne se stejně jako levá */
-    display: flex; 
-    justify-content: flex-end; /* Tlačítka se natlačí doprava */
-    gap: 15px;
-}
+/* HRACÍ DESKA */
+.board-energy-ring { position: relative; flex-grow: 1; display: flex; justify-content: center; align-items: center; width: 100%; max-height: 70vh; --ring-color: #00aaff; }
+.board-wrapper { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; filter: drop-shadow(0 0 20px rgba(0, 170, 255, 0.1)); }
+#game-board { width: 100%; height: 100%; max-width: 850px; overflow: visible; }
 
-/* STŘED: Bude přesně uprostřed */
-.status-box {
-    justify-self: center;
-    text-align: center;
-    min-width: 200px; /* Aby se nemačkal */
-}
-/* --- TLAČÍTKA --- */
-.btn {
-    padding: 14px 28px; border: none; cursor: pointer;
-    font-weight: 800; font-family: 'Montserrat', sans-serif; text-transform: uppercase;
-    font-size: 0.85rem; letter-spacing: 1px; color: white;
-    transition: all 0.3s ease;
-    background: linear-gradient(180deg, rgba(255,255,255,0.1), rgba(0,0,0,0.2));
-    border: 1px solid rgba(255,255,255,0.2);
-    box-shadow: 0 5px 10px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.2);
-    display: flex; align-items: center; gap: 10px;
-    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-}
-.btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(0, 170, 255, 0.3), inset 0 1px 0 rgba(255,255,255,0.4);
-    border-color: var(--neon-blue); text-shadow: 0 0 5px white;
-}
-.btn:active { transform: translateY(1px); box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
-.btn-icon { font-size: 1.1rem; filter: drop-shadow(0 0 5px currentColor); }
-.btn-file { justify-self: start; border-bottom: 3px solid var(--neon-purple); }
-.btn-file input { position: absolute; left: 0; top: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
-.btn-reset { justify-self: end; border-bottom: 3px solid #e74c3c; }
-.btn-reset:hover { border-color: #e74c3c; box-shadow: 0 10px 20px rgba(231, 76, 60, 0.3); }
+.hex { fill: url(#grad-free); stroke: rgba(255,255,255,0.3); cursor: pointer; transition: 0.2s; }
+.hex:hover { transform: scale(1.05); stroke: white; stroke-width: 3px; filter: drop-shadow(0 0 10px white); z-index: 10; }
+.hex.player1 { fill: url(#grad-orange); stroke: #ffff00; filter: drop-shadow(0 0 15px var(--neon-orange)); }
+.hex.player2 { fill: url(#grad-blue); stroke: #00ffff; filter: drop-shadow(0 0 15px var(--neon-blue)); }
+.hex.black-active { fill: url(#grad-black); stroke: #ff0000; animation: blackPulse 2s infinite; }
+.hex-text { font-size: 24px; font-weight: 900; fill: #222; pointer-events: none; text-anchor: middle; dominant-baseline: middle; }
+.hex.player1 + .hex-text, .hex.player2 + .hex-text { fill: white; text-shadow: 0 2px 4px black; }
 
-/* --- STATUS BOX --- */
-.status-box { 
-    justify-self: center; display: flex; flex-direction: column; 
-    align-items: center; text-align: center; min-width: 250px;
-}
-#status-text { font-size: 0.7rem; color: var(--neon-blue); letter-spacing: 4px; font-weight: 700; text-shadow: 0 0 10px var(--neon-blue); margin-bottom: 5px; }
-.player-indicator {
-    font-size: 1.8rem; font-weight: 900; text-transform: uppercase;
-    letter-spacing: 2px; margin: 0; padding: 5px 15px;
-    background: rgba(0,0,0,0.5); border-radius: 50px;
-    border: 1px solid currentColor;
-    box-shadow: 0 0 20px currentColor, inset 0 0 10px currentColor;
-    transition: all 0.3s ease;
-}
-#deck-info { font-size: 0.7rem; opacity: 0.6; font-family: monospace; margin-top: 8px; color: var(--neon-blue); }
+/* MODÁL */
+#modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+#modal-content { width: 90%; max-width: 700px; padding: 30px; text-align: center; background: linear-gradient(160deg, #141428, #0a0a14); border: 2px solid var(--neon-blue); box-shadow: 0 0 50px rgba(0,170,255,0.3); position: relative; }
 
-/* --- HEXAGONY --- */
-.board-energy-ring {
-    position: relative; flex-grow: 1; display: flex; justify-content: center; align-items: center;
-    width: 100%; max-height: 75vh; padding: 30px; --ring-color: #00aaff;
-}
-.board-energy-ring::before {
-    content: ''; position: absolute; width: 90%; height: 90%; border-radius: 50%;
-    border: 2px solid transparent;
-    background: linear-gradient(var(--bg-void), var(--bg-void)) padding-box,
-                conic-gradient(from 0deg, var(--neon-blue), var(--neon-purple), var(--neon-orange), var(--neon-blue)) border-box;
-    mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor; mask-composite: exclude;
-    animation: spinRing 10s linear infinite; opacity: 0.5;
-}
-@keyframes spinRing { to { transform: rotate(360deg); } }
+.timer-ring { width: 80px; height: 80px; border-radius: 50%; border: 4px solid #ff3f34; margin: 0 auto; display: flex; justify-content: center; align-items: center; font-size: 2.5rem; font-weight: 900; color: #ff3f34; box-shadow: 0 0 20px rgba(255, 63, 52, 0.4); }
 
-.board-wrapper {
-    position: relative; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;
-    filter: drop-shadow(0 0 30px rgba(0, 170, 255, 0.2));
-}
-#game-board { width: 100%; height: 100%; max-width: 950px; overflow: visible; }
+/* STEAL PANEL */
+#steal-wrapper { background: rgba(0,0,0,0.8); border: 1px solid #f1c40f; padding: 20px; margin: 20px 0; animation: fadeIn 0.3s; }
+.btn-steal-yes { background: #27ae60; color: white; border-bottom: 3px solid #2ecc71; }
+.btn-steal-no { background: #c0392b; color: white; border-bottom: 3px solid #e74c3c; }
 
-.hex {
-    fill: url(#grad-free);
-    stroke: rgba(255,255,255,0.3); stroke-width: 1px;
-    cursor: pointer; transition: all 0.2s ease-out;
-    will-change: transform; transform-origin: center;
-    filter: 
-        drop-shadow(0 0 2px rgba(255,255,255,0.7))
-        drop-shadow(inset 0 0 10px rgba(0,0,0,0.5))
-        drop-shadow(0 5px 10px rgba(0,0,0,0.5));
-}
-.hex:hover {
-    transform: scale(1.1) translateZ(20px);
-    stroke: white; stroke-width: 3px; z-index: 100;
-    filter: drop-shadow(0 0 15px white) brightness(1.2);
-}
-.hex.player1 { 
-    fill: url(#grad-orange); stroke: #ffff00; stroke-width: 2px;
-    filter: drop-shadow(0 0 15px var(--neon-orange)) drop-shadow(inset 0 0 10px rgba(255, 68, 0, 0.8));
-}
-.hex.player2 { 
-    fill: url(#grad-blue); stroke: #00ffff; stroke-width: 2px; 
-    filter: drop-shadow(0 0 15px var(--neon-blue)) drop-shadow(inset 0 0 10px rgba(0, 0, 255, 0.8));
-}
-.hex.black-active { 
-    fill: url(#grad-black); stroke: #ff0000; stroke-width: 2px;
-    animation: blackPulse 2s infinite alternate;
-}
-@keyframes blackPulse { from { filter: drop-shadow(0 0 5px #500); } to { filter: drop-shadow(0 0 15px #f00); } }
+#question-text { font-size: 1.8rem; margin: 20px 0; font-weight: 800; border-left: 4px solid var(--neon-blue); padding-left: 20px; text-align: left; }
+.mod-btn { padding: 15px 30px; margin: 10px; border: none; font-size: 1.1rem; font-weight: 900; cursor: pointer; text-transform: uppercase; color: white; clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); }
+.btn-reveal { background: linear-gradient(45deg, #f1c40f, #e67e22); box-shadow: 0 0 20px rgba(241, 196, 15, 0.4); }
+#answer-wrapper { display: none; margin-top: 30px; border-top: 1px dashed #555; padding-top: 20px; animation: slideIn 0.4s; }
+#correct-answer { font-size: 1.6rem; color: #2ecc71; font-weight: 900; margin-bottom: 20px; }
+.btn-ok { background: #27ae60; } .btn-fail { background: #c0392b; }
 
-.hex-text {
-    font-size: 24px; font-weight: 900; fill: #1e272e;
-    pointer-events: none; text-anchor: middle; dominant-baseline: middle;
-    text-shadow: 1px 1px 1px rgba(255,255,255,0.6), -1px -1px 1px rgba(0,0,0,0.8);
-}
-.hex.player1 + .hex-text, .hex.player2 + .hex-text { 
-    fill: white; text-shadow: 0 2px 4px black, 0 0 10px rgba(255,255,255,0.5); 
-}
-.hex.black-active + .hex-text { fill: #7f8c8d; text-shadow: 0 1px 2px black; }
+/* VÍTĚZSTVÍ */
+#victory-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 3000; justify-content: center; align-items: center; }
+.victory-content { text-align: center; }
+.victory-title { font-size: 5rem; color: gold; text-shadow: 0 0 50px gold; margin: 0; }
+.winner-team-name { font-size: 3.5rem; margin: 20px 0; text-transform: uppercase; }
+.win-orange .winner-team-name { color: var(--neon-orange); text-shadow: 0 0 40px var(--neon-orange); }
+.win-blue .winner-team-name { color: var(--neon-blue); text-shadow: 0 0 40px var(--neon-blue); }
 
-.board-locked {
-    opacity: 0.1; filter: grayscale(100%) blur(5px) brightness(0.5);
-    pointer-events: none; transition: all 1s ease;
-    transform: scale(0.9) rotateX(20deg);
-}
-.board-active {
-    opacity: 1; filter: grayscale(0%) blur(0px);
-    pointer-events: auto; transform: scale(1) rotateX(0deg);
-    animation: powerUpSequence 1.5s ease-out;
-}
-@keyframes powerUpSequence {
-    0% { opacity: 0; filter: blur(10px); transform: scale(0.8) translateY(50px) rotateX(30deg); }
-    60% { opacity: 1; filter: blur(0px); transform: scale(1.05) translateY(-10px); box-shadow: 0 0 100px var(--neon-blue); }
-    100% { transform: scale(1) translateY(0); }
-}
-
-/* --- MODÁLNÍ OKNO --- */
-#modal-overlay {
-    display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(2, 2, 10, 0.9);
-    backdrop-filter: blur(10px); justify-content: center; align-items: center; z-index: 2000;
-    animation: fadeIn 0.3s ease-out;
-    background-image: linear-gradient(rgba(0, 170, 255, 0.1) 1px, transparent 1px); background-size: 100% 5px;
-}
-#modal-content {
-    width: 90%; max-width: 750px; padding: 40px; text-align: center; position: relative;
-    background: linear-gradient(160deg, rgba(20, 20, 40, 0.95), rgba(10, 10, 20, 0.98));
-    border: 2px solid var(--neon-blue);
-    box-shadow: 0 0 50px rgba(0, 170, 255, 0.4), inset 0 0 30px rgba(0, 170, 255, 0.2);
-    clip-path: polygon(30px 0, 100% 0, 100% calc(100% - 30px), calc(100% - 30px) 100%, 0 100%, 0 30px);
-    animation: hologramAppear 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-@keyframes hologramAppear {
-    from { transform: scale(0.8) translateY(50px); opacity: 0; filter: blur(10px); }
-    to { transform: scale(1) translateY(0); opacity: 1; filter: blur(0px); }
-}
-
-.timer-ring {
-    width: 90px; height: 90px; border-radius: 50%; background: #000;
-    border: 5px solid #ff3f34; display: flex; align-items: center; justify-content: center;
-    font-size: 2.8rem; font-weight: 900; color: #ff3f34;
-    box-shadow: 0 0 30px rgba(255, 63, 52, 0.6); text-shadow: 0 0 10px currentColor;
-}
-#question-label { color: var(--neon-blue); font-size: 0.9rem; letter-spacing: 4px; font-weight: 700; margin-bottom: 15px; font-family: monospace; }
-#question-text { 
-    font-size: 2rem; margin: 30px 0; font-weight: 800; color: #fff; line-height: 1.3; 
-    text-shadow: 0 0 10px rgba(255,255,255,0.5); border-left: 5px solid var(--neon-blue); padding-left: 20px; text-align: left;
-}
-.mod-btn {
-    padding: 18px 40px; margin: 10px; border: none;
-    font-size: 1.3rem; font-weight: 900; cursor: pointer; color: white;
-    text-transform: uppercase; letter-spacing: 2px;
-    clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
-    transition: all 0.2s; position: relative; overflow: hidden;
-}
-.mod-btn:hover { transform: scale(1.05); filter: brightness(1.2); }
-.btn-reveal { 
-    background: linear-gradient(45deg, #f1c40f, #e67e22); 
-    box-shadow: 0 10px 30px rgba(241, 196, 15, 0.4);
-}
-.buttons-row { display: flex; justify-content: center; gap: 30px; margin-top: 40px; }
-.btn-ok { background: linear-gradient(45deg, #2ecc71, #27ae60); box-shadow: 0 10px 30px rgba(46, 204, 113, 0.4); }
-.btn-fail { background: linear-gradient(45deg, #e74c3c, #c0392b); box-shadow: 0 10px 30px rgba(231, 76, 60, 0.4); }
-.btn-spare {
-    position: absolute; top: 25px; right: 25px;
-    background: rgba(188, 19, 254, 0.2); border: 2px solid var(--neon-purple); color: var(--neon-purple);
-    font-size: 0.8rem; padding: 10px 15px; font-weight: 800; cursor: pointer;
-    transition: 0.3s; box-shadow: 0 0 15px rgba(188, 19, 254, 0.3);
-}
-.btn-spare:hover { background: var(--neon-purple); color: white; box-shadow: 0 0 30px var(--neon-purple); }
-#answer-wrapper {
-    display: none; 
-    margin-top: 40px; 
-    border-top: 2px dashed rgba(255,255,255,0.2); 
-    padding-top: 30px;
-    
-    /* PŘIDÁNO: Animace příletu */
-    animation: slideInGlitch 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
-    transform-origin: top;
-}
-
-@keyframes slideInGlitch {
-    0% { 
-        opacity: 0; 
-        transform: scaleY(0); 
-        filter: blur(10px);
-    }
-    100% { 
-        opacity: 1; 
-        transform: scaleY(1); 
-        filter: blur(0);
-    }
-}
-.label-answer { color: #2ecc71; font-size: 1rem; letter-spacing: 3px; font-weight: 700; margin-bottom: 10px; font-family: monospace; }
-#correct-answer { 
-    font-size: 1.8rem; color: #fff; font-weight: 900; margin-bottom: 30px; 
-    text-shadow: 0 0 20px rgba(46, 204, 113, 0.8); border-bottom: 3px solid #2ecc71; display: inline-block;
-}
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-/* --- GRANDIOZNÍ VÍTĚZSTVÍ (FINÁLE) --- */
-#victory-overlay {
-    display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: radial-gradient(circle at center, rgba(0,0,0,0.8) 0%, #000000 100%);
-    z-index: 9999; justify-content: center; align-items: center;
-    backdrop-filter: blur(20px);
-    animation: fadeInVictory 1s ease-out forwards;
-}
-@keyframes fadeInVictory { from { opacity: 0; } to { opacity: 1; } }
-
-#victory-overlay.win-orange { --win-color: var(--neon-orange); }
-#victory-overlay.win-blue { --win-color: var(--neon-blue); }
-
-.victory-content {
-    text-align: center; position: relative;
-    transform: scale(0.8); opacity: 0;
-    animation: victoryPop 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-    animation-delay: 0.3s;
-}
-@keyframes victoryPop { to { transform: scale(1); opacity: 1; } }
-
-.victory-title {
-    font-size: 6rem; font-weight: 900; margin: 0; line-height: 1;
-    color: #fff; letter-spacing: 10px; text-transform: uppercase;
-    background: linear-gradient(to bottom, #ffffff, #ffd700, #ff8c00);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.6));
-    animation: titleShimmer 3s infinite alternate;
-}
-@keyframes titleShimmer {
-    0% { filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.6)); }
-    100% { filter: drop-shadow(0 0 60px rgba(255, 215, 0, 1)); }
-}
-
-.winner-team-name {
-    font-size: 4rem; font-weight: 900; margin: 20px 0 40px 0;
-    text-transform: uppercase; letter-spacing: 5px; color: var(--win-color);
-    text-shadow: 0 0 20px var(--win-color), 0 0 50px var(--win-color), 0 0 100px var(--win-color);
-    animation: namePulse 1.5s infinite alternate ease-in-out;
-}
-@keyframes namePulse {
-    0% { transform: scale(1); text-shadow: 0 0 20px var(--win-color), 0 0 50px var(--win-color); }
-    100% { transform: scale(1.05); text-shadow: 0 0 40px var(--win-color), 0 0 80px var(--win-color), 0 0 120px var(--win-color); }
-}
-
-.victory-sparks {
-    position: absolute; top: 50%; left: 50%; width: 100%; height: 100%;
-    transform: translate(-50%, -50%); pointer-events: none; z-index: -1;
-    background-image: radial-gradient(circle, var(--win-color) 2px, transparent 2px);
-    background-size: 50px 50px;
-    mask-image: radial-gradient(circle at center, black 30%, transparent 70%);
-    animation: sparksExplode 5s linear infinite; opacity: 0.6;
-}
-@keyframes sparksExplode {
-    0% { transform: translate(-50%, -50%) scale(0.5) rotate(0deg); opacity: 0; }
-    20% { opacity: 1; }
-    100% { transform: translate(-50%, -50%) scale(2) rotate(45deg); opacity: 0; }
-}
-
-.victory-reset-btn {
-    font-size: 1.2rem; padding: 20px 50px;
-    background: linear-gradient(45deg, #37474f, #263238);
-    border: 2px solid rgba(255,255,255,0.3); box-shadow: 0 0 30px rgba(0,0,0,0.5);
-}
-.victory-reset-btn:hover {
-    background: var(--win-color); border-color: #fff;
-    box-shadow: 0 0 50px var(--win-color); color: #000;
-}
-/* --- DATOVÉ CENTRUM --- */
-#datacenter-overlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.9); backdrop-filter: blur(8px);
-    z-index: 3000; display: none; justify-content: center; align-items: center;
-    animation: fadeIn 0.3s;
-}
-
-.datacenter-window {
-    width: 95%; max-width: 900px; padding: 30px;
-    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
-    border: 1px solid var(--neon-blue);
-    display: flex; flex-direction: column; gap: 20px;
-    box-shadow: 0 0 50px rgba(0,0,0,0.8);
-    border-radius: 10px;
-}
-
-.editor-title {
-    color: var(--neon-blue); margin: 0; text-align: center; letter-spacing: 4px;
-    text-shadow: 0 0 10px var(--neon-blue); border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px;
-}
-
-/* Status panel (Analýza počtu) */
-.db-status-panel {
-    display: flex; justify-content: space-around;
-    background: rgba(0,0,0,0.4); padding: 15px; border-radius: 8px;
-    border: 1px solid #444;
-}
-
-.status-indicator {
-    font-weight: bold; font-family: monospace; font-size: 1.1rem;
-    transition: color 0.3s;
-}
-.status-indicator.valid { color: #2ecc71; text-shadow: 0 0 10px #2ecc71; } /* Zelená */
-.status-indicator.invalid { color: #e74c3c; text-shadow: 0 0 10px #e74c3c; } /* Červená */
-
-/* Grid pro sloupce */
-.datacenter-grid {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 30px;
-    margin: 10px 0;
-}
+/* DATA CENTER */
+.datacenter-window { width: 90%; max-width: 800px; padding: 20px; background: #0f0c29; display: flex; flex-direction: column; gap: 15px; }
+.datacenter-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 .dc-column { display: flex; flex-direction: column; gap: 10px; }
-.dc-column h3 { color: #fff; margin: 0 0 10px 0; font-size: 1rem; opacity: 0.8; }
-.right-col { border-left: 1px solid rgba(255,255,255,0.1); padding-left: 30px; }
+.drop-zone { border: 2px dashed #666; padding: 20px; text-align: center; cursor: pointer; }
+.cyber-input { background: rgba(255,255,255,0.1); border: 1px solid #444; color: white; padding: 10px; width: 100%; }
+.editor-title { text-align: center; color: var(--neon-blue); margin: 0; }
+.db-status-panel { display: flex; justify-content: space-around; background: rgba(0,0,0,0.3); padding: 10px; }
 
-/* Upload zóna */
-.drop-zone {
-    border: 2px dashed #666; padding: 30px; text-align: center; color: #aaa;
-    cursor: pointer; transition: 0.3s; border-radius: 8px; position: relative;
-}
-.drop-zone:hover { border-color: var(--neon-blue); color: white; background: rgba(0,170,255,0.1); }
-.drop-zone input { position: absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor:pointer; }
-
-.small-info { font-size: 0.7rem; color: #777; margin-top: 5px; font-style: italic; }
-
-/* Vstupy */
-.cyber-input {
-    background: rgba(0,0,0,0.5); border: 1px solid #555; color: white;
-    padding: 10px; font-family: 'Montserrat', sans-serif; border-radius: 4px; outline: none;
-}
-.cyber-input:focus { border-color: var(--neon-blue); }
-
-.type-selector { display: flex; gap: 15px; margin: 5px 0; }
-.radio-label { color: #ccc; cursor: pointer; display: flex; align-items: center; gap: 5px; font-size: 0.9rem; }
-.btn-small { padding: 8px 15px; font-size: 0.8rem; background: linear-gradient(45deg, #2980b9, #3498db); align-self: flex-start; }
-
-.editor-actions { display: flex; justify-content: center; gap: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; }
-.btn-save { border-bottom: 3px solid #9b59b6; }
-.btn-close { border-bottom: 3px solid #2ecc71; }
-/* Styl pro panel kradení otázky */
-#steal-wrapper {
-    background: rgba(0, 0, 0, 0.6);
-    padding: 15px;
-    border-radius: 10px;
-    border: 1px solid #f1c40f;
-    margin-bottom: 20px;
-    animation: fadeIn 0.3s ease;
-}
-
-.btn-steal-yes {
-    background: linear-gradient(45deg, #3498db, #2980b9); /* Modrá */
-    border-bottom: 3px solid #1abc9c;
-    font-size: 1rem;
-    padding: 10px 20px;
-}
-/* Pokud krade oranžový, JS to může změnit, ale defaultně modrá je ok pro kontrast */
-
-.btn-steal-no {
-    background: linear-gradient(45deg, #7f8c8d, #34495e);
-    border-bottom: 3px solid #2c3e50;
-    font-size: 1rem;
-    padding: 10px 20px;
-}
+@keyframes blackPulse { 0% { filter: drop-shadow(0 0 5px #500); } 100% { filter: drop-shadow(0 0 15px #f00); } }
+@keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
