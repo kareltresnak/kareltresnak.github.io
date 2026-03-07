@@ -389,9 +389,16 @@ elements.btnExport.addEventListener('click', () => {
             <tbody>
                 <tr>
                     <td colspan="4" class="title-cell">
-                        <img src="spspb-logo-2000px.png" class="print-logo" alt="Znak SPŠ">
-                        Střední průmyslová škola a Vyšší odborná škola Příbram II,Hrabákova 271<br>
-                        Seznam literárních děl: <strong>MATURITNÍ ZKOUŠKA Z ČJL - ústní část</strong>
+                        <div class="header-flex">
+                            <div class="header-logo">
+                                <img src="spspb-logo-2000px.png" class="print-logo" alt="Znak SPŠ">
+                            </div>
+                            <div class="header-text">
+                                Střední průmyslová škola a Vyšší odborná škola Příbram II,Hrabákova 271<br>
+                                Seznam literárních děl: <strong>MATURITNÍ ZKOUŠKA Z ČJL - ústní část</strong>
+                            </div>
+                            <div class="header-spacer"></div>
+                        </div>
                     </td>
                 </tr>
 
