@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Selekce maturitní četby</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="layout">
+        <main class="content">
+            <div class="top-bar">
+                <input type="text" id="search-box" placeholder="Hledat dílo či autora... (Esc pro vyčištění)" autocomplete="off">
+            </div>
+            
+            <div class="table-container" id="table-wrapper">
+                <table id="data-table">
+                    <thead>
+                        <tr>
+                            <th width="8%">Č.</th>
+                            <th width="37%">Dílo</th>
+                            <th width="25%">Autor</th>
+                            <th width="10%">Druh</th>
+                            <th width="20%">Období</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body">
+                        </tbody>
+                </table>
+            </div>
+        </main>
+
+        <aside class="sidebar">
+            <div class="sidebar-scroll">
+                <h1 class="brand">SELEKCE <span class="brand-dim">ČETBY</span></h1>
+                
+                <div class="section-header">Stav výběru</div>
+                <div id="stat-total" class="stat-box">Celkem: <span class="val">0</span> / 20</div>
+                
+                <div class="action-buttons">
+                    <button type="button" id="btn-export" class="success-btn" title="Uložit výběr jako PDF">📄 Export do PDF</button>
+                    <button type="button" id="btn-reset" class="warning-btn">Zrušit filtry</button>
+                    <button type="button" id="btn-clear" class="danger-btn">Vymazat vše</button>
+                </div>
+
+                <div class="section-header">Období</div>
+                <div class="filter-group" data-type="obdobi">
+                    <button type="button" class="filter-btn" data-val="do18">Do 18. st. <span class="badge">0/2</span></button>
+                    <button type="button" class="filter-btn" data-val="19">19. st. <span class="badge">0/3</span></button>
+                    <button type="button" class="filter-btn" data-val="svet20">Svět 20+ <span class="badge">0/4</span></button>
+                    <button type="button" class="filter-btn" data-val="cz20">ČR 20+ <span class="badge">0/5</span></button>
+                </div>
+
+                <div class="section-header">Druh</div>
+                <div class="filter-group" data-type="druh">
+                    <button type="button" class="filter-btn" data-val="lyrika">Lyrika <span class="badge">0/2</span></button>
+                    <button type="button" class="filter-btn" data-val="epika">Epika <span class="badge">0/2</span></button>
+                    <button type="button" class="filter-btn" data-val="drama">Drama <span class="badge">0/2</span></button>
+                </div>
+
+                <div class="section-header">Můj seznam</div>
+                <div id="my-list" class="my-list">Zatím prázdno...</div>
+            </div>
+        </aside>
+    </div>
+    <button type="button" id="btn-scroll-top" class="fab-btn" aria-label="Nahoru" tabindex="-1">↑</button>
+    <div id="print-area"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
