@@ -279,7 +279,7 @@ elements.tableBody.addEventListener('keydown', (e) => {
         const nextTr = currentTr.nextElementSibling;
         if (nextTr) {
             currentTr.setAttribute('tabindex', '-1');
-            currentTr.setAttribute('tabindex', '0');
+            nextTr.setAttribute('tabindex', '0');
             nextTr.focus();
             nextTr.scrollIntoView({ block: 'nearest' });
         }
@@ -389,16 +389,18 @@ elements.btnExport.addEventListener('click', () => {
             <tbody>
                 <tr>
                     <td colspan="4" class="title-cell">
-                        <div class="header-flex">
-                            <div class="header-logo">
-                                <img src="spspb-logo-2000px.png" class="print-logo" alt="Znak SPŠ">
-                            </div>
-                            <div class="header-text">
-                                Střední průmyslová škola a Vyšší odborná škola Příbram II,Hrabákova 271<br>
-                                Seznam literárních děl: <strong>MATURITNÍ ZKOUŠKA Z ČJL - ústní část</strong>
-                            </div>
-                            <div class="header-spacer"></div>
-                        </div>
+                        <table class="header-layout">
+                            <tr>
+                                <td class="header-logo-col">
+                                    <img src="spspb-logo-2000px.png" class="print-logo" alt="Znak SPŠ">
+                                </td>
+                                <td class="header-text-col">
+                                    Střední průmyslová škola a Vyšší odborná škola Příbram II,Hrabákova 271<br>
+                                    Seznam literárních děl: <strong>MATURITNÍ ZKOUŠKA Z ČJL - ústní část</strong>
+                                </td>
+                                <td class="header-spacer-col"></td>
+                            </tr>
+                        </table>
                     </td>
                 </tr>
 
