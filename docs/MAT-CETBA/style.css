@@ -86,56 +86,28 @@ tr.selected td:nth-child(2) { color: var(--accent-green); font-weight: bold; }
 
 /* ======= 1:1 FIREWALL TISKOVÉHO ENGINU (Oficiální šablona SPŠ) ======= */
 @media print {
-    /* Nulový okraj odstraní URL, datum a číslování stránek. */
     @page { size: A4 portrait; margin: 0mm; }
     
-    /* Vytvoření fyzického okraje na úrovni dokumentu */
     body { background: white !important; color: black !important; height: auto; overflow: visible; padding: 1.5cm !important; box-sizing: border-box; }
     .layout, .fab-btn { display: none !important; }
     #print-area { display: block !important; width: 100%; }
 
-    /* Absolutní jádro šablony */
     .official-table { width: 100%; border-collapse: collapse; border: 2px solid black; }
     .official-table * { font-family: 'Times New Roman', Times, serif !important; color: black !important; }
     .official-table td { border: 1px solid black !important; padding: 4px 6px !important; font-size: 11pt; vertical-align: middle; line-height: 1.2; }
 
-    /* ======= CHIRURGICKÝ ŘEZ: Flexbox hlavička (Neprůstřelný fix pro mobilní tisk) ======= */
-    .official-table td.title-cell { 
-        padding: 0 !important; /* Padding přebírá vnitřní flex kontejner */
-        border-bottom: 1px solid black !important; 
-    }
-    
-    .header-flex {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        width: 100%;
-        padding: 8px 10px;
-        box-sizing: border-box;
-    }
+    /* ======= CHIRURGICKÝ ŘEZ: Vnořená tabulka pro hlavičku (Nerozbitná na PC i mobilu) ======= */
+    .official-table td.title-cell { text-align: center !important; padding: 6px !important; border-bottom: 1px solid black !important; }
 
-    .header-logo { width: 55px; flex-shrink: 0; display: flex; align-items: center; }
-    .print-logo { width: 50px !important; height: auto !important; object-fit: contain !important; border: none !important; }
-    
-    .header-text { flex-grow: 1; text-align: center !important; font-size: 12pt !important; line-height: 1.3; }
-    .header-text strong { font-weight: bold; font-size: 12pt !important; }
-    
-    /* Fantomový prvek: Vyvažuje logo na levé straně, text je díky němu v absolutním středu papíru */
-    .header-spacer { width: 55px; flex-shrink: 0; } 
-    /* ==================================================================================== */
-    
-    .print-logo { 
-        position: absolute; 
-        left: 10px; /* Vzdálenost od levé hrany */
-        top: 50%; 
-        transform: translateY(-50%); 
-        width: 50px !important; 
-        height: auto !important; 
-        object-fit: contain !important; 
-        border: none !important; 
-    }
-    
-    .title-cell strong { font-weight: bold; font-size: 12pt !important; }
+    .header-layout { width: 100%; border-collapse: collapse; border: none !important; }
+    .header-layout td { border: none !important; padding: 0 !important; vertical-align: middle !important; }
+
+    .header-logo-col { width: 60px; text-align: left !important; }
+    .header-text-col { text-align: center !important; font-size: 12pt !important; line-height: 1.2; }
+    .header-text-col strong { font-weight: bold; font-size: 12pt !important; }
+    .header-spacer-col { width: 60px; }
+
+    .print-logo { width: 50px !important; height: auto !important; object-fit: contain !important; display: block !important; }
 
     /* Osobní údaje studenta */
     .info-label { font-weight: bold !important; font-size: 11pt; text-align: left !important; white-space: nowrap !important; }
