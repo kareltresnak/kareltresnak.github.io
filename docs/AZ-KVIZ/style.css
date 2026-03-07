@@ -11,7 +11,42 @@
 }
 
 * { box-sizing: border-box; }
+.cyber-back-btn {
+    position: fixed;
+    top: 1.5rem;
+    left: 1.5rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: rgba(0, 10, 20, 0.7); /* Tmavé poloprůhledné pozadí */
+    color: #00e5ff; /* Neonově azurová */
+    font-family: 'Courier New', Courier, monospace; /* Terminálový vzhled */
+    font-size: 0.9rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    text-decoration: none;
+    border: 1px solid #00e5ff;
+    box-shadow: 0 0 10px rgba(0, 229, 255, 0.2), inset 0 0 5px rgba(0, 229, 255, 0.2);
+    backdrop-filter: blur(4px);
+    z-index: 9999;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    letter-spacing: 1px;
+}
 
+.cyber-back-btn:hover {
+    background: rgba(255, 157, 0, 0.1); /* Jemný oranžový podklad */
+    color: #ff9d00; /* Přechod do výstražné oranžové (jako tvůj text ORANŽOVÍ) */
+    border-color: #ff9d00;
+    box-shadow: 0 0 15px rgba(255, 157, 0, 0.4), inset 0 0 8px rgba(255, 157, 0, 0.2);
+    text-shadow: 0 0 5px rgba(255, 157, 0, 0.5);
+    transform: translateX(-5px); /* Kinetický posun */
+}
+
+/* Skrytí při tisku (pokud by někdo tiskl AZ kvíz) */
+@media print {
+    .cyber-back-btn { display: none !important; }
+}
 body {
     font-family: 'Montserrat', sans-serif;
     background: var(--bg-void);
