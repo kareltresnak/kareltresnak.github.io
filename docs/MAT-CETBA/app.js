@@ -1,0 +1,404 @@
+const KNIHY_DB = [
+    { id: 1, dilo: "Ilias", autor: "Homér", druh: "epika", obdobi: "do18" },
+    { id: 2, dilo: "Romeo a Julie", autor: "William Shakespeare", druh: "drama", obdobi: "do18" },
+    { id: 3, dilo: "Kytice", autor: "Karel Jaromír Erben", druh: "lyrika", obdobi: "19" },
+    { id: 4, dilo: "Máj", autor: "Karel Hynek Mácha", druh: "lyrika", obdobi: "19" },
+    { id: 5, dilo: "Povídky malostranské", autor: "Jan Neruda", druh: "epika", obdobi: "19" },
+    { id: 6, dilo: "Oliver Twist", autor: "Charles Dickens", druh: "epika", obdobi: "19" },
+    { id: 7, dilo: "Slezské písně", autor: "Petr Bezruč", druh: "lyrika", obdobi: "cz20" },
+    { id: 8, dilo: "Krysař", autor: "Viktor Dyk", druh: "epika", obdobi: "cz20" },
+    { id: 9, dilo: "R. U. R.", autor: "Karel Čapek", druh: "drama", obdobi: "cz20" },
+    { id: 10, dilo: "Osudy dobrého vojáka Švejka", autor: "Jaroslav Hašek", druh: "epika", obdobi: "cz20" },
+    { id: 11, dilo: "Proměna", autor: "Franz Kafka", druh: "epika", obdobi: "svet20" },
+    { id: 12, dilo: "Na západní frontě klid", autor: "Erich Maria Remarque", druh: "epika", obdobi: "svet20" },
+    { id: 13, dilo: "Stařec a moře", autor: "Ernest Hemingway", druh: "epika", obdobi: "svet20" },
+    { id: 14, dilo: "Spalovač mrtvol", autor: "Ladislav Fuks", druh: "epika", obdobi: "cz20" },
+    { id: 15, dilo: "Vyšetřování ztráty třídní knihy", autor: "Smoljak, Svěrák", druh: "drama", obdobi: "cz20" },
+    { id: 16, dilo: "Píseň o Viktorce", autor: "Jaroslav Seifert", druh: "lyrika", obdobi: "cz20" },
+    { id: 17, dilo: "Smrt je mým řemeslem", autor: "Robert Merle", druh: "epika", obdobi: "svet20" },
+    { id: 18, dilo: "Farma zvířat", autor: "George Orwell", druh: "epika", obdobi: "svet20" },
+    { id: 19, dilo: "Ostře sledované vlaky", autor: "Bohumil Hrabal", druh: "epika", obdobi: "cz20" },
+    { id: 20, dilo: "Báječná léta pod psa", autor: "Michal Viewegh", druh: "epika", obdobi: "cz20" },
+    { id: 21, dilo: "Král Oidipus", autor: "Sofokles", druh: "drama", obdobi: "do18" },
+    { id: 22, dilo: "Bible pro děti", autor: "Hadaway, Atcheson", druh: "epika", obdobi: "do18" },
+    { id: 23, dilo: "Lakomec", autor: "Moliére", druh: "drama", obdobi: "do18" },
+    { id: 24, dilo: "Revizor", autor: "Nikolaj V. Gogol", druh: "drama", obdobi: "19" },
+    { id: 25, dilo: "Tyrolské elegie", autor: "Karel Havlíček Borovský", druh: "lyrika", obdobi: "19" },
+    { id: 26, dilo: "Jáma a kyvadlo", autor: "Edgar Allan Poe", druh: "epika", obdobi: "19" },
+    { id: 27, dilo: "O myších a lidech", autor: "John Steinbeck", druh: "epika", obdobi: "svet20" },
+    { id: 28, dilo: "Rozmarné léto", autor: "Vladislav Vančura", druh: "epika", obdobi: "cz20" },
+    { id: 29, dilo: "Válka s mloky", autor: "Karel Čapek", druh: "epika", obdobi: "cz20" },
+    { id: 30, dilo: "451 stupňů Fahrenheita", autor: "Ray Bradbury", druh: "epika", obdobi: "svet20" },
+    { id: 31, dilo: "Audience", autor: "Václav Havel", druh: "drama", obdobi: "cz20" },
+    { id: 32, dilo: "Kníška", autor: "Karel Kryl", druh: "lyrika", obdobi: "cz20" },
+    { id: 33, dilo: "Zbabělci", autor: "Josef Škvorecký", druh: "epika", obdobi: "cz20" },
+    { id: 34, dilo: "Žert", autor: "Milan Kundera", druh: "epika", obdobi: "cz20" },
+    { id: 35, dilo: "Chrám Matky Boží v Paříži", autor: "Victor Hugo", druh: "epika", obdobi: "19" },
+    { id: 36, dilo: "Robinson Crusoe", autor: "Daniel Defoe", druh: "epika", obdobi: "do18" },
+    { id: 37, dilo: "Malý princ", autor: "Antoine de Saint-Exupéry", druh: "epika", obdobi: "svet20" },
+    { id: 38, dilo: "Němá barikáda", autor: "Jan Drda", druh: "epika", obdobi: "cz20" },
+    { id: 39, dilo: "Smrt krásných srnců", autor: "Ota Pavel", druh: "epika", obdobi: "cz20" },
+    { id: 40, dilo: "Misery", autor: "Stephen King", druh: "epika", obdobi: "svet20" },
+    { id: 41, dilo: "Společenstvo Prstenu", autor: "J.R.R. Tolkien", druh: "epika", obdobi: "svet20" },
+    { id: 42, dilo: "Občanský průkaz", autor: "Petr Šabach", druh: "epika", obdobi: "cz20" },
+    { id: 43, dilo: "Den trifidů", autor: "John Wyndham", druh: "epika", obdobi: "svet20" },
+    { id: 44, dilo: "Edison", autor: "Vítězslav Nezval", druh: "lyrika", obdobi: "cz20" },
+    { id: 45, dilo: "Zkrocení zlé ženy", autor: "William Shakespeare", druh: "drama", obdobi: "do18" },
+    { id: 46, dilo: "Strakonický dudák", autor: "Josef Kajetán Tyl", druh: "drama", obdobi: "19" },
+    { id: 47, dilo: "Babička", autor: "Božena Němcová", druh: "epika", obdobi: "19" },
+    { id: 48, dilo: "Balady a romance", autor: "Jan Neruda", druh: "lyrika", obdobi: "19" },
+    { id: 49, dilo: "Nový epochální výlet pana Broučka", autor: "Svatopluk Čech", druh: "epika", obdobi: "19" },
+    { id: 50, dilo: "Bylo nás pět", autor: "Karel Poláček", druh: "epika", obdobi: "cz20" },
+    { id: 51, dilo: "Maryša", autor: "Alois a Vilém Mrštíkové", druh: "drama", obdobi: "19" },
+    { id: 52, dilo: "Nikola Šuhaj loupežník", autor: "Ivan Olbracht", druh: "epika", obdobi: "cz20" },
+    { id: 53, dilo: "Saturnin", autor: "Zdeněk Jirotka", druh: "epika", obdobi: "cz20" },
+    { id: 54, dilo: "České nebe", autor: "Smoljak, Svěrák", druh: "drama", obdobi: "cz20" },
+    { id: 55, dilo: "Postřižiny", autor: "Bohumil Hrabal", druh: "epika", obdobi: "cz20" },
+    { id: 56, dilo: "Hana", autor: "Alena Mornštajnová", druh: "epika", obdobi: "cz20" },
+    { id: 57, dilo: "Tankový prapor", autor: "Josef Škvorecký", druh: "epika", obdobi: "cz20" },
+    { id: 58, dilo: "Memento", autor: "Radek John", druh: "epika", obdobi: "cz20" },
+    { id: 59, dilo: "Jeden den Ivana Děnisoviče", autor: "Alexandr Solženicyn", druh: "epika", obdobi: "svet20" },
+    { id: 60, dilo: "Alchymista", autor: "Paulo Coelho", druh: "epika", obdobi: "svet20" },
+    { id: 61, dilo: "Tartuffe", autor: "Moliére", druh: "drama", obdobi: "do18" },
+    { id: 62, dilo: "Modlitba pro K. Horovitzovou", autor: "Arnošt Lustig", druh: "epika", obdobi: "cz20" },
+    { id: 63, dilo: "Pes baskervillský", autor: "Arthur Conan Doyle", druh: "epika", obdobi: "svet20" },
+    { id: 64, dilo: "Vražda v Orient-expresu", autor: "Agatha Christie", druh: "epika", obdobi: "svet20" },
+    { id: 65, dilo: "Velký Gatsby", autor: "Francis Scott Fitzgerald", druh: "epika", obdobi: "svet20" },
+    { id: 66, dilo: "Pýcha a předsudek", autor: "Jane Austenová", druh: "epika", obdobi: "19" }
+];
+
+const MAPA_OBDOBI = { "do18": "Do konce 18. st.", "19": "19. století", "cz20": "ČR 20. a 21. st.", "svet20": "Svět 20. a 21. st." };
+const REQUIREMENTS = { do18: 2, "19": 3, svet20: 4, cz20: 5, lyrika: 2, epika: 2, drama: 2 };
+const STORAGE_KEY = 'kanon_selekce_state';
+
+const state = { selectedIds: new Set(), filters: { obdobi: null, druh: null }, searchQuery: "" };
+
+const elements = {
+    tableBody: document.getElementById('table-body'),
+    searchBox: document.getElementById('search-box'),
+    btnReset: document.getElementById('btn-reset'),
+    btnClear: document.getElementById('btn-clear'),
+    btnExport: document.getElementById('btn-export'),
+    statTotal: document.getElementById('stat-total').querySelector('.val'),
+    myList: document.getElementById('my-list'),
+    btnScrollTop: document.getElementById('btn-scroll-top')
+};
+
+// ======= LOCAL STORAGE: SERIALIZACE A DESERIALIZACE =======
+function saveState() {
+    const stateToSave = {
+        // Set musíme konvertovat na Array, protože JSON neumí nativně serializovat Set
+        selectedIds: Array.from(state.selectedIds),
+        filters: state.filters
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
+}
+
+function loadState() {
+    const savedData = localStorage.getItem(STORAGE_KEY);
+    if (savedData) {
+        try {
+            const parsed = JSON.parse(savedData);
+            // Zpětná konverze Array na Set pro garantovanou unikátnost prvků
+            if (Array.isArray(parsed.selectedIds)) {
+                state.selectedIds = new Set(parsed.selectedIds);
+            }
+            if (parsed.filters) {
+                state.filters = parsed.filters;
+            }
+        } catch (error) {
+            console.error("Data corruption in LocalStorage detected. Purging state.");
+            localStorage.removeItem(STORAGE_KEY);
+        }
+    }
+}
+
+// ======= NATIVNÍ TAB FOCUS TRAP =======
+document.addEventListener('keydown', (e) => {
+    if (e.key === '/' && document.activeElement !== elements.searchBox) {
+        e.preventDefault();
+        elements.searchBox.focus();
+        return;
+    }
+
+    if (e.key === 'Tab') {
+        const focusable = Array.from(document.querySelectorAll(
+            '#search-box, #table-body tr[tabindex="0"], .sidebar button:not([disabled])'
+        )).filter(el => el !== null);
+
+        if (focusable.length === 0) return;
+
+        const firstEl = focusable[0];
+        const lastEl = focusable[focusable.length - 1];
+
+        if (e.shiftKey && document.activeElement === firstEl) {
+            e.preventDefault();
+            lastEl.focus();
+        } else if (!e.shiftKey && document.activeElement === lastEl) {
+            e.preventDefault();
+            firstEl.focus();
+        }
+    }
+});
+
+function renderTable() {
+    const q = state.searchQuery.toLowerCase();
+    const filtered = KNIHY_DB.filter(kniha => {
+        if (state.filters.obdobi && state.filters.obdobi !== kniha.obdobi) return false;
+        if (state.filters.druh && state.filters.druh !== kniha.druh) return false;
+        if (q && !(kniha.dilo.toLowerCase().includes(q) || kniha.autor.toLowerCase().includes(q))) return false;
+        return true;
+    });
+
+    elements.tableBody.innerHTML = filtered.map((kniha, index) => {
+        const isSelected = state.selectedIds.has(kniha.id);
+        const tIndex = index === 0 ? "0" : "-1";
+        return `
+            <tr data-id="${kniha.id}" class="${isSelected ? 'selected' : ''}" tabindex="${tIndex}">
+                <td>${kniha.id}</td>
+                <td>${isSelected ? '✔ ' : ''}${kniha.dilo}</td>
+                <td>${kniha.autor}</td>
+                <td>${kniha.druh}</td>
+                <td>${MAPA_OBDOBI[kniha.obdobi]}</td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function updateStatsAndSidebar() {
+    const stats = { do18: 0, "19": 0, svet20: 0, cz20: 0, lyrika: 0, epika: 0, drama: 0 };
+    state.selectedIds.forEach(id => {
+        const kniha = KNIHY_DB.find(k => k.id === id);
+        stats[kniha.obdobi]++; stats[kniha.druh]++;
+    });
+
+    const total = state.selectedIds.size;
+    
+    let isFullyValid = total === 20;
+    for (const key in REQUIREMENTS) {
+        if ((stats[key] || 0) < REQUIREMENTS[key]) {
+            isFullyValid = false;
+            break;
+        }
+    }
+
+    elements.statTotal.textContent = total;
+    
+    if (isFullyValid) {
+        elements.statTotal.parentElement.style.borderColor = "var(--accent-green)";
+    } else if (total === 20) {
+        elements.statTotal.parentElement.style.borderColor = "var(--accent-red)";
+    } else {
+        elements.statTotal.parentElement.style.borderColor = "var(--border)";
+    }
+
+    if (isFullyValid) {
+        elements.btnExport.removeAttribute('disabled');
+    } else {
+        elements.btnExport.setAttribute('disabled', 'true');
+    }
+
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        const type = btn.parentElement.dataset.type;
+        const val = btn.dataset.val;
+        if (state.filters[type] === val) btn.classList.add('active');
+        else btn.classList.remove('active');
+
+        const badge = btn.querySelector('.badge');
+        const current = stats[val] || 0;
+        const req = REQUIREMENTS[val];
+        badge.textContent = `${current}/${req}`;
+        badge.className = `badge ${current >= req ? 'ok' : 'fail'}`;
+    });
+
+    if (total === 0) {
+        elements.myList.innerHTML = "<em>Zatím prázdno...</em>";
+    } else {
+        const sortedSelected = Array.from(state.selectedIds)
+            .map(id => KNIHY_DB.find(k => k.id === id))
+            .sort((a, b) => a.id - b.id);
+        
+        elements.myList.innerHTML = sortedSelected.map(k => 
+            `<div class="selected-item">
+                <div class="selected-item-info">
+                    <strong>${k.id}. ${k.dilo}</strong>
+                    <small>${k.autor}</small>
+                </div>
+                <button type="button" class="remove-btn" data-id="${k.id}" aria-label="Odstranit">×</button>
+            </div>`
+        ).join('');
+    }
+}
+
+function toggleBook(id) {
+    if (state.selectedIds.has(id)) {
+        state.selectedIds.delete(id);
+    } else {
+        if (state.selectedIds.size >= 20) {
+            alert("Kapacita naplněna (20). Odstraňte některé dílo, abyste mohli přidat jiné.");
+            return;
+        }
+        state.selectedIds.add(id);
+    }
+    
+    const focusedRow = document.activeElement;
+    const focusedId = focusedRow && focusedRow.tagName === 'TR' ? focusedRow.dataset.id : null;
+    
+    renderTable();
+    updateStatsAndSidebar();
+    saveState(); // Uložení do paměti po změně výběru
+
+    if (focusedId) {
+        const rows = Array.from(elements.tableBody.querySelectorAll('tr'));
+        rows.forEach(r => r.setAttribute('tabindex', '-1'));
+        const rowToFocus = elements.tableBody.querySelector(`tr[data-id="${focusedId}"]`);
+        if (rowToFocus) {
+            rowToFocus.setAttribute('tabindex', '0');
+            rowToFocus.focus();
+        } else if (rows.length > 0) {
+            rows[0].setAttribute('tabindex', '0');
+        }
+    }
+}
+
+elements.myList.addEventListener('click', (e) => {
+    const btn = e.target.closest('.remove-btn');
+    if (btn) toggleBook(parseInt(btn.dataset.id, 10));
+});
+
+elements.tableBody.addEventListener('click', (e) => {
+    const tr = e.target.closest('tr');
+    if (tr) toggleBook(parseInt(tr.dataset.id, 10));
+});
+
+elements.tableBody.addEventListener('keydown', (e) => {
+    const currentTr = e.target.closest('tr');
+    if (!currentTr) return;
+
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        const nextTr = currentTr.nextElementSibling;
+        if (nextTr) {
+            currentTr.setAttribute('tabindex', '-1');
+            nextTr.setAttribute('tabindex', '0');
+            nextTr.focus();
+            nextTr.scrollIntoView({ block: 'nearest' });
+        }
+    } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        const prevTr = currentTr.previousElementSibling;
+        if (prevTr) {
+            currentTr.setAttribute('tabindex', '-1');
+            prevTr.setAttribute('tabindex', '0');
+            prevTr.focus();
+            prevTr.scrollIntoView({ block: 'nearest' });
+        }
+    } else if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        toggleBook(parseInt(currentTr.dataset.id, 10));
+    }
+});
+
+elements.searchBox.addEventListener('input', (e) => {
+    state.searchQuery = e.target.value;
+    renderTable();
+    // Vyhledávání záměrně neukládáme, je to efemérní stav
+});
+
+elements.searchBox.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        state.searchQuery = "";
+        elements.searchBox.value = "";
+        renderTable();
+    } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        const firstRow = elements.tableBody.querySelector('tr');
+        if (firstRow) firstRow.focus();
+    }
+});
+
+document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const type = btn.parentElement.dataset.type;
+        const val = btn.dataset.val;
+        state.filters[type] = (state.filters[type] === val) ? null : val;
+        renderTable();
+        updateStatsAndSidebar();
+        saveState(); // Uložení do paměti po změně filtru
+    });
+});
+
+elements.btnReset.addEventListener('click', () => {
+    state.filters = { obdobi: null, druh: null };
+    state.searchQuery = "";
+    elements.searchBox.value = "";
+    renderTable();
+    updateStatsAndSidebar();
+    saveState(); // Reset je též změna stavu
+});
+
+elements.btnClear.addEventListener('click', () => {
+    if (confirm("Opravdu chceš vymazat celý seznam?")) {
+        state.selectedIds.clear();
+        renderTable();
+        updateStatsAndSidebar();
+        saveState(); // Smazání nutno propsat do paměti
+    }
+});
+
+elements.btnExport.addEventListener('click', () => {
+    if (elements.btnExport.disabled) return;
+
+    const sortedSelected = Array.from(state.selectedIds)
+        .map(id => KNIHY_DB.find(k => k.id === id))
+        .sort((a, b) => a.id - b.id);
+
+    const printHtml = `
+        <div class="print-header">
+            <h1>Maturitní seznam četby</h1>
+            <p>Vybráno knih: <strong>${sortedSelected.length} / 20</strong></p>
+        </div>
+        <table class="print-table">
+            <thead>
+                <tr>
+                    <th width="10%">Číslo</th>
+                    <th width="40%">Dílo</th>
+                    <th width="30%">Autor</th>
+                    <th width="20%">Druh / Žánr</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${sortedSelected.map(k => `
+                    <tr>
+                        <td>${k.id}</td>
+                        <td><strong>${k.dilo}</strong></td>
+                        <td>${k.autor}</td>
+                        <td>${k.druh}</td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    `;
+
+    document.getElementById('print-area').innerHTML = printHtml;
+    window.print();
+});
+
+// ======= MOBILNÍ SCROLL TO TOP =======
+window.addEventListener('scroll', () => {
+    if (window.scrollY > 300) {
+        elements.btnScrollTop?.classList.add('visible');
+    } else {
+        elements.btnScrollTop?.classList.remove('visible');
+    }
+}, { passive: true });
+
+elements.btnScrollTop?.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+// ======= INICIALIZACE SYSTÉMU =======
+loadState(); // 1. Načtení dat z paměti prohlížeče
+elements.searchBox.focus(); // 2. Focus pro klávesnici
+renderTable(); // 3. Vykreslení tabulky dle načtených dat
+updateStatsAndSidebar(); // 4. Aktualizace statistik a filtrů
