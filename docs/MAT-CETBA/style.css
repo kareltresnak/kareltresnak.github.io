@@ -99,14 +99,30 @@ tr.selected td:nth-child(2) { color: var(--accent-green); font-weight: bold; }
     .official-table * { font-family: 'Times New Roman', Times, serif !important; color: black !important; }
     .official-table td { border: 1px solid black !important; padding: 4px 6px !important; font-size: 11pt; vertical-align: middle; line-height: 1.2; }
 
-    /* ======= CHIRURGICKÝ ŘEZ: Absolutní centr textu a levitující logo ======= */
+    /* ======= CHIRURGICKÝ ŘEZ: Flexbox hlavička (Neprůstřelný fix pro mobilní tisk) ======= */
     .official-table td.title-cell { 
-        position: relative; 
-        text-align: center !important; 
-        font-size: 12pt !important; 
-        padding: 8px !important; 
+        padding: 0 !important; /* Padding přebírá vnitřní flex kontejner */
         border-bottom: 1px solid black !important; 
     }
+    
+    .header-flex {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        padding: 8px 10px;
+        box-sizing: border-box;
+    }
+
+    .header-logo { width: 55px; flex-shrink: 0; display: flex; align-items: center; }
+    .print-logo { width: 50px !important; height: auto !important; object-fit: contain !important; border: none !important; }
+    
+    .header-text { flex-grow: 1; text-align: center !important; font-size: 12pt !important; line-height: 1.3; }
+    .header-text strong { font-weight: bold; font-size: 12pt !important; }
+    
+    /* Fantomový prvek: Vyvažuje logo na levé straně, text je díky němu v absolutním středu papíru */
+    .header-spacer { width: 55px; flex-shrink: 0; } 
+    /* ==================================================================================== */
     
     .print-logo { 
         position: absolute; 
