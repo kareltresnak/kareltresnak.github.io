@@ -142,6 +142,35 @@ button { font-family: inherit; border: none; }
 @media print {
     .fab-btn { display: none !important; }
 }
+/* TLAČÍTKO ZPĚT NA ROZCESTNÍK */
+.btn-back {
+    display: inline-flex;
+    align-items: center;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 1.5rem;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    outline: none;
+}
+
+.btn-back:hover {
+    color: var(--accent-rust);
+    transform: translateX(-5px); /* Kinetický posun vlevo indikuje "krok zpět" */
+}
+
+.btn-back:focus-visible {
+    color: var(--accent-rust-light);
+    border-radius: 4px;
+    box-shadow: var(--focus-ring);
+}
+
+@media print {
+    .btn-back { display: none !important; }
+}
 @media print {
     @page { size: A4 portrait; margin: 5mm; }
     body { background: white !important; color: black !important; height: auto; overflow: visible; font-family: Arial, sans-serif; }
