@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Selekce maturitní četby</title>
+    <title>Selekce maturitní četby | SPŠ Příbram</title>
     <link rel="icon" type="image/png" href="spspb-logo-2000px.png">
     <link rel="stylesheet" href="style.css">
 </head>
@@ -11,7 +11,7 @@
     <div class="layout">
         <main class="content">
             <div class="top-bar">
-                <input type="text" id="search-box" placeholder="Hledat dílo či autora... (Esc pro vyčištění)" autocomplete="off">
+                <input type="text" id="search-box" placeholder="Hledat dílo či autora... (Esc pro vyčištění, / pro focus)" autocomplete="off">
             </div>
             
             <div class="table-container" id="table-wrapper">
@@ -26,7 +26,7 @@
                         </tr>
                     </thead>
                     <tbody id="table-body">
-                        </tbody>
+                    </tbody>
                 </table>
             </div>
         </main>
@@ -37,10 +37,10 @@
                 <h1 class="brand">SELEKCE <span class="brand-dim">ČETBY</span></h1>
                 
                 <div class="section-header">Stav výběru</div>
-                <div id="stat-total" class="stat-box">Celkem: <span class="val">0</span> / 20</div>
+                <div id="stat-total-container" class="stat-box">Celkem: <span id="stat-total" class="val">0</span> / 20</div>
                 
                 <div class="action-buttons">
-                    <button type="button" id="btn-export" class="success-btn" title="Uložit výběr jako PDF">📄 Export do PDF</button>
+                    <button type="button" id="btn-export" class="success-btn" disabled>📄 Export do PDF</button>
                     <button type="button" id="btn-reset" class="warning-btn">Zrušit filtry</button>
                     <button type="button" id="btn-clear" class="danger-btn">Vymazat vše</button>
                 </div>
