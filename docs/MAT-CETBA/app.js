@@ -79,15 +79,13 @@ const elements = {
     btnReset: document.getElementById('btn-reset'),
     btnClear: document.getElementById('btn-clear'),
     btnExport: document.getElementById('btn-export'),
-    statTotal: document.getElementById('stat-total').querySelector('.val'),
+    statTotal: document.getElementById('stat-total'),
     myList: document.getElementById('my-list'),
     btnScrollTop: document.getElementById('btn-scroll-top')
 };
 
-// ======= LOCAL STORAGE: SERIALIZACE A DESERIALIZACE =======
 function saveState() {
     const stateToSave = {
-        // Set musíme konvertovat na Array, protože JSON neumí nativně serializovat Set
         selectedIds: Array.from(state.selectedIds),
         filters: state.filters
     };
@@ -99,38 +97,32 @@ function loadState() {
     if (savedData) {
         try {
             const parsed = JSON.parse(savedData);
-            // Zpětná konverze Array na Set pro garantovanou unikátnost prvků
             if (Array.isArray(parsed.selectedIds)) {
-                state.selectedIds = new Set(parsed.selectedIds);
+                state.selectedIds = new Set(parsed.selectedIds.map(Number));
             }
             if (parsed.filters) {
                 state.filters = parsed.filters;
             }
         } catch (error) {
-            console.error("Data corruption in LocalStorage detected. Purging state.");
+            console.error("Data corruption in LocalStorage detected. Purging state.", error);
             localStorage.removeItem(STORAGE_KEY);
         }
     }
 }
 
-// ======= NATIVNÍ TAB FOCUS TRAP =======
 document.addEventListener('keydown', (e) => {
     if (e.key === '/' && document.activeElement !== elements.searchBox) {
         e.preventDefault();
         elements.searchBox.focus();
         return;
     }
-
     if (e.key === 'Tab') {
         const focusable = Array.from(document.querySelectorAll(
             '#search-box, #table-body tr[tabindex="0"], .sidebar button:not([disabled])'
         )).filter(el => el !== null);
-
         if (focusable.length === 0) return;
-
         const firstEl = focusable[0];
         const lastEl = focusable[focusable.length - 1];
-
         if (e.shiftKey && document.activeElement === firstEl) {
             e.preventDefault();
             lastEl.focus();
@@ -167,14 +159,20 @@ function renderTable() {
 
 function updateStatsAndSidebar() {
     const stats = { do18: 0, "19": 0, svet20: 0, cz20: 0, lyrika: 0, epika: 0, drama: 0 };
+    
     state.selectedIds.forEach(id => {
         const kniha = KNIHY_DB.find(k => k.id === id);
-        stats[kniha.obdobi]++; stats[kniha.druh]++;
+        if (kniha) {
+            stats[kniha.obdobi]++; 
+            stats[kniha.druh]++;
+        } else {
+            state.selectedIds.delete(id);
+        }
     });
 
     const total = state.selectedIds.size;
-    
     let isFullyValid = total === 20;
+    
     for (const key in REQUIREMENTS) {
         if ((stats[key] || 0) < REQUIREMENTS[key]) {
             isFullyValid = false;
@@ -184,12 +182,13 @@ function updateStatsAndSidebar() {
 
     elements.statTotal.textContent = total;
     
+    const box = document.getElementById('stat-total-container');
     if (isFullyValid) {
-        elements.statTotal.parentElement.style.borderColor = "var(--accent-green)";
+        box.style.borderColor = "var(--accent-green)";
     } else if (total === 20) {
-        elements.statTotal.parentElement.style.borderColor = "var(--accent-red)";
+        box.style.borderColor = "var(--accent-red)";
     } else {
-        elements.statTotal.parentElement.style.borderColor = "var(--border)";
+        box.style.borderColor = "var(--border)";
     }
 
     if (isFullyValid) {
@@ -230,7 +229,7 @@ function updateStatsAndSidebar() {
     }
 }
 
-function toggleBook(id) {
+window.toggleBook = function(id) {
     if (state.selectedIds.has(id)) {
         state.selectedIds.delete(id);
     } else {
@@ -246,7 +245,7 @@ function toggleBook(id) {
     
     renderTable();
     updateStatsAndSidebar();
-    saveState(); // Uložení do paměti po změně výběru
+    saveState(); 
 
     if (focusedId) {
         const rows = Array.from(elements.tableBody.querySelectorAll('tr'));
@@ -280,7 +279,7 @@ elements.tableBody.addEventListener('keydown', (e) => {
         const nextTr = currentTr.nextElementSibling;
         if (nextTr) {
             currentTr.setAttribute('tabindex', '-1');
-            nextTr.setAttribute('tabindex', '0');
+            currentTr.setAttribute('tabindex', '0');
             nextTr.focus();
             nextTr.scrollIntoView({ block: 'nearest' });
         }
@@ -289,7 +288,7 @@ elements.tableBody.addEventListener('keydown', (e) => {
         const prevTr = currentTr.previousElementSibling;
         if (prevTr) {
             currentTr.setAttribute('tabindex', '-1');
-            prevTr.setAttribute('tabindex', '0');
+            currentTr.setAttribute('tabindex', '0');
             prevTr.focus();
             prevTr.scrollIntoView({ block: 'nearest' });
         }
@@ -302,7 +301,6 @@ elements.tableBody.addEventListener('keydown', (e) => {
 elements.searchBox.addEventListener('input', (e) => {
     state.searchQuery = e.target.value;
     renderTable();
-    // Vyhledávání záměrně neukládáme, je to efemérní stav
 });
 
 elements.searchBox.addEventListener('keydown', (e) => {
@@ -324,7 +322,7 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
         state.filters[type] = (state.filters[type] === val) ? null : val;
         renderTable();
         updateStatsAndSidebar();
-        saveState(); // Uložení do paměti po změně filtru
+        saveState(); 
     });
 });
 
@@ -334,7 +332,7 @@ elements.btnReset.addEventListener('click', () => {
     elements.searchBox.value = "";
     renderTable();
     updateStatsAndSidebar();
-    saveState(); // Reset je též změna stavu
+    saveState(); 
 });
 
 elements.btnClear.addEventListener('click', () => {
@@ -342,49 +340,115 @@ elements.btnClear.addEventListener('click', () => {
         state.selectedIds.clear();
         renderTable();
         updateStatsAndSidebar();
-        saveState(); // Smazání nutno propsat do paměti
+        saveState(); 
     }
 });
 
+// ======= 1:1 GENERÁTOR PDF (Oficiální šablona SPŠ) =======
 elements.btnExport.addEventListener('click', () => {
     if (elements.btnExport.disabled) return;
 
-    const sortedSelected = Array.from(state.selectedIds)
+    const selectedBooks = Array.from(state.selectedIds)
         .map(id => KNIHY_DB.find(k => k.id === id))
         .sort((a, b) => a.id - b.id);
 
+    const buckets = { do18: [], "19": [], svet20: [], cz20: [], dalsi: [] };
+    const limits = { do18: 2, "19": 3, svet20: 4, cz20: 5 };
+    const counts = { do18: 0, "19": 0, svet20: 0, cz20: 0 };
+
+    selectedBooks.forEach(k => {
+        if (counts[k.obdobi] < limits[k.obdobi]) {
+            buckets[k.obdobi].push(k);
+            counts[k.obdobi]++;
+        } else {
+            buckets.dalsi.push(k);
+        }
+    });
+
+    let counter = 1; 
+
+    const renderRows = (books) => {
+        return books.map(k => `
+            <tr>
+                <td class="col-c">${counter++}.</td>
+                <td class="col-cs">${k.id}</td>
+                <td class="col-autor">${k.autor}</td>
+                <td class="col-nazev">${k.dilo}</td>
+            </tr>
+        `).join('');
+    };
+
     const printHtml = `
-        <div class="print-header">
-            <h1>Maturitní seznam četby</h1>
-            <p>Vybráno knih: <strong>${sortedSelected.length} / 20</strong></p>
-        </div>
-        <table class="print-table">
-            <thead>
-                <tr>
-                    <th width="10%">Číslo</th>
-                    <th width="40%">Dílo</th>
-                    <th width="30%">Autor</th>
-                    <th width="20%">Druh / Žánr</th>
-                </tr>
-            </thead>
+        <table class="official-table">
+            <colgroup>
+                <col style="width: 5%;">
+                <col style="width: 5%;">
+                <col style="width: 40%;">
+                <col style="width: 50%;">
+            </colgroup>
             <tbody>
-                ${sortedSelected.map(k => `
-                    <tr>
-                        <td>${k.id}</td>
-                        <td><strong>${k.dilo}</strong></td>
-                        <td>${k.autor}</td>
-                        <td>${k.druh}</td>
-                    </tr>
-                `).join('')}
+                <tr>
+                    <td colspan="4" class="title-cell">
+                        <img src="spspb-logo-2000px.png" class="print-logo" alt="Znak SPŠ">
+                        Střední průmyslová škola a Vyšší odborná škola Příbram II,Hrabákova 271<br>
+                        Seznam literárních děl: <strong>MATURITNÍ ZKOUŠKA Z ČJL - ústní část</strong>
+                    </td>
+                </tr>
+
+                <tr><td colspan="3" class="info-label">jméno a příjmení:</td><td></td></tr>
+                <tr><td colspan="3" class="info-label">datum narození:</td><td></td></tr>
+                <tr><td colspan="3" class="info-label">třída:</td><td></td></tr>
+                <tr><td colspan="3" class="info-label">školní rok:</td><td></td></tr>
+
+                <tr class="col-headers">
+                    <td class="col-c">č.</td>
+                    <td class="col-cs">č.s.</td>
+                    <td class="col-autor">autor:</td>
+                    <td class="col-nazev">název díla:</td>
+                </tr>
+
+                <tr class="subheader"><td colspan="4">Světová a česká literatura do konce 18.století</td></tr>
+                ${renderRows(buckets.do18)}
+
+                <tr class="subheader"><td colspan="4">Světová a česká literatura 19.století</td></tr>
+                ${renderRows(buckets['19'])}
+
+                <tr class="subheader"><td colspan="4">Světová literatura 20. a 21. století</td></tr>
+                ${renderRows(buckets.svet20)}
+
+                <tr class="subheader"><td colspan="4">Česká literatura 20. a 21. století</td></tr>
+                ${renderRows(buckets.cz20)}
+
+                <tr class="subheader"><td colspan="4">Další četba</td></tr>
+                ${renderRows(buckets.dalsi)}
+
+                <tr>
+                    <td colspan="3" class="footer-cell">podpis:</td>
+                    <td class="footer-cell">zkontroloval:</td>
+                </tr>
             </tbody>
         </table>
     `;
 
-    document.getElementById('print-area').innerHTML = printHtml;
-    window.print();
+    const printArea = document.getElementById('print-area');
+    printArea.innerHTML = printHtml;
+
+    const logoImg = printArea.querySelector('.print-logo');
+    if (logoImg) {
+        if (logoImg.complete) {
+            window.print();
+        } else {
+            logoImg.onload = () => window.print();
+            logoImg.onerror = () => {
+                logoImg.style.display = 'none';
+                window.print();
+            };
+        }
+    } else {
+        window.print();
+    }
 });
 
-// ======= MOBILNÍ SCROLL TO TOP =======
 window.addEventListener('scroll', () => {
     if (window.scrollY > 300) {
         elements.btnScrollTop?.classList.add('visible');
@@ -398,7 +462,7 @@ elements.btnScrollTop?.addEventListener('click', () => {
 });
 
 // ======= INICIALIZACE SYSTÉMU =======
-loadState(); // 1. Načtení dat z paměti prohlížeče
-elements.searchBox.focus(); // 2. Focus pro klávesnici
-renderTable(); // 3. Vykreslení tabulky dle načtených dat
-updateStatsAndSidebar(); // 4. Aktualizace statistik a filtrů
+loadState(); 
+elements.searchBox.focus(); 
+renderTable(); 
+updateStatsAndSidebar();
