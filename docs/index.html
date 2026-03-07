@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System.Root | Rozcestník</title>
+    <style>
+        :root {
+            --bg-base: #0a0a0a;
+            --bg-surface: #141414;
+            --text-main: #e0e0e0;
+            --text-muted: #737373;
+            --accent-rust: #e65100;
+            --border: #262626;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg-base);
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .header {
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 1rem;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .header h1 span { color: var(--accent-rust); }
+        .header p { color: var(--text-muted); font-family: monospace; margin-top: 0.5rem; }
+
+        .links {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .link-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            padding: 1.5rem;
+            border-radius: 6px;
+            text-decoration: none;
+            color: var(--text-main);
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .link-card:hover {
+            border-color: var(--accent-rust);
+            transform: translateX(5px);
+            background: rgba(230, 81, 0, 0.05);
+        }
+
+        .link-card div strong { display: block; font-size: 1.2rem; margin-bottom: 0.3rem; }
+        .link-card div small { color: var(--text-muted); }
+        .link-card .arrow { color: var(--accent-rust); font-weight: bold; font-size: 1.5rem; }
+
+        @media (min-width: 768px) {
+            .links { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header class="header">
+            <h1>System<span>.Root</span></h1>
+            <p>~/projects_2026</p>
+        </header>
+
+        <nav class="links">
+            <a href="docs/MAT-CETBA/index.html" class="link-card">
+                <div>
+                    <strong>MATURITA SELECTION</strong>
+                    <small>Selekce maturitní četby</small>
+                </div>
+                <span class="arrow">→</span>
+            </a>
+
+            <a href="docs/AZ-KVIZ/index.html" class="link-card">
+                <div>
+                    <strong>AZ Kvíz</strong>
+                    <small>Play AZ Kvíz</small>
+                </div>
+                <span class="arrow">→</span>
+            </a>
+        </nav>
+    </div>
+
+</body>
+</html>
