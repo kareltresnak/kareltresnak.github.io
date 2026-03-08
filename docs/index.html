@@ -78,8 +78,10 @@
         .link-card div small { color: var(--text-muted); }
         .link-card .arrow { color: var(--accent-rust); font-weight: bold; font-size: 1.5rem; }
 
+        /* Přepnutí na dvouproudý Grid na větších obrazovkách */
         @media (min-width: 768px) {
             .links { grid-template-columns: 1fr 1fr; }
+            .link-card.full-width { grid-column: 1 / -1; } /* Fundamentální blok přes celou šířku */
         }
     </style>
 </head>
@@ -106,6 +108,14 @@
                     <small>Play AZ Kvíz</small>
                 </div>
                 <span class="arrow">→</span>
+            </a>
+
+            <a href="https://github.com/kareltresnak/kareltresnak.github.io" target="_blank" rel="noopener noreferrer" class="link-card full-width">
+                <div>
+                    <strong>SOURCE & DOCS</strong>
+                    <small>Veřejný repozitář na GitHubu</small>
+                </div>
+                <span class="arrow">↗</span>
             </a>
         </nav>
     </div>
