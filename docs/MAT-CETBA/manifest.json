@@ -1,0 +1,18 @@
+{
+  "name": "Selekce maturitní četby SPŠ Příbram",
+  "short_name": "Maturita",
+  "description": "Generátor oficiálních maturitních protokolů",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#e65100",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "spspb-logo-2000px.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
