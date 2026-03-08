@@ -1,7 +1,7 @@
 {
   "name": "Selekce maturitní četby SPŠ Příbram",
-  "short_name": "Maturita",
-  "description": "Generátor oficiálních maturitních protokolů",
+  "short_name": "MAT Četba",
+  "description": "Kontrolor požadavků maturitní četby a generátor vyplněného formuláře",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0a0a0a",
