@@ -33,9 +33,20 @@ body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg-base); 
 .btn-back:hover { color: var(--accent-rust); transform: translateX(-5px); }
 .btn-back:focus-visible { color: var(--accent-rust-light); border-radius: 4px; box-shadow: var(--focus-ring); }
 
-.brand { font-size: 1.4rem; font-weight: 800; margin-bottom: 2rem; text-transform: uppercase; }
+.brand { font-size: 1.4rem; font-weight: 800; margin-bottom: 1.5rem; text-transform: uppercase; }
 .brand-dim { color: var(--accent-rust); }
 .section-header { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin: 1.5rem 0 0.75rem 0; }
+
+/* ======= MODUL: ACCORDION (Roletky) ======= */
+.accordion { background: var(--bg-base); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 1rem; overflow: hidden; transition: 0.3s; }
+.accordion-summary { padding: 0.75rem 1rem; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); cursor: pointer; list-style: none; display: block; transition: 0.2s; text-transform: uppercase; letter-spacing: 0.05em; }
+.accordion-summary::-webkit-details-marker { display: none; }
+.accordion-summary:hover { color: var(--text-main); background: var(--bg-surface-hover); }
+.accordion-content { padding: 1rem; border-top: 1px solid var(--border); }
+.accordion-content p { margin-bottom: 0.75rem; font-size: 0.8rem; color: var(--text-muted); line-height: 1.5; }
+.accordion-content ul { margin-left: 1.2rem; margin-bottom: 0.5rem; font-size: 0.8rem; color: var(--text-muted); }
+.accordion-content li { margin-bottom: 0.4rem; }
+.accordion-content strong { color: var(--text-main); }
 
 /* ======= Formulářové prvky ======= */
 .input-group { display: flex; flex-direction: column; gap: 0.5rem; }
@@ -44,7 +55,16 @@ body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg-base); 
 .styled-input:focus { border-color: var(--accent-rust); outline: none; }
 .styled-input::placeholder { color: var(--text-muted); opacity: 0.5; }
 
-.stat-box { padding: 1rem; border-radius: var(--radius); border: 1px solid var(--border); background: var(--bg-base); transition: 0.3s; }
+/* ======= PRIVACY SHIELD ======= */
+.privacy-shield { display: flex; gap: 0.6rem; background: rgba(34, 197, 94, 0.05); border: 1px solid rgba(34, 197, 94, 0.2); padding: 0.75rem; border-radius: var(--radius); margin-top: 0.75rem; align-items: flex-start; }
+.shield-icon { font-size: 1rem; line-height: 1; }
+.shield-text { font-size: 0.7rem; color: var(--text-muted); line-height: 1.5; }
+.shield-text strong { color: var(--accent-green); }
+.shield-text a { color: var(--text-muted); text-decoration: underline; text-decoration-color: var(--border); transition: 0.2s; text-underline-offset: 2px; }
+.shield-text a:hover { color: var(--text-main); text-decoration-color: var(--accent-rust); }
+
+/* ======= FIX: Doplněn margin-bottom pro dýchací prostor ======= */
+.stat-box { padding: 1rem; border-radius: var(--radius); border: 1px solid var(--border); background: var(--bg-base); transition: 0.3s; margin-bottom: 1rem; }
 .stat-box .val { font-weight: 800; font-size: 1.3rem; }
 
 .action-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 1rem; }
@@ -58,6 +78,9 @@ button { font-family: inherit; cursor: pointer; border-radius: var(--radius); bo
 .warning-btn:hover { background: var(--bg-surface-hover); color: var(--text-main); }
 .danger-btn { background: transparent; color: var(--accent-red); border-color: rgba(239, 68, 68, 0.2); }
 .danger-btn:hover { background: rgba(239, 68, 68, 0.1); }
+
+.pwa-install-btn { width: 100%; background: var(--bg-active); border: 1px solid rgba(230, 81, 0, 0.3); color: var(--accent-rust-light); padding: 0.75rem; border-radius: var(--radius); font-weight: 700; cursor: pointer; transition: 0.2s; margin-top: 0.75rem; text-transform: uppercase; font-size: 0.8rem; }
+.pwa-install-btn:hover { background: var(--accent-rust); color: var(--bg-base); }
 
 .filter-btn { background: transparent; color: var(--text-muted); width: 100%; display: flex; justify-content: space-between; padding: 0.75rem 1rem; margin-bottom: 0.4rem; border: 1px solid transparent; }
 .filter-btn.active { color: var(--accent-rust-light); background: var(--bg-active); border-color: rgba(230, 81, 0, 0.3); font-weight: 600; }
@@ -90,28 +113,12 @@ tr.selected td:nth-child(2) { color: var(--accent-green); font-weight: bold; }
 .fab-btn:hover { background: var(--accent-rust); color: var(--bg-base); }
 
 #print-area { display: none; }
-/* ======= PRIVACY SHIELD ======= */
-.privacy-shield { 
-    display: flex; 
-    gap: 0.6rem; 
-    background: rgba(34, 197, 94, 0.05); 
-    border: 1px solid rgba(34, 197, 94, 0.2); 
-    padding: 0.75rem; 
-    border-radius: var(--radius); 
-    margin-top: 0.75rem; 
-    align-items: flex-start; 
-}
-.shield-icon { font-size: 1rem; line-height: 1; }
-.shield-text { font-size: 0.7rem; color: var(--text-muted); line-height: 1.5; }
-.shield-text strong { color: var(--accent-green); }
-.shield-text a { color: var(--text-muted); text-decoration: underline; text-decoration-color: var(--border); transition: 0.2s; text-underline-offset: 2px; }
-.shield-text a:hover { color: var(--text-main); text-decoration-color: var(--accent-rust); }
+
 /* ======= 1:1 FIREWALL TISKOVÉHO ENGINU ======= */
 @media print {
     @page { size: A4 portrait; margin: 0mm; }
     
     body { background: white !important; color: black !important; height: auto; overflow: visible; padding: 1.5cm !important; box-sizing: border-box; }
-
     #print-area { display: block !important; width: 100%; }
 
     .official-table { width: 100%; border-collapse: collapse; border: 2px solid black; }
@@ -130,7 +137,6 @@ tr.selected td:nth-child(2) { color: var(--accent-green); font-weight: bold; }
 
     .print-logo { width: 50px !important; height: auto !important; object-fit: contain !important; display: block !important; }
 
-    /* Osobní údaje studenta */
     .info-label { font-weight: bold !important; font-size: 11pt; text-align: left !important; white-space: nowrap !important; }
     .info-value { font-weight: normal !important; font-size: 11pt; text-align: left !important; }
 
@@ -146,9 +152,8 @@ tr.selected td:nth-child(2) { color: var(--accent-green); font-weight: bold; }
 
     .official-table tr { break-inside: avoid !important; page-break-inside: avoid !important; }
     
-    .layout, .fab-btn, .privacy-shield { display: none !important; }
+    .layout, .fab-btn, .accordion, .privacy-shield { display: none !important; }
 }
-
 
 @media (max-width: 1024px) {
     body { overflow-y: auto; height: auto; }
