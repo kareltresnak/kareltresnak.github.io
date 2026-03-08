@@ -9,14 +9,14 @@ Professional portfolio of informatics projects focused on automation, educationa
 
 **Target:** Students of SPŠ a VOŠ Příbram
 
-A high-performance **Single Page Application (SPA)** designed to streamline the complex process of selecting books for the Czech "Maturita" exam. This project was developed as a modern web alternative to static book lists.
+A high-performance **Progressive Web App (PWA)** engineered to automate the bureaucratic process of compiling the official Czech "Maturita" exam protocol. Built on a strict **Zero-Dependency Client-Side** architecture, it functions as a fully offline native application.
 
 ### ⚙️ Technical Highlights
-* **State Persistence:** Implementation of `LocalStorage` for client-side data retention, ensuring the user's progress is saved across sessions without the need for a backend.
-* **Navigation Architecture:** Full keyboard navigation support using the **Roving Tabindex** pattern for enhanced accessibility (a11y).
-* **Responsive Design:** Optimized for diverse device viewports, including specific optimizations for Pixel 7 and Zenbook Fold.
-* **Print Engine:** Custom CSS `@media print` logic for zero-dependency A4 PDF generation, optimized for high data density on a single page.
-* **Validation Logic:** Real-time algorithmic checking of complex exam requirements (genre distribution and historical period quotas).
+* **Zero-Knowledge Privacy Shield:** Implementation of a strict local-only data pipeline. Personally Identifiable Information (PII) and application state are serialized exclusively via `LocalStorage` with absolutely no backend database, telemetry, or network traffic.
+* **PWA & Offline-First Architecture:** Integrated Service Worker (`sw.js`) with caching strategies, providing 100% offline uptime and native installation capabilities on Android and iOS devices.
+* **Pixel-Perfect Print Engine:** Engineered a 1:1 physical emulation of the official SPŠ Příbram protocol. The print DOM bypasses volatile browser print modules by utilizing structural nested HTML tables and `<colgroup>` matrices to enforce absolute geometric stability and locked typography.
+* **Navigation Architecture:** Full keyboard navigation support using the **Roving Tabindex** pattern, focus-traps, and custom hotkeys (e.g., `/` for search) for fluid, mouse-free accessibility.
+* **Algorithmic Validation:** Real-time evaluation engine dynamically parsing complex state against matrix requirements (genre distribution and chronological quotas).
 
 ---
 
