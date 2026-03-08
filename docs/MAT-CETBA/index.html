@@ -2,10 +2,16 @@
 <html lang="cs">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Selekce maturitní četby</title>
     <link rel="icon" type="image/png" href="spspb-logo-2000px.png">
-    <meta name="theme-color" content="#e65100">
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0a0a0a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="spspb-logo-2000px.png">
+    
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -46,6 +52,7 @@
                         <input type="text" id="student-year" class="styled-input" placeholder="Školní rok">
                     </div>
                 </div>
+
                 <div class="privacy-shield">
                     <span class="shield-icon">🔒</span>
                     <span class="shield-text">
@@ -87,5 +94,15 @@
     <div id="print-area"></div>
 
     <script src="app.js"></script>
+    
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker úspěšně uzamkl systém (Scope:', reg.scope, ')'))
+                    .catch(err => console.error('Chyba inicializace Service Workeru:', err));
+            });
+        }
+    </script>
 </body>
 </html>
