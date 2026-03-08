@@ -71,7 +71,13 @@ const MAPA_OBDOBI = { "do18": "Do konce 18. st.", "19": "19. století", "cz20": 
 const REQUIREMENTS = { do18: 2, "19": 3, svet20: 4, cz20: 5, lyrika: 2, epika: 2, drama: 2 };
 const STORAGE_KEY = 'kanon_selekce_state';
 
-const state = { selectedIds: new Set(), filters: { obdobi: null, druh: null }, searchQuery: "" };
+// Do stavové matice byla přidána entita studenta
+const state = { 
+    selectedIds: new Set(), 
+    filters: { obdobi: null, druh: null }, 
+    searchQuery: "",
+    student: { name: "", dob: "", klasa: "", year: "" }
+};
 
 const elements = {
     tableBody: document.getElementById('table-body'),
@@ -81,13 +87,20 @@ const elements = {
     btnExport: document.getElementById('btn-export'),
     statTotal: document.getElementById('stat-total'),
     myList: document.getElementById('my-list'),
-    btnScrollTop: document.getElementById('btn-scroll-top')
+    btnScrollTop: document.getElementById('btn-scroll-top'),
+    // Napojení osobních údajů
+    inputName: document.getElementById('student-name'),
+    inputDob: document.getElementById('student-dob'),
+    inputClass: document.getElementById('student-class'),
+    inputYear: document.getElementById('student-year')
 };
 
+// ======= LOCAL STORAGE: SERIALIZACE A DESERIALIZACE =======
 function saveState() {
     const stateToSave = {
         selectedIds: Array.from(state.selectedIds),
-        filters: state.filters
+        filters: state.filters,
+        student: state.student
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
 }
@@ -103,6 +116,14 @@ function loadState() {
             if (parsed.filters) {
                 state.filters = parsed.filters;
             }
+            if (parsed.student) {
+                state.student = parsed.student;
+                // Propsání uložených dat zpět do UI
+                elements.inputName.value = state.student.name || "";
+                elements.inputDob.value = state.student.dob || "";
+                elements.inputClass.value = state.student.klasa || "";
+                elements.inputYear.value = state.student.year || "";
+            }
         } catch (error) {
             console.error("Data corruption in LocalStorage detected. Purging state.", error);
             localStorage.removeItem(STORAGE_KEY);
@@ -110,19 +131,44 @@ function loadState() {
     }
 }
 
+// Data-binding pro osobní údaje
+[
+    { el: elements.inputName, key: 'name' },
+    { el: elements.inputDob, key: 'dob' },
+    { el: elements.inputClass, key: 'klasa' },
+    { el: elements.inputYear, key: 'year' }
+].forEach(bind => {
+    bind.el.addEventListener('input', (e) => {
+        state.student[bind.key] = e.target.value;
+        saveState();
+    });
+});
+
+
+// ======= NATIVNÍ TAB FOCUS TRAP & KLÁVESOVÉ ZKRATKY =======
 document.addEventListener('keydown', (e) => {
+    // Rychlý focus na vyhledávání pomocí "/"
     if (e.key === '/' && document.activeElement !== elements.searchBox) {
+        // FIX: Pokud má uživatel focus v jiném textovém poli (např. školní rok), lomítko zapíšeme a focus nekrademe
+        if (document.activeElement.tagName === 'INPUT') {
+            return; 
+        }
         e.preventDefault();
         elements.searchBox.focus();
         return;
     }
+
+    // Uzamčení navigace přes Tab pro plynulý průchod aplikací
     if (e.key === 'Tab') {
         const focusable = Array.from(document.querySelectorAll(
-            '#search-box, #table-body tr[tabindex="0"], .sidebar button:not([disabled])'
+            'input, #table-body tr[tabindex="0"], .sidebar button:not([disabled])'
         )).filter(el => el !== null);
+
         if (focusable.length === 0) return;
+
         const firstEl = focusable[0];
         const lastEl = focusable[focusable.length - 1];
+
         if (e.shiftKey && document.activeElement === firstEl) {
             e.preventDefault();
             lastEl.focus();
@@ -279,7 +325,7 @@ elements.tableBody.addEventListener('keydown', (e) => {
         const nextTr = currentTr.nextElementSibling;
         if (nextTr) {
             currentTr.setAttribute('tabindex', '-1');
-            nextTr.setAttribute('tabindex', '0');
+            currentTr.setAttribute('tabindex', '0');
             nextTr.focus();
             nextTr.scrollIntoView({ block: 'nearest' });
         }
@@ -336,7 +382,7 @@ elements.btnReset.addEventListener('click', () => {
 });
 
 elements.btnClear.addEventListener('click', () => {
-    if (confirm("Opravdu chceš vymazat celý seznam?")) {
+    if (confirm("Opravdu chceš vymazat celý seznam? (Osobní údaje zůstanou zachovány)")) {
         state.selectedIds.clear();
         renderTable();
         updateStatsAndSidebar();
@@ -378,6 +424,7 @@ elements.btnExport.addEventListener('click', () => {
         `).join('');
     };
 
+    // Injekce stavu studenta přímo do PDF
     const printHtml = `
         <table class="official-table">
             <colgroup>
@@ -404,10 +451,10 @@ elements.btnExport.addEventListener('click', () => {
                     </td>
                 </tr>
 
-                <tr><td colspan="3" class="info-label">jméno a příjmení:</td><td></td></tr>
-                <tr><td colspan="3" class="info-label">datum narození:</td><td></td></tr>
-                <tr><td colspan="3" class="info-label">třída:</td><td></td></tr>
-                <tr><td colspan="3" class="info-label">školní rok:</td><td></td></tr>
+                <tr><td colspan="3" class="info-label">jméno a příjmení:</td><td class="info-value">${state.student.name}</td></tr>
+                <tr><td colspan="3" class="info-label">datum narození:</td><td class="info-value">${state.student.dob}</td></tr>
+                <tr><td colspan="3" class="info-label">třída:</td><td class="info-value">${state.student.klasa}</td></tr>
+                <tr><td colspan="3" class="info-label">školní rok:</td><td class="info-value">${state.student.year}</td></tr>
 
                 <tr class="col-headers">
                     <td class="col-c">č.</td>
@@ -470,7 +517,6 @@ elements.btnScrollTop?.addEventListener('click', () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 });
 
-// ======= INICIALIZACE SYSTÉMU =======
 loadState(); 
 elements.searchBox.focus(); 
 renderTable(); 
