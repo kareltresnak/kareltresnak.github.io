@@ -2,24 +2,21 @@
 // HLAVNÍ PROMĚNNÉ A NASTAVENÍ
 // ==========================================
 
-let dbMain = [];  // Záloha základních otázek
-let dbSpare = []; // Záloha náhradních otázek
-let questions = []; // Aktivní balíček
-let spares = [];    // Aktivní balíček náhradních
+let dbMain = [];  
+let dbSpare = []; 
+let questions = []; 
+let spares = [];    
 
-let board = Array(29).fill(0); // Herní pole (indexy 1-28)
-let currentPlayer = 1; // 1 = Oranžoví, 2 = Modří
+let board = Array(29).fill(0); 
+let currentPlayer = 1; 
 let currentField = null;
 let isGameReady = false;
-
-// --- ZMĚNA: VÝCHOZÍ STAV HLASU JE VYPNUTÝ ---
-let voiceEnabled = false; 
 
 let timerInterval;
 
 // STAVOVÉ PROMĚNNÉ PRO LOGIKU TAHU
-let isSpareQuestion = false; // Je aktuální otázka z rozstřelu?
-let isStealing = false;      // Probíhá fáze krádeže?
+let isSpareQuestion = false; 
+let isStealing = false;      
 
 // Mapa sousedů
 const neighbors = {
@@ -70,11 +67,9 @@ function startNewRound() {
     if (dbMain.length > 0) {
         questions = shuffleArray([...dbMain]); 
         spares = shuffleArray([...dbSpare]);
-        cyberSpeak("Restart systému. Otázky byly promíchány.");
     } else {
         questions = [];
         spares = [];
-        cyberSpeak("Systém restartován. Zásobník je prázdný.");
     }
 
     resetUI();
@@ -155,7 +150,6 @@ function onFieldClick(id) {
     currentField = id;
     let qObj;
 
-    // Reset na začátku tahu
     isStealing = false;
 
     if (isBlack) {
@@ -178,7 +172,6 @@ function showModal(q, a, isSpare = false) {
     document.getElementById("question-text").textContent = q;
     document.getElementById("correct-answer").textContent = a;
     
-    // UI RESET
     const overlay = document.getElementById("modal-overlay");
     overlay.style.display = "flex";
     
@@ -194,11 +187,9 @@ function showModal(q, a, isSpare = false) {
     if (isSpare) {
         labelEl.textContent = "// ROZSTŘEL (ANO/NE) //";
         labelEl.style.color = "#ff3f34";
-        cyberSpeak("Černé pole. Otázka Ano nebo Ne: " + q);
     } else {
         labelEl.textContent = "// PŘÍCHOZÍ DATA //";
         labelEl.style.color = "var(--neon-blue)";
-        cyberSpeak("Otázka: " + q);
     }
 }
 
@@ -220,7 +211,6 @@ function startTimer() {
     }, 1000);
 }
 
-// Logika při vypršení času (TAJNÁ KRÁDEŽ)
 function handleTimeout() {
     clearInterval(timerInterval);
     
@@ -234,7 +224,6 @@ function handleTimeout() {
         return;
     }
 
-    // Nabídnout krádež (odpověď skrytá)
     showStealUI();
 }
 
@@ -245,8 +234,6 @@ function showStealUI() {
     
     const opponentName = currentPlayer === 1 ? "MODŘÍ" : "ORANŽOVÍ";
     stealDiv.querySelector('p').innerText = `CHCE ODPOVÍDAT SOUPEŘ (${opponentName})?`;
-    
-    cyberSpeak("Čas vypršel. Chce odpovídat soupeř?");
 }
 
 function stealQuestion(wantsToSteal) {
@@ -254,30 +241,22 @@ function stealQuestion(wantsToSteal) {
     stealDiv.style.display = "none";
 
     if (wantsToSteal) {
-        // --- SOUPEŘ CHCE ODPOVÍDAT ---
         isStealing = true;
         
-        // Přepneme hráče na zloděje (aby bod dostal on)
         currentPlayer = currentPlayer === 1 ? 2 : 1;
         updateStatus();
         
         document.getElementById("question-label").innerText = `// KRÁDEŽ: ODPOVÍDÁ ${currentPlayer === 1 ? "ORANŽOVÍ" : "MODŘÍ"} //`;
         document.getElementById("question-label").style.color = "#f1c40f";
         
-        // Zobrazíme tlačítko pro odhalení
         document.getElementById("btn-reveal").style.display = "inline-block";
         
-        // Restart časovače
         startTimer();
-        cyberSpeak("Soupeř přebírá otázku. Čas běží.");
-        
     } else {
-        // --- SOUPEŘ NECHCE ---
         revealAnswer();
         
-        // Automaticky zčerná po krátké prodlevě
         setTimeout(() => {
-             finalizeTurn(false, true); // true = forceBlack
+             finalizeTurn(false, true); 
         }, 3000);
     }
 }
@@ -295,11 +274,6 @@ function revealAnswer() {
 
     const answerEl = document.getElementById("correct-answer");
     animateDecode(answerEl);
-
-    const answerText = answerEl.textContent;
-    setTimeout(() => {
-        cyberSpeak("Správná odpověď je: " + answerText);
-    }, 500);
 }
 
 // ==========================================
@@ -309,20 +283,17 @@ function revealAnswer() {
 function finalizeTurn(success, forceBlack = false) {
     const opponent = currentPlayer === 1 ? 2 : 1;
 
-    // Vynucené zčernání (nikdo nechtěl)
     if (forceBlack) {
         board[currentField] = 3; 
         endTurnAndSwitch(); 
         return;
     }
 
-    // --- 1. ROZSTŘEL (ČERNÉ POLE) ---
     if (isSpareQuestion) {
         if (success) {
             board[currentField] = currentPlayer;
             checkWin(currentPlayer);
         } else {
-            // Špatně -> AUTOMATICKY SOUPEŘ
             board[currentField] = opponent;
             checkWin(opponent);
         }
@@ -330,23 +301,16 @@ function finalizeTurn(success, forceBlack = false) {
         return;
     }
 
-    // --- 2. BĚŽNÁ OTÁZKA ---
     if (success) {
-        // Úspěch
         board[currentField] = currentPlayer;
         checkWin(currentPlayer);
         endTurnAndSwitch();
 
     } else {
-        // ŠPATNĚ (Moderátor zamítl)
-        
         if (isStealing) {
-            // Zloděj neuspěl -> ČERNÁ
             board[currentField] = 3; 
             endTurnAndSwitch();
         } else {
-            // Původní hráč neuspěl -> Nabídnout krádež
-            // (Zde už je odpověď odhalená, protože moderátor klikl Zamítnout)
             board[currentField] = 3;
             endTurnAndSwitch();
         }
@@ -356,10 +320,8 @@ function finalizeTurn(success, forceBlack = false) {
 function endTurnAndSwitch() {
     document.getElementById("modal-overlay").style.display = "none";
     
-    // Vždy přepneme hráče na konci tahu
     currentPlayer = currentPlayer === 1 ? 2 : 1;
     
-    // Reset flagů
     isStealing = false;
     isSpareQuestion = false;
 
@@ -407,7 +369,6 @@ function checkWin(p) {
 function triggerVictory(winnerId) {
     const overlay = document.getElementById("victory-overlay");
     const winnerNameEl = document.getElementById("winner-name");
-    const wName = winnerId === 1 ? "ORANŽOVÍ" : "MODŘÍ";
 
     if (winnerId === 1) {
         winnerNameEl.textContent = "ORANŽOVÍ";
@@ -419,7 +380,6 @@ function triggerVictory(winnerId) {
         overlay.classList.remove("win-orange");
     }
     overlay.style.display = "flex";
-    cyberSpeak("Bitva ukončena. Vítězí " + wName);
 }
 
 // ==========================================
@@ -474,7 +434,6 @@ function loadXMLInCenter(input) {
         dbMain = [...questions]; 
         dbSpare = [...spares];
         checkIntegrity(); 
-        cyberSpeak("Data importována.");
     };
     r.readAsText(f);
 }
@@ -568,39 +527,6 @@ function animateDecode(element) {
         }
         iteration += 1 / 2; 
     }, 30); 
-}
-
-// ==========================================
-// VOICE
-// ==========================================
-let availableVoices = [];
-window.speechSynthesis.onvoiceschanged = () => {
-    availableVoices = window.speechSynthesis.getVoices();
-};
-
-function cyberSpeak(text) {
-    if (!voiceEnabled) return;
-    window.speechSynthesis.cancel();
-    const msg = new SpeechSynthesisUtterance();
-    msg.text = text;
-    msg.volume = 1; msg.rate = 1.1; msg.pitch = 0.8; 
-    const csVoice = availableVoices.find(v => v.lang.includes('cs') || v.lang.includes('cz'));
-    if (csVoice) msg.voice = csVoice;
-    window.speechSynthesis.speak(msg);
-}
-
-function toggleVoice() {
-    voiceEnabled = !voiceEnabled;
-    const btn = document.getElementById("btn-voice");
-    if(voiceEnabled) {
-        btn.innerHTML = '<span class="btn-icon">🔊</span> ZVUK: ZAP';
-        btn.style.borderBottomColor = "#2ecc71";
-        cyberSpeak("Hlasový modul aktivován.");
-    } else {
-        window.speechSynthesis.cancel();
-        btn.innerHTML = '<span class="btn-icon">🔇</span> ZVUK: VYP';
-        btn.style.borderBottomColor = "#e74c3c";
-    }
 }
 
 // ==========================================
