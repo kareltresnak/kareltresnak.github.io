@@ -3,15 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Selekce maturitní četby | SPŠ Příbram</title>
+    <title>Selekce maturitní četby</title>
     <link rel="icon" type="image/png" href="spspb-logo-2000px.png">
+    <meta name="theme-color" content="#e65100">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="layout">
         <main class="content">
             <div class="top-bar">
-                <input type="text" id="search-box" placeholder="Hledat dílo či autora... (Esc pro vyčištění, / pro focus)" autocomplete="off">
+                <input type="text" id="search-box" placeholder="Hledat dílo či autora... (Esc pro vyčištění)" autocomplete="off">
             </div>
             
             <div class="table-container" id="table-wrapper">
@@ -26,7 +27,7 @@
                         </tr>
                     </thead>
                     <tbody id="table-body">
-                    </tbody>
+                        </tbody>
                 </table>
             </div>
         </main>
@@ -36,11 +37,28 @@
                 <a href="/" class="btn-back" tabindex="0">← Rozcestník</a>
                 <h1 class="brand">SELEKCE <span class="brand-dim">ČETBY</span></h1>
                 
+                <div class="section-header">Osobní údaje do protokolu</div>
+                <div class="input-group">
+                    <input type="text" id="student-name" class="styled-input" placeholder="Jméno a příjmení" autocomplete="name">
+                    <input type="text" id="student-dob" class="styled-input" placeholder="Datum narození (např. 1. 1. 2005)" autocomplete="bday">
+                    <div class="input-row">
+                        <input type="text" id="student-class" class="styled-input" placeholder="Třída (např. 4.A)">
+                        <input type="text" id="student-year" class="styled-input" placeholder="Školní rok">
+                    </div>
+                </div>
+                <div class="privacy-shield">
+                    <span class="shield-icon">🔒</span>
+                    <span class="shield-text">
+                        <strong>Zero-Knowledge architektura:</strong> Veškerá data (včetně data narození) zůstávají výhradně v paměti tohoto zařízení a nikdy se neodesílají na internet. Systém nemá žádnou databázi. 
+                        <a href="https://github.com/kareltresnak/kareltresnak.github.io/tree/main" target="_blank" rel="noopener noreferrer">Zdrojový kód je veřejný</a>.
+                    </span>
+                </div>
+
                 <div class="section-header">Stav výběru</div>
                 <div id="stat-total-container" class="stat-box">Celkem: <span id="stat-total" class="val">0</span> / 20</div>
                 
                 <div class="action-buttons">
-                    <button type="button" id="btn-export" class="success-btn" disabled>📄 Export do PDF</button>
+                    <button type="button" id="btn-export" class="success-btn" title="Uložit výběr jako PDF">📄 Export do PDF</button>
                     <button type="button" id="btn-reset" class="warning-btn">Zrušit filtry</button>
                     <button type="button" id="btn-clear" class="danger-btn">Vymazat vše</button>
                 </div>
