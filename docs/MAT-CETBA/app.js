@@ -71,7 +71,6 @@ const MAPA_OBDOBI = { "do18": "Do konce 18. st.", "19": "19. století", "cz20": 
 const REQUIREMENTS = { do18: 2, "19": 3, svet20: 4, cz20: 5, lyrika: 2, epika: 2, drama: 2 };
 const STORAGE_KEY = 'kanon_selekce_state';
 
-// Do stavové matice byla přidána entita studenta
 const state = { 
     selectedIds: new Set(), 
     filters: { obdobi: null, druh: null }, 
@@ -88,7 +87,6 @@ const elements = {
     statTotal: document.getElementById('stat-total'),
     myList: document.getElementById('my-list'),
     btnScrollTop: document.getElementById('btn-scroll-top'),
-    // Napojení osobních údajů
     inputName: document.getElementById('student-name'),
     inputDob: document.getElementById('student-dob'),
     inputClass: document.getElementById('student-class'),
@@ -113,19 +111,15 @@ function loadState() {
             if (Array.isArray(parsed.selectedIds)) {
                 state.selectedIds = new Set(parsed.selectedIds.map(Number));
             }
-            if (parsed.filters) {
-                state.filters = parsed.filters;
-            }
+            if (parsed.filters) state.filters = parsed.filters;
             if (parsed.student) {
                 state.student = parsed.student;
-                // Propsání uložených dat zpět do UI
                 elements.inputName.value = state.student.name || "";
                 elements.inputDob.value = state.student.dob || "";
                 elements.inputClass.value = state.student.klasa || "";
                 elements.inputYear.value = state.student.year || "";
             }
         } catch (error) {
-            console.error("Data corruption in LocalStorage detected. Purging state.", error);
             localStorage.removeItem(STORAGE_KEY);
         }
     }
@@ -144,25 +138,20 @@ function loadState() {
     });
 });
 
-
-// ======= NATIVNÍ TAB FOCUS TRAP & KLÁVESOVÉ ZKRATKY =======
+// ======= NATIVNÍ TAB FOCUS TRAP =======
 document.addEventListener('keydown', (e) => {
-    // Rychlý focus na vyhledávání pomocí "/"
     if (e.key === '/' && document.activeElement !== elements.searchBox) {
-        // FIX: Pokud má uživatel focus v jiném textovém poli (např. školní rok), lomítko zapíšeme a focus nekrademe
-        if (document.activeElement.tagName === 'INPUT') {
-            return; 
-        }
+        if (document.activeElement.tagName === 'INPUT') return; 
         e.preventDefault();
         elements.searchBox.focus();
         return;
     }
 
-    // Uzamčení navigace přes Tab pro plynulý průchod aplikací
     if (e.key === 'Tab') {
+        // Záchyt focusu pouze pro fyzicky viditelné prvky (vyloučí zavřené accordiony)
         const focusable = Array.from(document.querySelectorAll(
-            'input, #table-body tr[tabindex="0"], .sidebar button:not([disabled])'
-        )).filter(el => el !== null);
+            'input, .accordion-summary, #table-body tr[tabindex="0"], .sidebar button:not([disabled])'
+        )).filter(el => el !== null && (el.offsetWidth > 0 || el.offsetHeight > 0));
 
         if (focusable.length === 0) return;
 
@@ -390,7 +379,7 @@ elements.btnClear.addEventListener('click', () => {
     }
 });
 
-// ======= 1:1 GENERÁTOR PDF (Oficiální šablona SPŠ) =======
+// ======= 1:1 GENERÁTOR PDF =======
 elements.btnExport.addEventListener('click', () => {
     if (elements.btnExport.disabled) return;
 
@@ -424,7 +413,6 @@ elements.btnExport.addEventListener('click', () => {
         `).join('');
     };
 
-    // Injekce stavu studenta přímo do PDF
     const printHtml = `
         <table class="official-table">
             <colgroup>
@@ -503,6 +491,33 @@ elements.btnExport.addEventListener('click', () => {
     } else {
         window.print();
     }
+});
+
+// ======= PWA SMART INSTALL ENGINE =======
+let deferredPrompt;
+const installBtn = document.getElementById('btn-pwa-install');
+
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    if (installBtn) installBtn.hidden = false;
+});
+
+if (installBtn) {
+    installBtn.addEventListener('click', async () => {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+            console.log('PWA: Aplikace byla nainstalována');
+        }
+        deferredPrompt = null;
+        installBtn.hidden = true;
+    });
+}
+
+window.addEventListener('appinstalled', () => {
+    if (installBtn) installBtn.hidden = true;
 });
 
 window.addEventListener('scroll', () => {
