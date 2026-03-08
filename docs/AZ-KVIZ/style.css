@@ -22,11 +22,13 @@ body {
     justify-content: center; align-items: center;
     overflow: hidden; position: relative;
     perspective: 1000px;
-    touch-action: manipulation;
+    touch-action: manipulation; 
 }
 
+/* --- MATRIX POZADÍ --- */
 #matrix-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.15; background: #000; }
 
+/* --- PROSTŘEDÍ ARÉNY --- */
 .stage-floor {
     position: absolute; bottom: 0; left: -50%; width: 200%; height: 50%;
     background: linear-gradient(transparent 20%, var(--bg-void) 100%), repeating-linear-gradient(90deg, rgba(0, 170, 255, 0.1) 0px, rgba(0, 170, 255, 0.1) 1px, transparent 1px, transparent 40px), repeating-linear-gradient(0deg, rgba(0, 170, 255, 0.1) 0px, rgba(0, 170, 255, 0.1) 1px, transparent 1px, transparent 40px);
@@ -60,11 +62,10 @@ body {
 }
 .cyber-back-btn:hover { background: rgba(255, 157, 0, 0.1); color: #ff9d00; border-color: #ff9d00; box-shadow: 0 0 15px rgba(255, 157, 0, 0.4), inset 0 0 8px rgba(255, 157, 0, 0.2); text-shadow: 0 0 5px rgba(255, 157, 0, 0.5); transform: translateX(-5px); }
 
-/* ======= FIX: Desktopový zámek scrollbaru ======= */
 .main-container {
     display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
     padding-top: clamp(10px, 4vh, 40px); width: 100%; max-width: 1400px; height: 100%; z-index: 1; 
-    overflow: hidden; /* Na PC natvrdo odstřihneme scrollbar */
+    overflow: hidden; 
 }
 
 h1 {
@@ -118,11 +119,10 @@ h1 {
 .btn-reset { border-bottom: 3px solid #e74c3c; }
 .btn-reset:hover { border-color: #e74c3c; box-shadow: 0 10px 20px rgba(231, 76, 60, 0.3); }
 
-/* ======= FIX: Ochrana proti intrinsic ratio SVG ======= */
 .board-energy-ring {
     position: relative; 
     flex: 1 1 0; 
-    min-height: 0; /* Klíčová hodnota: dovolí kontejneru smrštit se i přes velikost obsahu */
+    min-height: 0; 
     display: flex; justify-content: center; align-items: center;
     width: 100%; padding: clamp(10px, 3vw, 30px); --ring-color: #00aaff;
 }
@@ -140,11 +140,7 @@ h1 {
 }
 
 #game-board {
-    width: 100%; 
-    height: 100%; 
-    max-width: 850px;
-    max-height: 100%; /* Klíčová hodnota: zkrotí SVG do výšky rodiče */
-    overflow: visible;
+    width: 100%; height: 100%; max-width: 850px; max-height: 100%; overflow: visible;
 }
 
 .hex {
@@ -165,13 +161,24 @@ h1 {
 .board-active { opacity: 1; filter: grayscale(0%) blur(0px); pointer-events: auto; transform: scale(1); animation: powerUpSequence 1.5s ease-out; }
 @keyframes powerUpSequence { 0% { opacity: 0; filter: blur(10px); transform: scale(0.8); } 100% { transform: scale(1); } }
 
-/* --- MODÁLNÍ OKNO --- */
+
+/* ======= FIX: ARCHITEKTURA MODÁLNÍCH OKEN PRO MOBILY ======= */
+
+/* MODÁLNÍ OKNO - OTÁZKY */
 #modal-overlay {
     display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(2, 2, 10, 0.9); backdrop-filter: blur(10px); justify-content: center; align-items: center; z-index: 2000; animation: fadeIn 0.3s ease-out;
+    background: rgba(2, 2, 10, 0.9); backdrop-filter: blur(10px); 
+    justify-content: center; 
+    align-items: flex-start; /* Zabrání gilotina-efektu (oříznutí shora) */
+    overflow-y: auto; /* Povolí scrollování celého pozadí */
+    padding: clamp(20px, 5vh, 40px) 10px;
+    z-index: 2000; animation: fadeIn 0.3s ease-out;
 }
 #modal-content {
-    width: 95%; max-width: 750px; max-height: 95vh; overflow-y: auto; padding: clamp(20px, 5vw, 40px); text-align: center; position: relative;
+    width: 95%; max-width: 750px; 
+    margin: auto; /* Vycentruje se samo, pokud je na výšku místo */
+    height: auto; max-height: none; /* Odblokuje fixní výšku pro mobily */
+    padding: clamp(20px, 5vw, 40px); text-align: center; position: relative;
     background: linear-gradient(160deg, rgba(20, 20, 40, 0.95), rgba(10, 10, 20, 0.98)); border: 2px solid var(--neon-blue); box-shadow: 0 0 50px rgba(0, 170, 255, 0.4);
     clip-path: polygon(30px 0, 100% 0, 100% calc(100% - 30px), calc(100% - 30px) 100%, 0 100%, 0 30px); animation: hologramAppear 0.5s;
 }
@@ -216,9 +223,22 @@ h1 {
 .victory-reset-btn { font-size: clamp(0.9rem, 3vw, 1.2rem); padding: clamp(12px, 3vw, 20px) clamp(20px, 5vw, 50px); background: linear-gradient(45deg, #37474f, #263238); border: 2px solid rgba(255,255,255,0.3); }
 .victory-reset-btn:hover { background: var(--win-color); border-color: #fff; box-shadow: 0 0 50px var(--win-color); color: #000; }
 
-/* --- DATOVÉ CENTRUM --- */
-#datacenter-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); backdrop-filter: blur(8px); z-index: 3000; display: none; justify-content: center; align-items: center; animation: fadeIn 0.3s; padding: 10px; }
-.datacenter-window { width: 100%; max-width: 900px; max-height: 95vh; overflow-y: auto; padding: clamp(15px, 4vw, 30px); background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); border: 1px solid var(--neon-blue); display: flex; flex-direction: column; gap: 20px; box-shadow: 0 0 50px rgba(0,0,0,0.8); border-radius: 10px; }
+/* DATOVÉ CENTRUM - MODÁL */
+#datacenter-overlay { 
+    display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+    background: rgba(0,0,0,0.9); backdrop-filter: blur(8px); z-index: 3000; 
+    justify-content: center; 
+    align-items: flex-start; /* Zabrání oříznutí okna na mobilu */
+    overflow-y: auto; /* Povolí scrollování celého overlaye */
+    padding: clamp(20px, 5vh, 40px) 10px;
+    animation: fadeIn 0.3s; 
+}
+.datacenter-window { 
+    width: 100%; max-width: 900px; 
+    margin: auto; /* Flex centrace na výšku, pokud je prostor */
+    height: auto; max-height: none; 
+    padding: clamp(15px, 4vw, 30px); background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); border: 1px solid var(--neon-blue); display: flex; flex-direction: column; gap: 20px; box-shadow: 0 0 50px rgba(0,0,0,0.8); border-radius: 10px; 
+}
 .editor-title { color: var(--neon-blue); margin: 0; text-align: center; letter-spacing: clamp(2px, 1vw, 4px); text-shadow: 0 0 10px var(--neon-blue); border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; font-size: clamp(1.2rem, 4vw, 1.8rem); }
 .db-status-panel { display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-around; background: rgba(0,0,0,0.4); padding: 15px; border-radius: 8px; border: 1px solid #444; }
 .status-indicator { font-weight: bold; font-family: monospace; font-size: clamp(0.8rem, 2vw, 1.1rem); transition: color 0.3s; text-align: center; }
@@ -240,7 +260,7 @@ h1 {
 
 /* --- RESPONSIVNÍ MEDIA QUERIES (Mobil) --- */
 @media (max-width: 768px) {
-    .main-container { overflow-y: auto; } /* Na telefonu povolíme scrollování, pokud se UI nevejde */
+    .main-container { overflow-y: auto; }
     h1 { margin-top: 50px; } 
     .controls { grid-template-columns: 1fr; gap: 10px; padding: 15px; clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); }
     .controls-group.left { justify-content: center; }
