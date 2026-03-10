@@ -203,52 +203,69 @@ function loadStateFromURL() {
     const params = new URLSearchParams(window.location.search);
     const payload = params.get('p');
     
-    if (payload) {
-        const ids = payload.split('-').map(Number);
-        const validIds = ids.filter(id => KNIHY_DB.some(k => k.id === id));
-        
-        if (validIds.length > 0) {
-            // Pokud už máme v paměti nějaké knihy, vyvoláme rozhodovací strom
-            if (state.selectedIds.size > 0) {
-                const overwrite = confirm(`🔗 Detekován sdílený odkaz (${validIds.length} knih).\n\nChcete PŘEPSAT svůj aktuální seznam?\n\n(Kliknutím na 'Zrušit' se knihy z odkazu pouze PŘIDAJÍ k vašemu aktuálnímu výběru).`);
-                
-                if (overwrite) {
-                    state.selectedIds.clear(); // Destrukce starého stavu
-                }
-            }
+    if (!payload) return;
 
-            let loadedCount = 0;
-            let overflow = false;
+    const ids = payload.split('-').map(Number);
+    const validIds = ids.filter(id => KNIHY_DB.some(k => k.id === id));
+    
+    if (validIds.length === 0) return;
 
-            validIds.forEach(id => {
-                if (state.selectedIds.size < 20) {
-                    if (!state.selectedIds.has(id)) {
-                        state.selectedIds.add(id);
-                        loadedCount++;
-                    }
-                } else {
-                    overflow = true; // Byla překročena kapacita
-                }
-            });
+    // Okamžité vyčištění URL adresy, aby se to nezacyklilo při F5
+    window.history.replaceState({}, document.title, window.location.pathname);
 
-            // Kritické: Okamžitá serializace nového stavu do lokální paměti
-            saveState(); 
-
-            // Vyčištění URL řádku, aby se payload nenačítal znovu při F5
-            window.history.replaceState({}, document.title, window.location.pathname);
-            
-            setTimeout(() => {
-                let msg = `✅ Načteno ${loadedCount} knih ze sdíleného odkazu.`;
-                if (overflow) msg += " (Některé byly zahozeny kvůli limitu 20 děl).";
-                showToast(msg);
-                
-                // Vynucené překreslení DOMu s novými daty
-                renderTable(); 
-                updateStatsAndSidebar();
-            }, 500);
+    // Vnitřní funkce pro zpracování dat po rozhodnutí uživatele
+    const processImport = (overwrite) => {
+        if (overwrite) {
+            state.selectedIds.clear(); 
         }
+
+        let loadedCount = 0;
+        let overflow = false;
+
+        validIds.forEach(id => {
+            if (state.selectedIds.size < 20) {
+                if (!state.selectedIds.has(id)) {
+                    state.selectedIds.add(id);
+                    loadedCount++;
+                }
+            } else {
+                overflow = true; 
+            }
+        });
+
+        saveState(); 
+        renderTable(); 
+        updateStatsAndSidebar();
+
+        let msg = `✅ Načteno ${loadedCount} knih ze sdíleného odkazu.`;
+        if (overflow) msg += " (Některé byly zahozeny kvůli limitu 20 děl).";
+        showToast(msg);
+        
+        closeImportModal(); // Zavření okna
+    };
+
+    // Pokud uživatel už má nějaké knihy, ukážeme mu náš hezký modál
+    if (state.selectedIds.size > 0) {
+        const modal = document.getElementById("import-modal");
+        document.getElementById("import-modal-text").innerHTML = 
+            `Odkaz obsahuje <strong>${validIds.length} nových děl</strong>.<br><br>Chcete jimi přepsat svůj aktuální výběr, nebo je přidat k těm, které už máte?`;
+        
+        modal.style.display = "flex";
+
+        // Navázání akcí na tlačítka
+        document.getElementById("btn-import-add").onclick = () => processImport(false);
+        document.getElementById("btn-import-overwrite").onclick = () => processImport(true);
+
+    } else {
+        // Pokud má prázdno, nebudeme ho otravovat a rovnou knihy načteme
+        processImport(false);
     }
 }
+
+// Funkce pro zavření modálu
+window.closeImportModal = function() {
+    document.getElementById("import-modal").style.display = "none";
+};
 
 // ======= LOCAL STORAGE: SERIALIZACE A DESERIALIZACE =======
 function saveState() {
