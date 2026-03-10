@@ -149,17 +149,7 @@ tr.selected td:nth-child(2) { color: var(--accent-green); font-weight: bold; }
     max-width: 200px;
     height: auto;
 }
-/* ======= VERSION STAMPING ======= */
-.app-version {
-    margin-top: 2rem;
-    text-align: center;
-    font-family: monospace;
-    font-size: 0.65rem;
-    color: var(--text-muted);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    opacity: 0.5;
-}
+
 #print-area { display: none; }
 
 /* ======= 1:1 FIREWALL TISKOVÉHO ENGINU ======= */
