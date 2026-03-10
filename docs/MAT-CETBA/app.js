@@ -260,13 +260,17 @@ function saveState() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
 }
 
+// ======= LOCAL STORAGE: SERIALIZACE A DESERIALIZACE =======
 function loadState() {
     const savedData = localStorage.getItem(STORAGE_KEY);
     if (savedData) {
         try {
             const parsed = JSON.parse(savedData);
             if (Array.isArray(parsed.selectedIds)) {
-                state.selectedIds = new Set(parsed.selectedIds.map(Number));
+                // DEFENSIVE PROGRAMMING: Auto-healing zkorumpované paměti
+                // Pokud je v paměti z minula více než 20 děl, exaktně to odřízneme.
+                const safeIds = parsed.selectedIds.map(Number).slice(0, 20);
+                state.selectedIds = new Set(safeIds);
             }
             if (parsed.filters) state.filters = parsed.filters;
             if (parsed.student) {
