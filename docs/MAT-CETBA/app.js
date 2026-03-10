@@ -1,3 +1,20 @@
+// ==========================================
+// BEZPEČNOSTNÍ VRSTVA (XSS OCHRANA)
+// ==========================================
+function sanitize(str) {
+    if (!str) return '';
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#x27;',
+        "/": '&#x2F;'
+    };
+    const reg = /[&<>"'/]/ig;
+    return str.replace(reg, (match) => (map[match]));
+}
+
 const KNIHY_DB = [
     { id: 1, dilo: "Ilias", autor: "Homér", druh: "epika", obdobi: "do18" },
     { id: 2, dilo: "Romeo a Julie", autor: "William Shakespeare", druh: "drama", obdobi: "do18" },
@@ -93,6 +110,101 @@ const elements = {
     inputYear: document.getElementById('student-year')
 };
 
+// ==========================================
+// STATELESS TRANSFER A NOTIFIKACE
+// ==========================================
+
+let currentShareUrl = "";
+
+function showToast(message) {
+    const toast = document.getElementById("toast");
+    toast.textContent = message;
+    toast.classList.add("show");
+    
+    setTimeout(() => {
+        toast.classList.remove("show");
+    }, 3000);
+}
+
+window.generateShareLink = function() {
+    if (state.selectedIds.size === 0) {
+        showToast("⚠️ Vyberte alespoň jednu knihu pro sdílení.");
+        return;
+    }
+    
+    const ids = Array.from(state.selectedIds).sort((a,b) => a - b).join('-');
+    const baseUrl = window.location.origin + window.location.pathname;
+    currentShareUrl = `${baseUrl}?p=${ids}`;
+
+    document.getElementById("share-modal").style.display = "flex";
+
+    const qrBox = document.getElementById("qr-code-box");
+    qrBox.innerHTML = ""; 
+    new QRCode(qrBox, {
+        text: currentShareUrl,
+        width: 200,
+        height: 200,
+        colorDark : "#000000",
+        colorLight : "#ffffff",
+        correctLevel : QRCode.CorrectLevel.L
+    });
+};
+
+window.closeShareModal = function() {
+    document.getElementById("share-modal").style.display = "none";
+};
+
+window.copyShareUrl = function() {
+    navigator.clipboard.writeText(currentShareUrl).then(() => {
+        showToast("✅ Odkaz zkopírován do schránky");
+        closeShareModal();
+    }).catch(err => {
+        console.error("Schránka selhala: ", err);
+        showToast("❌ Chyba při kopírování");
+    });
+};
+
+window.downloadQR = function() {
+    const qrCanvas = document.querySelector("#qr-code-box canvas");
+    if (!qrCanvas) {
+        showToast("⚠️ QR kód se ještě nevygeneroval.");
+        return;
+    }
+    
+    const imgData = qrCanvas.toDataURL("image/png");
+    const a = document.createElement("a");
+    a.href = imgData;
+    a.download = "maturita-vyber-qr.png";
+    a.click();
+    
+    showToast("⬇️ Stahování zahájeno");
+};
+
+function loadStateFromURL() {
+    const params = new URLSearchParams(window.location.search);
+    const payload = params.get('p');
+    
+    if (payload) {
+        const ids = payload.split('-').map(Number);
+        let loadedCount = 0;
+        
+        ids.forEach(id => {
+            if (KNIHY_DB.some(k => k.id === id)) {
+                state.selectedIds.add(id);
+                loadedCount++;
+            }
+        });
+
+        window.history.replaceState({}, document.title, window.location.pathname);
+        
+        if (loadedCount > 0) {
+            setTimeout(() => {
+                showToast(`✅ Úspěšně načteno ${loadedCount} knih ze sdíleného odkazu.`);
+            }, 500);
+        }
+    }
+}
+
 // ======= LOCAL STORAGE: SERIALIZACE A DESERIALIZACE =======
 function saveState() {
     const stateToSave = {
@@ -125,7 +237,6 @@ function loadState() {
     }
 }
 
-// Data-binding pro osobní údaje
 [
     { el: elements.inputName, key: 'name' },
     { el: elements.inputDob, key: 'dob' },
@@ -148,7 +259,6 @@ document.addEventListener('keydown', (e) => {
     }
 
     if (e.key === 'Tab') {
-        // Záchyt focusu pouze pro fyzicky viditelné prvky (vyloučí zavřené accordiony)
         const focusable = Array.from(document.querySelectorAll(
             'input, .accordion-summary, #table-body tr[tabindex="0"], .sidebar button:not([disabled])'
         )).filter(el => el !== null && (el.offsetWidth > 0 || el.offsetHeight > 0));
@@ -269,7 +379,7 @@ window.toggleBook = function(id) {
         state.selectedIds.delete(id);
     } else {
         if (state.selectedIds.size >= 20) {
-            alert("Kapacita naplněna (20). Odstraňte některé dílo, abyste mohli přidat jiné.");
+            showToast("⚠️ Kapacita naplněna (20). Odstraňte některé dílo.");
             return;
         }
         state.selectedIds.add(id);
@@ -379,7 +489,7 @@ elements.btnClear.addEventListener('click', () => {
     }
 });
 
-// ======= 1:1 GENERÁTOR PDF =======
+// ======= 1:1 GENERÁTOR PDF S XSS SANITIZACÍ =======
 elements.btnExport.addEventListener('click', () => {
     if (elements.btnExport.disabled) return;
 
@@ -439,10 +549,10 @@ elements.btnExport.addEventListener('click', () => {
                     </td>
                 </tr>
 
-                <tr><td colspan="3" class="info-label">jméno a příjmení:</td><td class="info-value">${state.student.name}</td></tr>
-                <tr><td colspan="3" class="info-label">datum narození:</td><td class="info-value">${state.student.dob}</td></tr>
-                <tr><td colspan="3" class="info-label">třída:</td><td class="info-value">${state.student.klasa}</td></tr>
-                <tr><td colspan="3" class="info-label">školní rok:</td><td class="info-value">${state.student.year}</td></tr>
+                <tr><td colspan="3" class="info-label">jméno a příjmení:</td><td class="info-value">${sanitize(state.student.name)}</td></tr>
+                <tr><td colspan="3" class="info-label">datum narození:</td><td class="info-value">${sanitize(state.student.dob)}</td></tr>
+                <tr><td colspan="3" class="info-label">třída:</td><td class="info-value">${sanitize(state.student.klasa)}</td></tr>
+                <tr><td colspan="3" class="info-label">školní rok:</td><td class="info-value">${sanitize(state.student.year)}</td></tr>
 
                 <tr class="col-headers">
                     <td class="col-c">č.</td>
@@ -493,7 +603,6 @@ elements.btnExport.addEventListener('click', () => {
     }
 });
 
-// ======= PWA SMART INSTALL ENGINE =======
 let deferredPrompt;
 const installBtn = document.getElementById('btn-pwa-install');
 
@@ -532,7 +641,10 @@ elements.btnScrollTop?.addEventListener('click', () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 });
 
-loadState(); 
-elements.searchBox.focus(); 
-renderTable(); 
-updateStatsAndSidebar();
+window.onload = () => {
+    loadState(); 
+    loadStateFromURL(); 
+    elements.searchBox.focus(); 
+    renderTable(); 
+    updateStatsAndSidebar();
+};
