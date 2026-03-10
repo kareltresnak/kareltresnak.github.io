@@ -142,7 +142,6 @@ window.generateShareLink = function() {
     const qrBox = document.getElementById("qr-code-box");
     qrBox.innerHTML = ""; 
     
-    // Generování ve vysokém rozlišení s vyšší redundancí chyb (Level M)
     new QRCode(qrBox, {
         text: currentShareUrl,
         width: 400, 
@@ -174,22 +173,16 @@ window.downloadQR = function() {
         return;
     }
     
-    // Vytvoříme kompozitní plátno pro vpečení bílého okraje (Quiet Zone)
-    const padding = 40; // Ochranná zóna 40px
+    const padding = 40; 
     const exportCanvas = document.createElement("canvas");
     exportCanvas.width = qrCanvas.width + (padding * 2);
     exportCanvas.height = qrCanvas.height + (padding * 2);
     
     const ctx = exportCanvas.getContext("2d");
-    
-    // Krok 1: Vylití absolutní bílou
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
-    
-    // Krok 2: Vložení surového QR kódu doprostřed
     ctx.drawImage(qrCanvas, padding, padding);
     
-    // Krok 3: Export kompozitu
     const imgData = exportCanvas.toDataURL("image/png");
     const a = document.createElement("a");
     a.href = imgData;
@@ -198,6 +191,10 @@ window.downloadQR = function() {
     
     showToast("⬇️ Stahování zahájeno");
 };
+
+// ==========================================
+// PREVIEW SANDBOX (SMART IMPORT ENGINE)
+// ==========================================
 
 function loadStateFromURL() {
     const params = new URLSearchParams(window.location.search);
@@ -210,62 +207,112 @@ function loadStateFromURL() {
     
     if (validIds.length === 0) return;
 
-    // Okamžité vyčištění URL adresy, aby se to nezacyklilo při F5
+    // Odstranění URL parametru, ať se necyklí po F5
     window.history.replaceState({}, document.title, window.location.pathname);
 
-    // Vnitřní funkce pro zpracování dat po rozhodnutí uživatele
-    const processImport = (overwrite) => {
-        if (overwrite) {
-            state.selectedIds.clear(); 
-        }
+    // Krok 1: Výpočet nových děl (kolik z odkazu ještě nemám)
+    const newBooksCount = validIds.filter(id => !state.selectedIds.has(id)).length;
+    
+    // Pokud sdílí úplně to samé, co už mám, tiše ignorujeme
+    if (newBooksCount === 0 && state.selectedIds.size === validIds.length) {
+        setTimeout(() => showToast("ℹ️ Odkaz obsahuje identický seznam, jaký už máte."), 500);
+        return;
+    }
 
-        let loadedCount = 0;
+    // Krok 2: Vykreslení Preview Modalu
+    showPreviewModal(validIds, newBooksCount);
+}
+
+function showPreviewModal(importedIds, newCount) {
+    const modal = document.getElementById("preview-modal");
+    const metaEl = document.getElementById("preview-meta");
+    const listEl = document.getElementById("preview-list");
+    const validationEl = document.getElementById("preview-validation");
+
+    const importedBooks = importedIds.map(id => KNIHY_DB.find(k => k.id === id)).sort((a, b) => a.id - b.id);
+
+    // Virtuální simulace platnosti cizího seznamu
+    const stats = { do18: 0, "19": 0, svet20: 0, cz20: 0, lyrika: 0, epika: 0, drama: 0 };
+    importedBooks.forEach(k => {
+        stats[k.obdobi]++;
+        stats[k.druh]++;
+    });
+
+    const isFullyValid = importedIds.length === 20 && 
+                         stats.do18 >= REQUIREMENTS.do18 && stats["19"] >= REQUIREMENTS["19"] && 
+                         stats.svet20 >= REQUIREMENTS.svet20 && stats.cz20 >= REQUIREMENTS.cz20 &&
+                         stats.lyrika >= REQUIREMENTS.lyrika && stats.epika >= REQUIREMENTS.epika && stats.drama >= REQUIREMENTS.drama;
+
+    // Metainformace s přesnou analytikou
+    let text = `Odkaz obsahuje <strong>${importedIds.length} děl</strong>`;
+    if (state.selectedIds.size > 0) {
+        text += ` (z toho ${newCount} děl zatím ve vašem seznamu chybí).`;
+    } else {
+        text += ".";
+    }
+    metaEl.innerHTML = text;
+
+    // Vykreslení validace s institucionálními barvami
+    if (isFullyValid) {
+        validationEl.innerHTML = `<span style="background: rgba(34, 197, 94, 0.1); color: var(--accent-green); padding: 4px 8px; border-radius: 4px; border: 1px solid var(--accent-green); font-size: 0.8rem; font-weight: bold;">✅ Seznam splňuje všechna maturitní kritéria</span>`;
+    } else {
+        validationEl.innerHTML = `<span style="background: rgba(239, 68, 68, 0.1); color: var(--accent-red); padding: 4px 8px; border-radius: 4px; border: 1px solid var(--accent-red); font-size: 0.8rem; font-weight: bold;">⚠️ Odkaz NESPLŇUJE všechna kritéria</span>`;
+    }
+
+    // Vykreslení posuvného seznamu
+    listEl.innerHTML = importedBooks.map((k) => {
+        const alreadyHave = state.selectedIds.has(k.id);
+        return `<div style="padding: 6px 0; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+            <span style="color: ${alreadyHave ? 'var(--text-muted)' : 'var(--text-main)'};">
+                <strong>${k.id}.</strong> ${k.dilo} <small style="opacity:0.7">(${k.autor})</small>
+            </span>
+            ${alreadyHave ? '<span style="font-size: 0.7rem; color: var(--accent-green);">Již máte</span>' : '<span style="font-size: 0.7rem; color: var(--accent-primary-light);">Nové</span>'}
+        </div>`;
+    }).join('');
+
+    modal.style.display = "flex";
+
+    // Akce: PŘEPSAT SEZNAM
+    document.getElementById("btn-import-replace").onclick = () => {
+        state.selectedIds.clear();
+        importedIds.forEach(id => state.selectedIds.add(id));
+        finalizeImport(`✅ Seznam přepsán. Načteno ${importedIds.length} děl.`);
+    };
+
+    // Akce: DOPLNIT CHYBĚJÍCÍ (Sloučení)
+    document.getElementById("btn-import-merge").onclick = () => {
+        let addedCount = 0;
         let overflow = false;
-
-        validIds.forEach(id => {
+        importedIds.forEach(id => {
             if (state.selectedIds.size < 20) {
                 if (!state.selectedIds.has(id)) {
                     state.selectedIds.add(id);
-                    loadedCount++;
+                    addedCount++;
                 }
-            } else {
-                overflow = true; 
+            } else if (!state.selectedIds.has(id)) {
+                overflow = true;
             }
         });
-
-        saveState(); 
-        renderTable(); 
-        updateStatsAndSidebar();
-
-        let msg = `✅ Načteno ${loadedCount} knih ze sdíleného odkazu.`;
-        if (overflow) msg += " (Některé byly zahozeny kvůli limitu 20 děl).";
-        showToast(msg);
         
-        closeImportModal(); // Zavření okna
+        let msg = `✅ Doplněno ${addedCount} nových děl.`;
+        if (overflow) msg += " (Některá z odkazu přeskočena kvůli limitu 20).";
+        if (addedCount === 0 && !overflow) msg = "ℹ️ Žádná nová díla nebyla přidána.";
+        finalizeImport(msg);
     };
-
-    // Pokud uživatel už má nějaké knihy, ukážeme mu náš hezký modál
-    if (state.selectedIds.size > 0) {
-        const modal = document.getElementById("import-modal");
-        document.getElementById("import-modal-text").innerHTML = 
-            `Odkaz obsahuje <strong>${validIds.length} nových děl</strong>.<br><br>Chcete jimi přepsat svůj aktuální výběr, nebo je přidat k těm, které už máte?`;
-        
-        modal.style.display = "flex";
-
-        // Navázání akcí na tlačítka
-        document.getElementById("btn-import-add").onclick = () => processImport(false);
-        document.getElementById("btn-import-overwrite").onclick = () => processImport(true);
-
-    } else {
-        // Pokud má prázdno, nebudeme ho otravovat a rovnou knihy načteme
-        processImport(false);
-    }
 }
 
-// Funkce pro zavření modálu
-window.closeImportModal = function() {
-    document.getElementById("import-modal").style.display = "none";
+function finalizeImport(toastMsg) {
+    saveState();
+    renderTable();
+    updateStatsAndSidebar();
+    closePreviewModal();
+    setTimeout(() => showToast(toastMsg), 300);
+}
+
+window.closePreviewModal = function() {
+    document.getElementById("preview-modal").style.display = "none";
 };
+
 
 // ======= LOCAL STORAGE: SERIALIZACE A DESERIALIZACE =======
 function saveState() {
@@ -277,15 +324,12 @@ function saveState() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
 }
 
-// ======= LOCAL STORAGE: SERIALIZACE A DESERIALIZACE =======
 function loadState() {
     const savedData = localStorage.getItem(STORAGE_KEY);
     if (savedData) {
         try {
             const parsed = JSON.parse(savedData);
             if (Array.isArray(parsed.selectedIds)) {
-                // DEFENSIVE PROGRAMMING: Auto-healing zkorumpované paměti
-                // Pokud je v paměti z minula více než 20 děl, exaktně to odřízneme.
                 const safeIds = parsed.selectedIds.map(Number).slice(0, 20);
                 state.selectedIds = new Set(safeIds);
             }
@@ -303,6 +347,7 @@ function loadState() {
     }
 }
 
+// Data-binding pro osobní údaje
 [
     { el: elements.inputName, key: 'name' },
     { el: elements.inputDob, key: 'dob' },
@@ -707,22 +752,13 @@ elements.btnScrollTop?.addEventListener('click', () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 });
 
-window.onload = () => {
-    loadState(); 
-    loadStateFromURL(); 
-    elements.searchBox.focus(); 
-    renderTable(); 
-    updateStatsAndSidebar();
-};
 // ==========================================
 // AUTO-DETEKCE VERZE (Z CACHE API)
 // ==========================================
 if ('caches' in window) {
     caches.keys().then(keys => {
-        // Najde klíč mezipaměti patřící naší aplikaci
         const cacheName = keys.find(key => key.includes('SPS_Selekce_MAT_CETBY'));
         if (cacheName) {
-            // Extrahujeme verzi (poslední segment za podtržítkem)
             const version = cacheName.split('_').pop(); 
             const versionEl = document.getElementById('app-version-val');
             if (versionEl) {
@@ -731,3 +767,11 @@ if ('caches' in window) {
         }
     }).catch(err => console.error("Nelze načíst verzi z Cache API:", err));
 }
+
+window.onload = () => {
+    loadState(); 
+    loadStateFromURL(); 
+    elements.searchBox.focus(); 
+    renderTable(); 
+    updateStatsAndSidebar();
+};
