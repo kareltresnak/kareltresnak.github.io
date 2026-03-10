@@ -9,14 +9,17 @@ Professional portfolio of informatics projects focused on automation, educationa
 
 **Target:** Students of SPŠ a VOŠ Příbram
 
-A high-performance **Progressive Web App (PWA)** engineered to automate the bureaucratic process of compiling the official Czech "Maturita" exam protocol. Built on a strict **Zero-Dependency Client-Side** architecture, it functions as a fully offline native application.
+A high-performance **Progressive Web App (PWA)** engineered to automate the bureaucratic process of compiling the official Czech "Maturita" exam protocol. Built on a strict **Zero-Dependency Client-Side** architecture, it functions as a fully offline native application with decentralized state management.
 
 ### ⚙️ Technical Highlights
-* **Zero-Knowledge Privacy Shield:** Implementation of a strict local-only data pipeline. Personally Identifiable Information (PII) and application state are serialized exclusively via `LocalStorage` with absolutely no backend database, telemetry, or network traffic.
-* **PWA & Offline-First Architecture:** Integrated Service Worker (`sw.js`) with caching strategies, providing 100% offline uptime and native installation capabilities on Android and iOS devices.
-* **Pixel-Perfect Print Engine:** Engineered a 1:1 physical emulation of the official SPŠ Příbram protocol. The print DOM bypasses volatile browser print modules by utilizing structural nested HTML tables and `<colgroup>` matrices to enforce absolute geometric stability and locked typography.
-* **Navigation Architecture:** Full keyboard navigation support using the **Roving Tabindex** pattern, focus-traps, and custom hotkeys (e.g., `/` for search) for fluid, mouse-free accessibility.
-* **Algorithmic Validation:** Real-time evaluation engine dynamically parsing complex state against matrix requirements (genre distribution and chronological quotas).
+* **Zero-Knowledge Privacy & Security:** Implementation of a strict local-only data pipeline. Personally Identifiable Information (PII) is serialized exclusively via `LocalStorage` with zero backend telemetry. Includes a custom **XSS (Cross-Site Scripting) mitigation layer** that sanitizes all user inputs before DOM injection.
+* **Stateless Transfer & Deep Linking:** Engineered a zero-backend sharing mechanism that serializes the application state into a deterministically sorted URL payload. Includes a composite-canvas engine generating high-resolution, print-ready QR codes (with algorithmically calculated Quiet Zones) for seamless cross-device optical data transfer.
+* **Smart State Sandbox (Import Engine):** Developed an asynchronous preview environment that intercepts incoming URL payloads. It automatically evaluates the foreign dataset against complex matrix requirements (chronological and genre quotas) and offers safe merging capabilities with strict **Buffer Overflow protection** (capped at 20 items).
+* **Defensive Programming:** Implemented an auto-healing boot routine that actively scans for and resolves corrupted or poisoned states in the local memory upon initialization.
+* **PWA & Offline-First Architecture:** Integrated Service Worker (`sw.js`) with cache-first strategies and semantic versioning (`v4.x.x`), providing 100% offline uptime. Features dynamic Cache API querying for real-time Version Stamping in the UI.
+* **OS-Delegated UI Mimicry:** Designed an adaptive user interface. Uses Weber-Fechner calibrated contrast for Dark Mode and delegates Light Mode rendering to the user's OS (`prefers-color-scheme`), providing an exact 1:1 colorimetric match with the official SPŠ Příbram digital ecosystem.
+* **Pixel-Perfect Print Engine:** Engineered a physical emulation of the official school protocol. The print DOM bypasses volatile browser print modules by utilizing structural HTML tables and `<colgroup>` matrices to enforce absolute geometric stability.
+* **Accessibility (A11y):** Full keyboard navigation support using the **Roving Tabindex** pattern, focus-traps, and custom hotkeys (e.g., `/` for search) for fluid, mouse-free interaction.
 
 ---
 
