@@ -132,7 +132,8 @@ window.generateShareLink = function() {
         return;
     }
     
-    const ids = Array.from(state.selectedIds).sort((a,b) => a - b).join('-');
+    // Sort zajišťuje deterministické URL (vždy stejný odkaz pro stejné knihy)
+    const ids = Array.from(state.selectedIds).sort((a, b) => a - b).join('-');
     const baseUrl = window.location.origin + window.location.pathname;
     currentShareUrl = `${baseUrl}?p=${ids}`;
 
@@ -140,13 +141,15 @@ window.generateShareLink = function() {
 
     const qrBox = document.getElementById("qr-code-box");
     qrBox.innerHTML = ""; 
+    
+    // Generování ve vysokém rozlišení s vyšší redundancí chyb (Level M)
     new QRCode(qrBox, {
         text: currentShareUrl,
-        width: 200,
-        height: 200,
+        width: 400, 
+        height: 400,
         colorDark : "#000000",
         colorLight : "#ffffff",
-        correctLevel : QRCode.CorrectLevel.L
+        correctLevel : QRCode.CorrectLevel.M 
     });
 };
 
@@ -171,7 +174,23 @@ window.downloadQR = function() {
         return;
     }
     
-    const imgData = qrCanvas.toDataURL("image/png");
+    // Vytvoříme kompozitní plátno pro vpečení bílého okraje (Quiet Zone)
+    const padding = 40; // Ochranná zóna 40px
+    const exportCanvas = document.createElement("canvas");
+    exportCanvas.width = qrCanvas.width + (padding * 2);
+    exportCanvas.height = qrCanvas.height + (padding * 2);
+    
+    const ctx = exportCanvas.getContext("2d");
+    
+    // Krok 1: Vylití absolutní bílou
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+    
+    // Krok 2: Vložení surového QR kódu doprostřed
+    ctx.drawImage(qrCanvas, padding, padding);
+    
+    // Krok 3: Export kompozitu
+    const imgData = exportCanvas.toDataURL("image/png");
     const a = document.createElement("a");
     a.href = imgData;
     a.download = "maturita-vyber-qr.png";
