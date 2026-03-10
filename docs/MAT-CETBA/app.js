@@ -771,7 +771,13 @@ if ('caches' in window) {
 window.onload = () => {
     loadState(); 
     loadStateFromURL(); 
-    elements.searchBox.focus(); 
+    
+    // SMART AUTOFOCUS: Zabrání vyskočení klávesnice na dotykových zařízeních
+    // Focus se provede pouze pokud má zařízení přesný ukazatel (myš)
+    if (window.matchMedia("(pointer: fine)").matches) {
+        elements.searchBox.focus(); 
+    }
+    
     renderTable(); 
     updateStatsAndSidebar();
 };
