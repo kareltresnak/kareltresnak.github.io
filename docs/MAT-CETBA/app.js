@@ -246,7 +246,7 @@ function showPreviewModal(importedIds, newCount) {
     // Metainformace s přesnou analytikou
     let text = `Odkaz obsahuje <strong>${importedIds.length} děl</strong>`;
     if (state.selectedIds.size > 0) {
-        text += ` (z toho ${newCount} děl zatím ve vašem seznamu chybí).`;
+        text += ` (z toho ${newCount} děl ve vašem seznamu není).`;
     } else {
         text += ".";
     }
