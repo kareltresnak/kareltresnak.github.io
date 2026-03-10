@@ -205,20 +205,46 @@ function loadStateFromURL() {
     
     if (payload) {
         const ids = payload.split('-').map(Number);
-        let loadedCount = 0;
+        const validIds = ids.filter(id => KNIHY_DB.some(k => k.id === id));
         
-        ids.forEach(id => {
-            if (KNIHY_DB.some(k => k.id === id)) {
-                state.selectedIds.add(id);
-                loadedCount++;
+        if (validIds.length > 0) {
+            // Pokud už máme v paměti nějaké knihy, vyvoláme rozhodovací strom
+            if (state.selectedIds.size > 0) {
+                const overwrite = confirm(`🔗 Detekován sdílený odkaz (${validIds.length} knih).\n\nChcete PŘEPSAT svůj aktuální seznam?\n\n(Kliknutím na 'Zrušit' se knihy z odkazu pouze PŘIDAJÍ k vašemu aktuálnímu výběru).`);
+                
+                if (overwrite) {
+                    state.selectedIds.clear(); // Destrukce starého stavu
+                }
             }
-        });
 
-        window.history.replaceState({}, document.title, window.location.pathname);
-        
-        if (loadedCount > 0) {
+            let loadedCount = 0;
+            let overflow = false;
+
+            validIds.forEach(id => {
+                if (state.selectedIds.size < 20) {
+                    if (!state.selectedIds.has(id)) {
+                        state.selectedIds.add(id);
+                        loadedCount++;
+                    }
+                } else {
+                    overflow = true; // Byla překročena kapacita
+                }
+            });
+
+            // Kritické: Okamžitá serializace nového stavu do lokální paměti
+            saveState(); 
+
+            // Vyčištění URL řádku, aby se payload nenačítal znovu při F5
+            window.history.replaceState({}, document.title, window.location.pathname);
+            
             setTimeout(() => {
-                showToast(`✅ Úspěšně načteno ${loadedCount} knih ze sdíleného odkazu.`);
+                let msg = `✅ Načteno ${loadedCount} knih ze sdíleného odkazu.`;
+                if (overflow) msg += " (Některé byly zahozeny kvůli limitu 20 děl).";
+                showToast(msg);
+                
+                // Vynucené překreslení DOMu s novými daty
+                renderTable(); 
+                updateStatsAndSidebar();
             }, 500);
         }
     }
