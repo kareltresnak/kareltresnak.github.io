@@ -1,8 +1,9 @@
-const CACHE_NAME = 'SPS_Selekce_MAT_CETBY_v4.3.3'; 
+const CACHE_NAME = 'SPS_Selekce_MAT_CETBY_v4.3.4'; 
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
     './style.css',
+    '.style-spspb.css',
     './app.js',
     './spspb-logo-2000px.png',
     './manifest.json',
