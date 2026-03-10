@@ -3,7 +3,7 @@ const ASSETS_TO_CACHE = [
     './',
     './index.html',
     './style.css',
-    '.style-spspb.css',
+    './style-spspb.css',
     './app.js',
     './spspb-logo-2000px.png',
     './manifest.json',
