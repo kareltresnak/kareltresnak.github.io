@@ -108,7 +108,6 @@
                 <div class="app-version">
                     Selekce četby // <span id="app-version-val">...</span>
                 </div>
-            </div> </aside>
             </div>
         </aside>
     </div>
@@ -121,7 +120,7 @@
     <div id="share-modal" class="modal-overlay" style="display: none;">
         <div class="modal-content">
             <button class="close-btn" onclick="closeShareModal()">×</button>
-            <h2 style="margin-bottom: 1rem; color: var(--accent-rust-light); text-transform: uppercase;">Sdílet výběr</h2>
+            <h2 style="margin-bottom: 1rem; color: var(--accent-primary-light); text-transform: uppercase;">Sdílet výběr</h2>
             
             <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">
                 Naskenuj QR kód, nebo si odkaz zkopíruj a pošli.
@@ -139,16 +138,22 @@
             </div>
         </div>
     </div>
-    <div id="import-modal" class="modal-overlay" style="display: none;">
-        <div class="modal-content">
-            <h2 style="margin-bottom: 1rem; color: var(--accent-primary-light); text-transform: uppercase;">Detekován sdílený odkaz</h2>
-            <p id="import-modal-text" style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;"></p>
+
+    <div id="preview-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content" style="max-width: 600px; width: 95%;">
+            <button class="close-btn" onclick="closePreviewModal()">×</button>
+            <h2 style="margin-bottom: 0.5rem; color: var(--accent-primary-light); text-transform: uppercase;">Náhled sdíleného seznamu</h2>
+            <p id="preview-meta" style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;"></p>
             
-            <div class="share-actions" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 1rem;">
-                <button class="btn warning-btn" id="btn-import-add" style="font-size: 0.8rem;">PŘIDAT K MÉMU</button>
-                <button class="btn danger-btn" id="btn-import-overwrite" style="font-size: 0.8rem;">PŘEPSAT SEZNAM</button>
+            <div id="preview-validation" style="display: flex; gap: 10px; margin-bottom: 1rem; flex-wrap: wrap; justify-content: center;"></div>
+
+            <div id="preview-list" style="text-align: left; background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; max-height: 250px; overflow-y: auto; margin-bottom: 1.5rem; font-size: 0.85rem;">
             </div>
-            <button class="btn" onclick="closeImportModal()" style="width: 100%; margin-top: 10px; background: transparent; border: 1px solid var(--border); color: var(--text-muted); font-size: 0.8rem;">Zrušit akci</button>
+            
+            <div class="share-actions" style="display: flex; flex-direction: column; gap: 10px;">
+                <button class="btn warning-btn" id="btn-import-merge" style="font-size: 0.8rem;" title="Doplní chybějící knihy do kapacity 20">DOPLNIT MÉ CHYBĚJÍCÍ</button>
+                <button class="btn success-btn" id="btn-import-replace" style="font-size: 0.8rem;" title="Smaže váš seznam a nahradí ho tímto">PŘEPSAT MŮJ SEZNAM</button>
+            </div>
         </div>
     </div>
 
