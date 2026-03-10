@@ -1,11 +1,13 @@
-const CACHE_NAME = 'SPS_Selekce_MAT_CETBY_v2';
+const CACHE_NAME = 'SPS_Selekce_MAT_CETBY_v4.1'; 
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
     './style.css',
     './app.js',
     './spspb-logo-2000px.png',
-    './manifest.json'
+    './manifest.json',
+    // Musíme nacachovat externí knihovnu pro QR kódy, abychom neztratili offline-first status
+    'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js'
 ];
 
 // Fáze 1: Instalace a nabití Cache
@@ -41,11 +43,9 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
         caches.match(event.request)
             .then((cachedResponse) => {
-                // Pokud máme soubor v paměti, vrátíme ho okamžitě (Offline 100% dostupnost)
                 if (cachedResponse) {
                     return cachedResponse;
                 }
-                // Jinak se zeptáme sítě
                 return fetch(event.request);
             })
     );
