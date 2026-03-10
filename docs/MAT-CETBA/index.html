@@ -12,7 +12,32 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="spspb-logo-2000px.png">
     
-    <link rel="stylesheet" href="style.css">
+    <script>
+        (function() {
+            // 1. Analýza URL vektoru (Přišel přes speciální odkaz?)
+            const params = new URLSearchParams(window.location.search);
+            const urlTheme = params.get('theme');
+            
+            // 2. Dotaz do lokální paměti (Jaký kabát měl naposledy?)
+            let activeTheme = localStorage.getItem('omega_theme') || 'default';
+            
+            // 3. Přepis paměti, pokud URL diktuje novou instituci
+            if (urlTheme) {
+                activeTheme = urlTheme;
+                localStorage.setItem('omega_theme', activeTheme);
+            }
+
+            // 4. Architektonický routing na konkrétní CSS
+            let cssFile = 'style.css'; // Výchozí (GitHub portfolio)
+            
+            if (activeTheme === 'sps') {
+                cssFile = 'style-spspb.css'; // SPŠ Příbram
+            } 
+
+            // Okamžitá injekce blokující vykreslení cizího designu
+            document.write('<link rel="stylesheet" href="' + cssFile + '">');
+        })();
+    </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
