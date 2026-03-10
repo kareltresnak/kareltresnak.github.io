@@ -697,3 +697,20 @@ window.onload = () => {
     renderTable(); 
     updateStatsAndSidebar();
 };
+// ==========================================
+// AUTO-DETEKCE VERZE (Z CACHE API)
+// ==========================================
+if ('caches' in window) {
+    caches.keys().then(keys => {
+        // Najde klíč mezipaměti patřící naší aplikaci
+        const cacheName = keys.find(key => key.includes('SPS_Selekce_MAT_CETBY'));
+        if (cacheName) {
+            // Extrahujeme verzi (poslední segment za podtržítkem)
+            const version = cacheName.split('_').pop(); 
+            const versionEl = document.getElementById('app-version-val');
+            if (versionEl) {
+                versionEl.textContent = version;
+            }
+        }
+    }).catch(err => console.error("Nelze načíst verzi z Cache API:", err));
+}
