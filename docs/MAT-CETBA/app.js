@@ -69,8 +69,9 @@ window.generateShareLink = function() {
     
     // Sort zajišťuje deterministické URL (vždy stejný odkaz pro stejné knihy)
     const ids = Array.from(state.selectedIds).sort((a, b) => a - b).join('-');
+    const currentTheme = localStorage.getItem('omega_theme') || 'default';
     const baseUrl = window.location.origin + window.location.pathname;
-    currentShareUrl = `${baseUrl}?p=${ids}`;
+    currentShareUrl = `${baseUrl}?theme=${currentTheme}&?p=${ids}`;
 
     document.getElementById("share-modal").style.display = "flex";
 
@@ -550,13 +551,16 @@ const clearListLogic = () => {
     updateStatsAndSidebar();
 };
 
-// Modul 2: Výmaz PII (osobních údajů)
+// Modul 2: Výmaz PII (osobních údajů) - Robustní verze
 const clearDataLogic = () => {
+    // 1. Reset vnitřního stavu
     state.student = { name: "", dob: "", klasa: "", year: "" };
-    elements.inputName.value = "";
-    elements.inputDob.value = "";
-    elements.inputClass.value = "";
-    elements.inputYear.value = "";
+
+    // 2. Bezpečný výmaz inputů (jen těch, které v dané škole existují)
+    window.OMEGA_CONFIG.FORM_FIELDS.forEach(key => {
+        const el = document.getElementById(`student-${key}`);
+        if (el) el.value = "";
+    });
 };
 
 // Hlavní trigger (otevře okno, i když je seznam prázdný, protože mohou chtít smazat údaje)
