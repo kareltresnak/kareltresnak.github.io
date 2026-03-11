@@ -591,13 +591,60 @@ elements.btnReset.addEventListener('click', () => {
     saveState(); 
 });
 
+// ======= ASYNCHRONNÍ DESTRUKCE STAVU (GRANULÁRNÍ) =======
+
+// Modul 1: Výmaz samotných knih
+const clearListLogic = () => {
+    state.selectedIds.clear();
+    renderTable();
+    updateStatsAndSidebar();
+};
+
+// Modul 2: Výmaz PII (osobních údajů)
+const clearDataLogic = () => {
+    state.student = { name: "", dob: "", klasa: "", year: "" };
+    elements.inputName.value = "";
+    elements.inputDob.value = "";
+    elements.inputClass.value = "";
+    elements.inputYear.value = "";
+};
+
+// Hlavní trigger (otevře okno, i když je seznam prázdný, protože mohou chtít smazat údaje)
 elements.btnClear.addEventListener('click', () => {
-    if (confirm("Opravdu chceš vymazat celý seznam? (Osobní údaje zůstanou zachovány)")) {
-        state.selectedIds.clear();
-        renderTable();
-        updateStatsAndSidebar();
-        saveState(); 
+    document.getElementById("clear-modal").style.display = "flex";
+});
+
+window.closeClearModal = function() {
+    document.getElementById("clear-modal").style.display = "none";
+};
+
+// Akce A: Jen knihy
+document.getElementById("btn-clear-list").addEventListener('click', () => {
+    if (state.selectedIds.size === 0) {
+        showToast("ℹ️ Váš seznam knih je již prázdný.");
+    } else {
+        clearListLogic();
+        saveState();
+        showToast("🗑️ Seznam knih byl úspěšně vymazán.");
     }
+    closeClearModal();
+});
+
+// Akce B: Jen osobní údaje
+document.getElementById("btn-clear-data").addEventListener('click', () => {
+    clearDataLogic();
+    saveState();
+    closeClearModal();
+    showToast("🗑️ Osobní údaje byly vymazány.");
+});
+
+// Akce C: Nukleární reset (Vše)
+document.getElementById("btn-clear-all").addEventListener('click', () => {
+    clearListLogic();
+    clearDataLogic();
+    saveState();
+    closeClearModal();
+    showToast("☢️ Kompletní paměť byla vymazána.");
 });
 
 // ======= 1:1 GENERÁTOR PDF S XSS SANITIZACÍ =======
