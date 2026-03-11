@@ -15,9 +15,12 @@ window.OMEGA_CONFIG = {
                 <input type="text" id="student-class" class="styled-input" placeholder="Třída (např. 4.A)">
                 <input type="text" id="student-year" class="styled-input" placeholder="Školní rok">
             </div>
-            <div style="margin-top: 10px; padding: 10px; background: rgba(230,81,0,0.1); border-left: 3px solid var(--accent-rust); font-size: 0.75rem; color: var(--text-muted);">
-                <strong>Pozor na autory:</strong> Gymnázium povoluje max. 1 dílo od stejného autora (Výjimky: W. Shakespeare a K. Čapek - max 2, pokud se liší žánr).
-            </div>
+        </div>
+    `,
+    // data-gympb.js
+    RULES_HTML: `
+        <div style="font-size: 0.75rem; color: var(--text-muted); background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px; margin-bottom: 1rem; line-height: 1.4; border: 1px dashed var(--border);">
+            <strong>Pozor na autory:</strong> Gymnázium povoluje max. 1 dílo od stejného autora (Výjimky: W. Shakespeare a K. Čapek - max 2, pokud se liší žánr).
         </div>
     `,
     
