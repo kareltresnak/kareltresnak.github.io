@@ -4,6 +4,8 @@ const ASSETS_TO_CACHE = [
     './index.html',
     './style.css',
     './style-spspb.css',
+    './data-spspb.js',
+    './data-gympb.js',
     './app.js',
     './spspb-logo-2000px.png',
     './manifest.json',
