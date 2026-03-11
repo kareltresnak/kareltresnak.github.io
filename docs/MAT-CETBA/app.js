@@ -23,6 +23,10 @@ const REQUIREMENTS = window.OMEGA_CONFIG.REQUIREMENTS;
 // Dynamická injekce formuláře a navázání event listenerů
 document.getElementById('dynamic-form-container').innerHTML = window.OMEGA_CONFIG.FORM_HTML;
 
+const rulesContainer = document.getElementById('school-rules');
+if (rulesContainer) {
+    rulesContainer.innerHTML = window.OMEGA_CONFIG.RULES_HTML || "";
+}
 const state = { 
     selectedIds: new Set(), 
     filters: { obdobi: null, druh: null }, 
