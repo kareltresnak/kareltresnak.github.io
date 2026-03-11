@@ -16,7 +16,8 @@ window.OMEGA_CONFIG = {
             </div>
         </div>
     `,
-    
+    // data-spspb.js
+    RULES_HTML: "",
     FORM_FIELDS: ['name', 'dob', 'class', 'year'],
 
     // ======= TISKOVÝ MODUL PRO SPŠ PŘÍBRAM (S Buckety) =======
