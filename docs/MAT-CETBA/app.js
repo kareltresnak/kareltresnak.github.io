@@ -638,10 +638,10 @@ elements.btnExport.addEventListener('click', () => {
 
     const printArea = document.getElementById('print-area');
     
-    // 1. Injekce HTML
+    // 1. Okamžitá injekce HTML
     printArea.innerHTML = window.OMEGA_CONFIG.renderPdf(selectedBooks, state.student, sanitize);
     
-    // 2. Krátký yield pro vykreslení stylů (funguje na iOS i Androidu)
+    // 2. Krátká prodleva pro mobilní telefony i PC, aby prohlížeč stihl vykreslit tabulku a CSS!
     setTimeout(() => {
         window.print();
     }, 150);
