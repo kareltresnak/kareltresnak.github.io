@@ -140,10 +140,18 @@ window.downloadQR = function() {
 function loadStateFromURL() {
     const params = new URLSearchParams(window.location.search);
     const payload = params.get('p');
-    // TOTO ZDE CHYBĚLO:
     const urlTheme = params.get('theme');
     const currentTheme = localStorage.getItem('omega_theme') || 'default';
+    
     if (!payload) return;
+
+    // 🛡️ ANTI-KONTAMINAČNÍ ŠTÍT: Tvrdý blok křížového importu
+    if (urlTheme && currentTheme !== 'default' && urlTheme !== currentTheme) {
+        // Vyčistíme URL, udržíme domovské téma a odpálíme varování
+        window.history.replaceState({}, document.title, window.location.pathname + "?theme=" + currentTheme);
+        document.getElementById('collision-modal').style.display = 'flex';
+        return; // ABSOLUTNÍ UKONČENÍ IMPORTU
+    }
 
     const ids = payload.split('-').map(Number);
     const validIds = ids.filter(id => KNIHY_DB.some(k => k.id === id));
@@ -151,12 +159,11 @@ function loadStateFromURL() {
     if (validIds.length === 0) return;
 
     // Odstranění URL parametru, ať se necyklí po F5
-    window.history.replaceState({}, document.title, window.location.pathname);
+    window.history.replaceState({}, document.title, window.location.pathname + "?theme=" + currentTheme);
 
     // Krok 1: Výpočet nových děl (kolik z odkazu ještě nemám)
     const newBooksCount = validIds.filter(id => !state.selectedIds.has(id)).length;
     
-    // Pokud sdílí úplně to samé, co už mám, tiše ignorujeme
     if (newBooksCount === 0 && state.selectedIds.size === validIds.length) {
         setTimeout(() => showToast("ℹ️ Odkaz obsahuje identický seznam, jaký už máte."), 500);
         return;
