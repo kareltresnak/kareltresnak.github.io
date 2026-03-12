@@ -1,8 +1,9 @@
 {
+  "id": "mat-cetba-spspb",
   "name": "Selekce maturitní četby SPŠ Příbram",
   "short_name": "MAT Četba",
   "description": "Kontrolor požadavků maturitní četby a generátor vyplněného formuláře",
-  "start_url": "./index.html",
+  "start_url": "./?theme=spspb",
   "display": "standalone",
   "background_color": "#0a0a0a",
   "theme_color": "#e65100",
