@@ -306,3 +306,122 @@ tr.selected td:nth-child(2) { color: var(--accent-primary-light); font-weight: b
         box-shadow: none;
     }
 }
+
+
+/* =========================================
+   PWA BOTTOM NAVIGATION (MOBILE ONLY)
+   ========================================= */
+.mobile-nav {
+    display: none;
+}
+
+/* Zobrazí se jen na displejích menších než 1100px (tablety a mobily) */
+@media screen and (max-width: 1100px) {
+    .mobile-nav {
+        display: flex;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: var(--bg-surface);
+        border-top: 1px solid var(--border);
+        z-index: 9999;
+        height: 65px;
+        padding-bottom: env(safe-area-inset-bottom); /* iOS podpora */
+        box-shadow: 0 -4px 20px rgba(0,0,0,0.5);
+    }
+
+    .nav-tab {
+        flex: 1;
+        background: transparent;
+        border: none;
+        color: var(--text-muted);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        position: relative;
+        transition: color 0.2s, background 0.2s;
+    }
+
+    .nav-icon { font-size: 1.2rem; margin-bottom: 2px; }
+    .nav-label { font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    .nav-tab.active {
+        color: var(--accent-primary-light);
+        background: rgba(255,255,255,0.02);
+        border-top: 2px solid var(--accent-primary-light);
+    }
+
+    .nav-badge {
+        position: absolute;
+        top: 6px;
+        right: calc(50% - 30px);
+        background: var(--border);
+        color: white;
+        font-size: 0.65rem;
+        font-weight: bold;
+        padding: 2px 6px;
+        border-radius: 12px;
+        min-width: 18px;
+        text-align: center;
+        transition: background 0.3s;
+    }
+
+    /* View Toggling Logic */
+    body.mobile-view-sidebar .content { display: none !important; }
+    body.mobile-view-main .sidebar { display: none !important; }
+    
+    /* 1. ÚPLNÉ ZRUŠENÍ DESKTOPOVÉHO LAYOUTU */
+    .layout {
+        display: block !important; /* Zruší Flexbox vedle sebe */
+        padding: 0 !important;
+        padding-bottom: 85px !important; /* Místo pro spodní lištu */
+        height: auto !important;
+        min-height: 100dvh;
+    }
+    
+    /* 2. UVOLNĚNÍ SIDEBARU (Můj výběr) */
+    .sidebar {
+        position: relative !important; /* Zruší Desktop Sticky */
+        width: 100% !important;
+        height: auto !important;
+        max-height: none !important;
+        border: none !important;
+        border-radius: 0 !important;
+        margin: 0 !important;
+        padding: 15px !important;
+        overflow: visible !important; /* Přenechá scrollování hlavnímu oknu */
+    }
+
+    /* Zrušení vnitřního scrollování sidebaru */
+    .sidebar-scroll {
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
+    /* 3. UVOLNĚNÍ HLAVNÍHO OBSAHU (Databáze) */
+    .content {
+        display: block !important;
+        width: 100% !important;
+        height: auto !important;
+        max-height: none !important;
+        margin: 0 !important;
+        border: none !important;
+        border-radius: 0 !important;
+        padding: 10px !important;
+        overflow: visible !important;
+    }
+
+    /* 4. POSUNUTÍ TLAČÍTKA NAHORU */
+    .fab-btn {
+        bottom: 85px !important; /* Posun nad spodní lištu */
+        right: 15px !important;
+        z-index: 9990 !important;
+    }
+
+    .sidebar .btn-back { margin-top: 5px; margin-bottom: 15px; }
+}
+
