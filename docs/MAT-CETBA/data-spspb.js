@@ -1,6 +1,6 @@
 // =====================================================================
 // KONFIGURACE PROSTŘEDÍ: SPŠ a VOŠ PŘÍBRAM (VÝCHOZÍ)
-// Vektor: ?theme=sps nebo žádný
+// Vektor: ?theme=spspb nebo žádný
 // =====================================================================
 
 window.OMEGA_CONFIG = {
@@ -73,59 +73,62 @@ window.OMEGA_CONFIG = {
                     box-sizing: border-box;
                     overflow: hidden;
                 }
+            </style>
             
-            <table class="official-table">
-                <colgroup>
-                    <col style="width: 5%;">
-                    <col style="width: 5%;">
-                    <col style="width: 40%;">
-                    <col style="width: 50%;">
-                </colgroup>
-                <tbody>
-                    <tr>
-                        <td colspan="4" class="title-cell">
-                            <table class="header-layout">
-                                <tr>
-                                    <td class="header-logo-col"><img src="spspb-logo-2000px.png" class="print-logo" alt="Znak SPŠ"></td>
-                                    <td class="header-text-col">
-                                        Střední průmyslová škola a Vyšší odborná škola Příbram II,Hrabákova 271<br>
-                                        Seznam literárních děl: <strong>MATURITNÍ ZKOUŠKA Z ČJL - ústní část</strong>
-                                    </td>
-                                    <td class="header-spacer-col"></td>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>
-                    <tr><td colspan="3" class="info-label">jméno a příjmení:</td><td class="info-value">${sanitize(student.name)}</td></tr>
-                    <tr><td colspan="3" class="info-label">datum narození:</td><td class="info-value">${sanitize(student.dob)}</td></tr>
-                    <tr><td colspan="3" class="info-label">třída:</td><td class="info-value">${sanitize(student.class)}</td></tr>
-                    <tr><td colspan="3" class="info-label">školní rok:</td><td class="info-value">${sanitize(student.year)}</td></tr>
+            <div class="print-page">
+                <table class="official-table">
+                    <colgroup>
+                        <col style="width: 5%;">
+                        <col style="width: 5%;">
+                        <col style="width: 40%;">
+                        <col style="width: 50%;">
+                    </colgroup>
+                    <tbody>
+                        <tr>
+                            <td colspan="4" class="title-cell">
+                                <table class="header-layout">
+                                    <tr>
+                                        <td class="header-logo-col"><img src="spspb-logo-2000px.png" class="print-logo" alt="Znak SPŠ"></td>
+                                        <td class="header-text-col">
+                                            Střední průmyslová škola a Vyšší odborná škola Příbram II,Hrabákova 271<br>
+                                            Seznam literárních děl: <strong>MATURITNÍ ZKOUŠKA Z ČJL - ústní část</strong>
+                                        </td>
+                                        <td class="header-spacer-col"></td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr><td colspan="3" class="info-label">jméno a příjmení:</td><td class="info-value">${sanitize(student.name)}</td></tr>
+                        <tr><td colspan="3" class="info-label">datum narození:</td><td class="info-value">${sanitize(student.dob)}</td></tr>
+                        <tr><td colspan="3" class="info-label">třída:</td><td class="info-value">${sanitize(student.class)}</td></tr>
+                        <tr><td colspan="3" class="info-label">školní rok:</td><td class="info-value">${sanitize(student.year)}</td></tr>
 
-                    <tr class="col-headers">
-                        <td class="col-c">č.</td><td class="col-cs">č.s.</td><td class="col-autor">autor:</td><td class="col-nazev">název díla:</td>
-                    </tr>
+                        <tr class="col-headers">
+                            <td class="col-c">č.</td><td class="col-cs">č.s.</td><td class="col-autor">autor:</td><td class="col-nazev">název díla:</td>
+                        </tr>
 
-                    <tr class="subheader"><td colspan="4">Světová a česká literatura do konce 18.století</td></tr>
-                    ${renderRows(buckets.do18)}
+                        <tr class="subheader"><td colspan="4">Světová a česká literatura do konce 18.století</td></tr>
+                        ${renderRows(buckets.do18)}
 
-                    <tr class="subheader"><td colspan="4">Světová a česká literatura 19.století</td></tr>
-                    ${renderRows(buckets['19'])}
+                        <tr class="subheader"><td colspan="4">Světová a česká literatura 19.století</td></tr>
+                        ${renderRows(buckets['19'])}
 
-                    <tr class="subheader"><td colspan="4">Světová literatura 20. a 21. století</td></tr>
-                    ${renderRows(buckets.svet20)}
+                        <tr class="subheader"><td colspan="4">Světová literatura 20. a 21. století</td></tr>
+                        ${renderRows(buckets.svet20)}
 
-                    <tr class="subheader"><td colspan="4">Česká literatura 20. a 21. století</td></tr>
-                    ${renderRows(buckets.cz20)}
+                        <tr class="subheader"><td colspan="4">Česká literatura 20. a 21. století</td></tr>
+                        ${renderRows(buckets.cz20)}
 
-                    <tr class="subheader"><td colspan="4">Další četba</td></tr>
-                    ${renderRows(buckets.dalsi)}
+                        <tr class="subheader"><td colspan="4">Další četba</td></tr>
+                        ${renderRows(buckets.dalsi)}
 
-                    <tr>
-                        <td colspan="3" class="footer-cell">podpis:</td>
-                        <td class="footer-cell">zkontroloval:</td>
-                    </tr>
-                </tbody>
-            </table>
+                        <tr>
+                            <td colspan="3" class="footer-cell">podpis:</td>
+                            <td class="footer-cell">zkontroloval:</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         `;
     },
 
