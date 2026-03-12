@@ -47,7 +47,17 @@ window.OMEGA_CONFIG = {
                 @page { size: A4 portrait; margin: 0 !important; }
                 
                 @media print {
-                    body, html { margin: 0 !important; padding: 0 !important; background: white !important; }
+                    /* 1. NUKLEÁRNÍ LIKVIDACE UŽIVATELSKÉHO ROZHRANÍ */
+                    body > * { display: none !important; }
+                    body > #print-area { display: block !important; }
+
+                    /* 2. VYČIŠTĚNÍ PLÁTNA PRO TISK */
+                    body, html { 
+                        margin: 0 !important; 
+                        padding: 0 !important; 
+                        background: white !important; 
+                        height: auto !important; 
+                    }
                     * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
                 }
 
