@@ -16,7 +16,8 @@ function sanitize(str) {
 }
 
 const MAPA_OBDOBI = { "do18": "Do konce 18. st.", "19": "19. století", "cz20": "ČR 20. a 21. st.", "svet20": "Svět 20. a 21. st." };
-const STORAGE_KEY = 'kanon_selekce_state';
+const activeInstitution = localStorage.getItem('omega_theme') || 'spspb';
+const STORAGE_KEY = `kanon_selekce_state_${activeInstitution}`;
 const KNIHY_DB = window.OMEGA_CONFIG.KNIHY_DB;
 const REQUIREMENTS = window.OMEGA_CONFIG.REQUIREMENTS;
 
