@@ -48,6 +48,44 @@ window.OMEGA_CONFIG = {
         };
 
         return `
+            <style>
+                @page { size: A4 portrait; margin: 0 !important; }
+                
+                @media print {
+                    /* 1. NUKLEÁRNÍ LIKVIDACE UŽIVATELSKÉHO ROZHRANÍ */
+                    body > * { display: none !important; }
+                    body > #print-area { display: block !important; }
+
+                    /* 2. OPRAVA ANDROID VIEWPORT BUGU (Násilné roztažení plátna) */
+                    html, body { 
+                        width: 210mm !important;
+                        min-width: 210mm !important; /* Zabrání smrsknutí na šířku mobilu */
+                        max-width: 210mm !important;
+                        margin: 0 !important; 
+                        padding: 0 !important; 
+                        background: white !important; 
+                    }
+                    
+                    * { 
+                        -webkit-print-color-adjust: exact !important; 
+                        print-color-adjust: exact !important; 
+                    }
+                }
+
+                .print-page {
+                    width: 210mm !important;
+                    min-width: 210mm !important;
+                    height: 297mm;
+                    padding: 15mm 20mm;
+                    background: white !important;
+                    color: black !important;
+                    font-family: 'Times New Roman', Times, serif !important;
+                    position: relative;
+                    box-sizing: border-box;
+                    overflow: hidden;
+                    margin: 0 auto;
+                }
+            
             <table class="official-table">
                 <colgroup>
                     <col style="width: 5%;">
