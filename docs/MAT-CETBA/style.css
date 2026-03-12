@@ -13,7 +13,14 @@
     --focus-ring: 0 0 0 2px var(--bg-base), 0 0 0 4px var(--accent-rust-light);
     --radius: 6px;
 }
-
+/* ==========================================
+   KINEMATIKA (Plynulý přechod motivů - Zpomaleno)
+   ========================================== */
+body, .sidebar, .content, .table-container, #search-box, .accordion, .stat-box, th, td, .styled-input {
+    transition: background-color 0.6s ease-in-out, 
+                color 0.6s ease-in-out, 
+                border-color 0.6s ease-in-out;
+}
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg-base); color: var(--text-main); height: 100vh; overflow: hidden; }
 
@@ -229,6 +236,9 @@ tr.selected td:nth-child(2) { color: var(--accent-green); font-weight: bold; }
 
 /* Zobrazí se jen na displejích menších než 1100px (tablety a mobily) */
 @media screen and (max-width: 1100px) {
+
+    body { overflow-y: auto !important; height: auto !important; }
+
     .mobile-nav {
         display: flex;
         position: fixed;
@@ -335,6 +345,7 @@ tr.selected td:nth-child(2) { color: var(--accent-green); font-weight: bold; }
     }
 
     .sidebar .btn-back { margin-top: 5px; margin-bottom: 15px; }
+    .top-bar { margin-bottom: 15px !important; }
 }
 
 /* =========================================
@@ -363,3 +374,213 @@ tr.selected td:nth-child(2) { color: var(--accent-green); font-weight: bold; }
         padding: 0 !important;
     }
 }
+
+/* ==========================================
+   LIGHT MODE: RUST DEFAULT (Kinematický & Kontrastní)
+   ========================================== */
+:root[data-theme="light"] {
+    /* 1. KONTRASTNÍ PLÁTNO */
+    --bg-base: #e2e8f0;       /* Tmavší šedá (Slate 200) pro hloubku */
+    --bg-surface: #ffffff;    /* Bílé karty */
+    --bg-surface-hover: #fff7ed; /* Jemný nádech oranžové při hoveru */
+    --bg-active: rgba(230, 81, 0, 0.08); 
+    
+    --text-main: #0f172a;     /* Téměř černá */
+    --text-muted: #475569;    
+    
+    --accent-rust: #e65100;   /* Tvrdá oranžová jako strukturální kotva */
+    --accent-rust-light: #ff7b00;
+    
+    --accent-green: #15803d;  /* Tmavší zelená pro čitelnost na bílé */
+    --accent-red: #dc2626;
+    
+    --border: #cbd5e1;        
+    --focus-ring: 0 0 0 2px var(--bg-surface), 0 0 0 4px rgba(230, 81, 0, 0.4);
+}
+
+/* 2. STRUKTURÁLNÍ ODDĚLENÍ (Cards on Canvas) */
+:root[data-theme="light"] .sidebar {
+    box-shadow: 2px 0 15px rgba(0,0,0,0.08);
+    border-right: none;
+}
+:root[data-theme="light"] .table-container {
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    border: none;
+}
+
+/* 3. VSTUPY A VYHLEDÁVÁNÍ */
+:root[data-theme="light"] #search-box,
+:root[data-theme="light"] .styled-input {
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.03);
+    color: var(--text-main);
+}
+:root[data-theme="light"] #search-box:focus,
+:root[data-theme="light"] .styled-input:focus {
+    background: #ffffff;
+    border-color: var(--accent-rust);
+    box-shadow: var(--focus-ring);
+}
+
+/* 4. SIDEBAR - RUST ANCHORS */
+:root[data-theme="light"] .section-header {
+    color: var(--accent-rust);
+    font-weight: 800;
+    border-bottom: 2px solid rgba(230, 81, 0, 0.2);
+}
+
+:root[data-theme="light"] .accordion {
+    border: 1px solid rgba(230, 81, 0, 0.3);
+}
+:root[data-theme="light"] .accordion-summary {
+    background: #fff7ed;
+    color: var(--accent-rust);
+    font-weight: 700;
+}
+
+:root[data-theme="light"] .stat-box {
+    background: #fff7ed;
+    border: 2px solid var(--accent-rust);
+    color: var(--accent-rust);
+}
+
+/* Filtry - Vysoký kontrast */
+:root[data-theme="light"] .filter-btn {
+    background: #ffffff;
+    border: 1px solid rgba(230, 81, 0, 0.3);
+    color: var(--text-main);
+    font-weight: 600;
+}
+:root[data-theme="light"] .filter-btn:hover {
+    background: #fff7ed;
+    border-color: var(--accent-rust);
+}
+:root[data-theme="light"] .filter-btn.active {
+    background: var(--accent-rust);
+    color: #ffffff;
+    border-color: var(--accent-rust);
+}
+
+/* 🎯 Badges - Oranžové pilulky */
+:root[data-theme="light"] .badge.ok {
+    background: var(--accent-rust);
+    color: #ffffff;
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+
+/* 5. TLAČÍTKA */
+:root[data-theme="light"] .success-btn {
+    background: var(--accent-rust);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(230, 81, 0, 0.3);
+}
+:root[data-theme="light"] .success-btn:hover:not(:disabled) {
+    background: #bf4300;
+}
+:root[data-theme="light"] .share-btn {
+    background: #fff7ed;
+    color: var(--accent-rust);
+    border: 1px solid var(--accent-rust);
+    font-weight: 700;
+}
+
+/* ==========================================
+   THEME SWITCHER (Pill Toggle)
+   ========================================== */
+.theme-switch {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    outline: none;
+    flex-shrink: 0;
+}
+.theme-switch-track {
+    width: 64px;
+    height: 32px;
+    background: #1a1a1a; /* Dark mode default */
+    border: 1px solid var(--border);
+    border-radius: 30px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 6px;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+    transition: background-color 0.4s;
+}
+.theme-switch .icon {
+    font-size: 13px;
+    z-index: 1;
+    user-select: none;
+    opacity: 0.6;
+    transition: opacity 0.3s;
+}
+.theme-switch-thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 26px;
+    height: 26px;
+    background: #333;
+    border-radius: 50%;
+    /* Pružinová rovnice pro přirozený pohyb */
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.4s;
+    z-index: 0;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+/* Dynamika pohybu na základě stavu :root */
+:root[data-theme="dark"] .theme-switch-thumb {
+    transform: translateX(32px); /* Přesun na měsíc */
+    background: var(--border);
+}
+:root[data-theme="dark"] .icon.moon { opacity: 1; }
+
+:root[data-theme="light"] .theme-switch-track {
+    background: #cbd5e1;
+}
+:root[data-theme="light"] .theme-switch-thumb {
+    transform: translateX(0); /* Přesun na slunce */
+    background: #ffffff;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+}
+:root[data-theme="light"] .icon.sun { opacity: 1; }
+
+/* 6. TABULKA - RUST HEADER & ZEBRA */
+:root[data-theme="light"] th {
+    background: var(--accent-rust);
+    color: #ffffff;
+    font-weight: 700;
+}
+:root[data-theme="light"] #data-table tbody tr:nth-child(even) {
+    background-color: #f8fafc;
+}
+:root[data-theme="light"] #data-table tbody tr:hover {
+    background-color: #fff7ed;
+}
+:root[data-theme="light"] #data-table tbody tr.selected {
+    background-color: var(--bg-active);
+    box-shadow: inset 4px 0 0 var(--accent-rust);
+}
+
+/* 🛡️ OPTICKÁ IZOLACE QR KÓDU */
+:root[data-theme="light"] .modal-content {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+:root[data-theme="light"] .qr-container {
+    background: #ffffff !important;
+    padding: 20px !important;
+    border: 5px solid var(--accent-rust) !important; /* Tvrdá Rust hrana */
+    border-radius: 12px !important;
+    box-shadow: 0 4px 10px rgba(230, 81, 0, 0.1) !important;
+    margin: 1.5rem auto !important;
+}
+
+/* Fix flexboxu pro Top Bar */
+.top-bar { display: flex; gap: 10px; align-items: center; }
