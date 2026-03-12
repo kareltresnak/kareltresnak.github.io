@@ -581,6 +581,17 @@ tr.selected td:nth-child(2) { color: var(--accent-green); font-weight: bold; }
     box-shadow: 0 4px 10px rgba(230, 81, 0, 0.1) !important;
     margin: 1.5rem auto !important;
 }
+/* 🛡️ OPRAVA VIDITELNOSTI VERZE V LIGHT MODE */
+:root[data-theme="light"] .app-version {
+    opacity: 1 !important; /* Zrušení průhlednosti pro bílé pozadí */
+    color: var(--text-muted) !important;
+    font-weight: 700; /* Jemné ztluštění pro lepší čitelnost v malém fontu */
+}
+
+:root[data-theme="light"] .brand {
+    color: var(--text-main); /* Zajištění, že hlavní nápis není v Light Mode vybledlý */
+}
+
 
 /* Fix flexboxu pro Top Bar */
 .top-bar { display: flex; gap: 10px; align-items: center; }
