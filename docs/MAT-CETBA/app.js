@@ -16,10 +16,59 @@ function sanitize(str) {
 }
 
 const MAPA_OBDOBI = { "do18": "Do konce 18. st.", "19": "19. století", "cz20": "ČR 20. a 21. st.", "svet20": "Svět 20. a 21. st." };
-const activeInstitution = localStorage.getItem('omega_theme') || 'spspb';
-const STORAGE_KEY = `kanon_selekce_state_${activeInstitution}`;
+const STORAGE_KEY = 'kanon_selekce_state'; // Opět jen jeden pevný klíč
 const KNIHY_DB = window.OMEGA_CONFIG.KNIHY_DB;
 const REQUIREMENTS = window.OMEGA_CONFIG.REQUIREMENTS;
+// ==========================================
+// INSTITUCIONÁLNÍ BRANDING A THEME ENGINE
+// ==========================================
+
+// 1. Dynamická injekce loga (Pouze pro SPŠPB režim)
+const currentRozcestnik = localStorage.getItem('omega_theme') || 'default';
+if (currentRozcestnik === 'spspb') {
+    const brandEl = document.querySelector('.brand');
+    if (brandEl && !document.getElementById('brand-logo')) {
+        // Vložení loga před text nadpisu s optickým zarovnáním
+        brandEl.innerHTML = `<img id="brand-logo" src="spspb-logo-2000px.png" alt="SPŠ Logo" style="height: 1.1em; vertical-align: text-bottom; margin-right: 8px; border-radius: 2px;">` + brandEl.innerHTML;
+    }
+}
+
+// 2. State Machine pro Dark/Light Mode
+const themeToggleBtn = document.getElementById('theme-toggle');
+const themeIcon = document.getElementById('theme-icon');
+
+function applyColorTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('omega_color_theme', theme);
+}
+
+// Inicializace při startu: 1. LocalStorage -> 2. OS Preference -> 3. Dark default
+const savedColorTheme = localStorage.getItem('omega_color_theme');
+const systemPrefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+const initialTheme = savedColorTheme || (systemPrefersLight ? 'light' : 'dark');
+applyColorTheme(initialTheme);
+
+// Event Listener na tlačítko
+if (themeToggleBtn) {
+    themeToggleBtn.addEventListener('click', () => {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        applyColorTheme(currentTheme === 'light' ? 'dark' : 'light');
+    });
+}
+// ==========================================
+
+// ======= KRYPTOGRAFICKÝ CHECKSUM DATABÁZE (TOTO PŘIDEJ) =======
+function generateDbHash(db) {
+    const str = db.map(k => k.id + k.dilo).join('|');
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        hash = ((hash << 5) - hash) + str.charCodeAt(i);
+        hash |= 0; 
+    }
+    return hash.toString(36); // Generuje např. "1j4k2a"
+}
+const DB_VERSION = generateDbHash(KNIHY_DB);
+// ==============================================================
 
 // Dynamická injekce formuláře a navázání event listenerů
 document.getElementById('dynamic-form-container').innerHTML = window.OMEGA_CONFIG.FORM_HTML;
@@ -76,7 +125,7 @@ window.generateShareLink = function() {
     const ids = Array.from(state.selectedIds).sort((a, b) => a - b).join('-');
     const currentTheme = localStorage.getItem('omega_theme') || 'default';
     const baseUrl = window.location.origin + window.location.pathname;
-    currentShareUrl = `${baseUrl}?theme=${currentTheme}&p=${ids}`;
+    currentShareUrl = `${baseUrl}?theme=${currentTheme}&v=${DB_VERSION}&p=${ids}`;
 
     document.getElementById("share-modal").style.display = "flex";
 
@@ -140,28 +189,26 @@ window.downloadQR = function() {
 function loadStateFromURL() {
     const params = new URLSearchParams(window.location.search);
     const payload = params.get('p');
-    const urlTheme = params.get('theme');
     const currentTheme = localStorage.getItem('omega_theme') || 'default';
+    const incomingVersion = params.get('v');
     
     if (!payload) return;
-
-    // 🛡️ ANTI-KONTAMINAČNÍ ŠTÍT: Tvrdý blok křížového importu
-    if (urlTheme && currentTheme !== 'default' && urlTheme !== currentTheme) {
-        // Vyčistíme URL, udržíme domovské téma a odpálíme varování
-        window.history.replaceState({}, document.title, window.location.pathname + "?theme=" + currentTheme);
-        document.getElementById('collision-modal').style.display = 'flex';
-        return; // ABSOLUTNÍ UKONČENÍ IMPORTU
-    }
 
     const ids = payload.split('-').map(Number);
     const validIds = ids.filter(id => KNIHY_DB.some(k => k.id === id));
     
     if (validIds.length === 0) return;
 
-    // Odstranění URL parametru, ať se necyklí po F5
+    // Odstranění payload parametru z URL (ponechá pouze aktivní téma)
     window.history.replaceState({}, document.title, window.location.pathname + "?theme=" + currentTheme);
 
-    // Krok 1: Výpočet nových děl (kolik z odkazu ještě nemám)
+    // 🛡️ HARD BLOCK: Kontrola kompatibility odkazů
+    if (incomingVersion !== DB_VERSION) {
+        document.getElementById('outdated-modal').style.display = 'flex';
+        return; // Zastaví celý import
+    }
+
+    // Krok 1: Výpočet nových děl
     const newBooksCount = validIds.filter(id => !state.selectedIds.has(id)).length;
     
     if (newBooksCount === 0 && state.selectedIds.size === validIds.length) {
@@ -267,22 +314,32 @@ window.closePreviewModal = function() {
 // ======= LOCAL STORAGE: SERIALIZACE A DESERIALIZACE =======
 function saveState() {
     const stateToSave = {
+        v: DB_VERSION, // 🛡️ Uložení otisku aktuálních osnov
         selectedIds: Array.from(state.selectedIds),
         filters: state.filters,
         student: state.student
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
 }
-
 function loadState() {
     const savedData = localStorage.getItem(STORAGE_KEY);
     if (savedData) {
         try {
             const parsed = JSON.parse(savedData);
-            if (Array.isArray(parsed.selectedIds)) {
-                const safeIds = parsed.selectedIds.map(Number).slice(0, 20);
-                state.selectedIds = new Set(safeIds);
+            
+            // 🛡️ OCHRANA INTEGRITY PAMĚTI
+            if (parsed.v && parsed.v !== DB_VERSION) {
+                console.warn("Detekována mutace osnov (Hash Mismatch). Paměť vymazána.");
+                localStorage.removeItem(STORAGE_KEY);
+                setTimeout(() => showToast("⚠️ Maturitní seznam byl školou aktualizován. Váš výběr byl z bezpečnostních důvodů resetován."), 1000);
+                return; // Tvrdé ukončení načítání mrtvých dat
             }
+
+            if (Array.isArray(parsed.selectedIds)) {
+                // Převod pole zpět na Set a vynucení číselného typu (ID jsou Int)
+                state.selectedIds = new Set(parsed.selectedIds.map(Number));
+            }
+            
             if (parsed.filters) state.filters = parsed.filters;
             if (parsed.student) {
                 state.student = parsed.student;
