@@ -1,4 +1,4 @@
-const CACHE_NAME = 'SPS_Selekce_MAT_CETBY_v5.1.4'; 
+const CACHE_NAME = 'SPS_Selekce_MAT_CETBY_v5.1.5'; 
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
@@ -11,6 +11,7 @@ const ASSETS_TO_CACHE = [
     './spspb-logo-2000px.png',
     './gympb-logo.png',
     './manifest.json',
+    './manifest-gympb.json',
     // Musíme nacachovat externí knihovnu pro QR kódy, abychom neztratili offline-first status
     'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js'
 ];
