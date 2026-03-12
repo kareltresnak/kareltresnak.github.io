@@ -142,6 +142,14 @@ function loadStateFromURL() {
     
     if (!payload) return;
 
+    // 🛡️ ANTI-KONTAMINAČNÍ ŠTÍT: Zákaz importu z jiné školy
+    if (urlTheme && currentTheme !== 'default' && urlTheme !== currentTheme) {
+        // Vyčistíme URL, aby se uživatel nezasekl ve smyčce, a odpálíme upozornění
+        window.history.replaceState({}, document.title, window.location.pathname);
+        document.getElementById('collision-modal').style.display = 'flex';
+        return; // Tvrdé ukončení importu
+    }
+
     const ids = payload.split('-').map(Number);
     const validIds = ids.filter(id => KNIHY_DB.some(k => k.id === id));
     
@@ -401,7 +409,20 @@ function updateStatsAndSidebar() {
     } else {
         box.style.borderColor = "var(--border)";
     }
-
+    const navBadge = document.getElementById('nav-badge-count');
+    if (navBadge) {
+        navBadge.textContent = total;
+        if (isFullyValid) {
+            navBadge.style.backgroundColor = "var(--accent-green)";
+            navBadge.style.color = "#000";
+        } else if (total === 20) {
+            navBadge.style.backgroundColor = "var(--accent-red)";
+            navBadge.style.color = "#fff";
+        } else {
+            navBadge.style.backgroundColor = "var(--border)";
+            navBadge.style.color = "#fff";
+        }
+    }
     if (isFullyValid) {
         elements.btnExport.removeAttribute('disabled');
     } else {
@@ -677,6 +698,31 @@ if ('caches' in window) {
         }
     }).catch(err => console.error("Nelze načíst verzi z Cache API:", err));
 }
+
+// ======= MOBILE NAVIGATION ENGINE =======
+const mobileTabs = document.querySelectorAll('.nav-tab');
+
+mobileTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+        const target = tab.dataset.target;
+        
+        // 1. Změna aktivního tlačítka
+        mobileTabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+
+        // 2. Přepnutí View (výměna CSS třídy na body)
+        if (target === 'sidebar') {
+            document.body.classList.remove('mobile-view-main');
+            document.body.classList.add('mobile-view-sidebar');
+        } else {
+            document.body.classList.remove('mobile-view-sidebar');
+            document.body.classList.add('mobile-view-main');
+        }
+        
+        // 3. Posun nahoru při přepnutí
+        window.scrollTo({ top: 0, behavior: 'instant' });
+    });
+});
 
 window.onload = () => {
     loadState(); 
