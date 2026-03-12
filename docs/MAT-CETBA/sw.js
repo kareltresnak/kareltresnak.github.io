@@ -1,4 +1,4 @@
-const CACHE_NAME = 'SPS_Selekce_MAT_CETBY_v5.1.7'; 
+const CACHE_NAME = 'SPS_Selekce_MAT_CETBY_v5.1.8'; 
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
@@ -47,7 +47,8 @@ self.addEventListener('activate', (event) => {
 // Fáze 3: Intercepce sítě (Stale-while-revalidate strategie)
 self.addEventListener('fetch', (event) => {
     event.respondWith(
-        caches.match(event.request)
+        // MAGIE ZDE: ignoreSearch zajistí, že /?theme=gympb i /?theme=spspb načtou offline index.html
+        caches.match(event.request, { ignoreSearch: true }) 
             .then((cachedResponse) => {
                 if (cachedResponse) {
                     return cachedResponse;
