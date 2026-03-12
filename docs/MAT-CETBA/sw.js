@@ -1,19 +1,14 @@
-const CACHE_NAME = 'SPS_Selekce_MAT_CETBY_v5.1.10'; 
+const CACHE_NAME = 'SPS_Selekce_MAT_CETBY_v6.0.0';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
     './style.css',
     './style-spspb.css',
-    './style-gympb.css',
     './data-spspb.js',
-    './data-gympb.js',
     './app.js',
     './spspb-logo-2000px.png',
-    './gympb-logo.png',
-    './gympb-icon-192.png',
     './manifest.json',
-    './manifest-gympb.json',
-    // Musíme nacachovat externí knihovnu pro QR kódy, abychom neztratili offline-first status
+    // Nativní offline generátor QR kódů
     'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js'
 ];
 
@@ -22,7 +17,7 @@ self.addEventListener('install', (event) => {
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then((cache) => {
-                console.log('[Service Worker] Přednačítání offline dat');
+                console.log('[Service Worker] Přednačítání offline dat (Monolit)');
                 return cache.addAll(ASSETS_TO_CACHE);
             })
             .then(() => self.skipWaiting())
@@ -48,7 +43,7 @@ self.addEventListener('activate', (event) => {
 // Fáze 3: Intercepce sítě (Stale-while-revalidate strategie)
 self.addEventListener('fetch', (event) => {
     event.respondWith(
-        // MAGIE ZDE: ignoreSearch zajistí, že /?theme=gympb i /?theme=spspb načtou offline index.html
+        // ignoreSearch zajistí, že i odkaz s ?theme=spspb nebo ?p=... vždy načte offline index.html
         caches.match(event.request, { ignoreSearch: true }) 
             .then((cachedResponse) => {
                 if (cachedResponse) {
