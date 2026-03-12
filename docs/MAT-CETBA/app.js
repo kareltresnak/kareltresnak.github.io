@@ -75,7 +75,7 @@ window.generateShareLink = function() {
     const ids = Array.from(state.selectedIds).sort((a, b) => a - b).join('-');
     const currentTheme = localStorage.getItem('omega_theme') || 'default';
     const baseUrl = window.location.origin + window.location.pathname;
-    currentShareUrl = `${baseUrl}?theme=${currentTheme}&?p=${ids}`;
+    currentShareUrl = `${baseUrl}?theme=${currentTheme}&p=${ids}`;
 
     document.getElementById("share-modal").style.display = "flex";
 
@@ -139,7 +139,9 @@ window.downloadQR = function() {
 function loadStateFromURL() {
     const params = new URLSearchParams(window.location.search);
     const payload = params.get('p');
-    
+    // TOTO ZDE CHYBĚLO:
+    const urlTheme = params.get('theme');
+    const currentTheme = localStorage.getItem('omega_theme') || 'default';
     if (!payload) return;
 
     // 🛡️ ANTI-KONTAMINAČNÍ ŠTÍT: Zákaz importu z jiné školy
@@ -626,7 +628,7 @@ document.getElementById("btn-clear-all").addEventListener('click', () => {
     showToast("☢️ Kompletní paměť byla vymazána.");
 });
 
-// ======= GENERÁTOR DOKUMENTŮ (SYNCHRONNÍ) =======
+// ======= GENERÁTOR DOKUMENTŮ =======
 elements.btnExport.addEventListener('click', () => {
     if (elements.btnExport.disabled) return;
 
@@ -636,14 +638,13 @@ elements.btnExport.addEventListener('click', () => {
 
     const printArea = document.getElementById('print-area');
     
-    // 1. Okamžitá injekce HTML
+    // 1. Injekce HTML
     printArea.innerHTML = window.OMEGA_CONFIG.renderPdf(selectedBooks, state.student, sanitize);
     
-    // 2. Vynucení okamžitého překreslení DOMu (Reflow) - klíčové pro mobil
-    void printArea.offsetHeight;
-    
-    // 3. Okamžitý tisk v témže vlákně (Prohlížeč to nezablokuje)
-    window.print();
+    // 2. Krátký yield pro vykreslení stylů (funguje na iOS i Androidu)
+    setTimeout(() => {
+        window.print();
+    }, 150);
 });
 
 let deferredPrompt;
