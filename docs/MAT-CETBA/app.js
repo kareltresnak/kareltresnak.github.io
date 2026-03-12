@@ -145,14 +145,6 @@ function loadStateFromURL() {
     const currentTheme = localStorage.getItem('omega_theme') || 'default';
     if (!payload) return;
 
-    // 🛡️ ANTI-KONTAMINAČNÍ ŠTÍT: Zákaz importu z jiné školy
-    if (urlTheme && currentTheme !== 'default' && urlTheme !== currentTheme) {
-        // Vyčistíme URL, aby se uživatel nezasekl ve smyčce, a odpálíme upozornění
-        window.history.replaceState({}, document.title, window.location.pathname);
-        document.getElementById('collision-modal').style.display = 'flex';
-        return; // Tvrdé ukončení importu
-    }
-
     const ids = payload.split('-').map(Number);
     const validIds = ids.filter(id => KNIHY_DB.some(k => k.id === id));
     
