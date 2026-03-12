@@ -626,7 +626,7 @@ document.getElementById("btn-clear-all").addEventListener('click', () => {
     showToast("☢️ Kompletní paměť byla vymazána.");
 });
 
-// ======= GENERÁTOR DOKUMENTŮ (MODERNÍ ASYNC ENGINE) =======
+// ======= GENERÁTOR DOKUMENTŮ =======
 elements.btnExport.addEventListener('click', () => {
     if (elements.btnExport.disabled) return;
 
@@ -636,13 +636,15 @@ elements.btnExport.addEventListener('click', () => {
 
     const printArea = document.getElementById('print-area');
     
-    // Generování HTML obsahu z renderPdf
+    // 1. Injekce HTML do DOMu
     printArea.innerHTML = window.OMEGA_CONFIG.renderPdf(selectedBooks, state.student, sanitize);
     
-    // Krátká pauza pro vykreslení obrázků a následný tisk
-    setTimeout(() => {
-        window.print();
-    }, 500);
+    // 2. Extrémně rychlé vyvolání tisku (záchrana kontextu uživatelského kliknutí)
+    requestAnimationFrame(() => {
+        setTimeout(() => {
+            window.print();
+        }, 50); // 50 ms je dost na vykreslení, ale dost málo na to, aby to mobil nezablokoval
+    });
 });
 
 let deferredPrompt;
