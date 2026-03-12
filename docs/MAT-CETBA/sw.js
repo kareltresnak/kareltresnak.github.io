@@ -1,4 +1,4 @@
-const CACHE_NAME = 'SPS_Selekce_MAT_CETBY_v5.1.8'; 
+const CACHE_NAME = 'SPS_Selekce_MAT_CETBY_v5.1.9'; 
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
@@ -10,6 +10,7 @@ const ASSETS_TO_CACHE = [
     './app.js',
     './spspb-logo-2000px.png',
     './gympb-logo.png',
+    './gympb-icon-192.png',
     './manifest.json',
     './manifest-gympb.json',
     // Musíme nacachovat externí knihovnu pro QR kódy, abychom neztratili offline-first status
