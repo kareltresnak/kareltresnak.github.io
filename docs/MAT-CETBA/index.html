@@ -15,37 +15,45 @@
         (function() {
             const params = new URLSearchParams(window.location.search);
             const urlTheme = params.get('theme');
-            const hasPayload = params.has('p'); // Detekce sdíleného seznamu
+            const hasPayload = params.has('p'); 
+            
+            // 1. Zjistíme stav (Pokud není nic uloženo ani v URL, je to 'default')
             let activeTheme = localStorage.getItem('omega_theme') || 'default';
             
             if (urlTheme) {
-                // 🛡️ OCHRANA PROTI KONTAMINACI: 
-                // Pokud uživatel otevírá cizí seznam (má 'p') a už má nastavenou SVOU školu, 
-                // NEDOVOLÍME přepsání tématu. Zabráníme tak zničení jeho lokálních dat.
+                // 🛡️ OCHRANA PROTI KONTAMINACI
                 if (hasPayload && activeTheme !== 'default' && activeTheme !== urlTheme) {
                     console.warn("Cross-School link detected. Preventing local DB corruption.");
                 } else {
-                    // Normální příchod z rozcestníku -> povolit změnu
                     activeTheme = urlTheme;
                     localStorage.setItem('omega_theme', activeTheme);
                 }
             }
 
-            let cssFile = 'style.css'; 
-            let dataFile = 'data-spspb.js'; 
-            let manifestFile = 'manifest.json';
-            let iconFile = 'spspb-logo-2000px.png';
+            // ==========================================
+            // TŘÍVRSTVÝ INJEKČNÍ SYSTÉM
+            // ==========================================
             
+            // A) VÝCHOZÍ STAV (Neutrální oranžové barvy rozcestníku)
+            let cssFile = 'style.css'; 
+            let dataFile = 'data-spspb.js'; // Načte defaultní data, ale vizuál bude neutrální
+            let manifestFile = 'manifest.json'; 
+            let iconFile = 'spspb-logo-2000px.png'; 
+            
+            // B) SPŠ PŘÍBRAM (Zelená)
             if (activeTheme === 'spspb') {
                 cssFile = 'style-spspb.css'; 
                 dataFile = 'data-spspb.js'; 
-            } else if (activeTheme === 'gympb') {
+            } 
+            // C) GYMNÁZIUM PŘÍBRAM (Zlatá)
+            else if (activeTheme === 'gympb') {
                 cssFile = 'style-gympb.css'; 
                 dataFile = 'data-gympb.js';
-                manifestFile = 'manifest-gympb.json';
-                iconFile = 'gympb-logo.png';
+                manifestFile = 'manifest-gympb.json'; 
+                iconFile = 'gympb-icon-192.png';
             }
 
+            // Injekce do hlavičky
             document.write('<link rel="manifest" href="' + manifestFile + '">');
             document.write('<link rel="icon" type="image/png" href="' + iconFile + '">');
             document.write('<link rel="apple-touch-icon" href="' + iconFile + '">');
