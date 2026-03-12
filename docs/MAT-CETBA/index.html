@@ -15,42 +15,25 @@
         (function() {
             const params = new URLSearchParams(window.location.search);
             const urlTheme = params.get('theme');
-            const hasPayload = params.has('p'); 
             
             // 1. Zjistíme stav
             let activeTheme = localStorage.getItem('omega_theme') || 'default';
             
+            // 2. Aplikace tématu z URL
             if (urlTheme) {
-                // 🛡️ OCHRANA PROTI KONTAMINACI: Zákaz změny kabátu při importu
-                if (hasPayload && activeTheme !== 'default' && activeTheme !== urlTheme) {
-                    console.warn("Cross-School link detected. Preventing local DB corruption.");
-                } else {
-                    activeTheme = urlTheme;
-                    localStorage.setItem('omega_theme', activeTheme);
-                }
+                activeTheme = urlTheme;
+                localStorage.setItem('omega_theme', activeTheme);
             }
 
-            // ==========================================
-            // TŘÍVRSTVÝ INJEKČNÍ SYSTÉM
-            // ==========================================
-            
-            // A) VÝCHOZÍ STAV (Neutrální oranžové barvy rozcestníku)
+            // 3. Výchozí stav (Neutrální oranžová)
             let cssFile = 'style.css'; 
-            let dataFile = 'data-spspb.js'; // Načte defaultní data, ale vizuál bude neutrální
+            let dataFile = 'data-spspb.js'; 
             let manifestFile = 'manifest.json'; 
             let iconFile = 'spspb-logo-2000px.png'; 
             
-            // B) SPŠ PŘÍBRAM (Zelená)
+            // 4. SPŠ PŘÍBRAM (Zelená)
             if (activeTheme === 'spspb') {
                 cssFile = 'style-spspb.css'; 
-                dataFile = 'data-spspb.js'; 
-            } 
-            // C) GYMNÁZIUM PŘÍBRAM (Zlatá)
-            else if (activeTheme === 'gympb') {
-                cssFile = 'style-gympb.css'; 
-                dataFile = 'data-gympb.js';
-                manifestFile = 'manifest-gympb.json'; 
-                iconFile = 'gympb-icon-192.png';
             }
 
             // Injekce do hlavičky
@@ -67,6 +50,13 @@
         <main class="content">
             <div class="top-bar">
                 <input type="text" id="search-box" placeholder="Hledat dílo či autora... (Esc pro vyčištění)" autocomplete="off">
+                <button type="button" id="theme-toggle" class="theme-switch" aria-label="Přepnout motiv">
+                    <div class="theme-switch-track">
+                        <span class="icon sun">☀️</span>
+                        <span class="icon moon">🌙</span>
+                        <div class="theme-switch-thumb"></div>
+                    </div>
+                </button>
             </div>
             
             <div class="table-container" id="table-wrapper">
@@ -227,16 +217,16 @@
             <button class="btn" onclick="closeClearModal()" style="width: 100%; margin-top: 10px; background: transparent; border: 1px solid var(--border); color: var(--text-muted); font-size: 0.8rem;">Zrušit akci</button>
         </div>
     </div>
-    <div id="collision-modal" class="modal-overlay" style="display: none;">
+    <div id="outdated-modal" class="modal-overlay" style="display: none;">
         <div class="modal-content" style="max-width: 450px;">
-            <h2 style="margin-bottom: 1rem; color: var(--accent-red); text-transform: uppercase;">⚠️ Nekompatibilní odkaz</h2>
+            <h2 style="margin-bottom: 1rem; color: var(--accent-red); text-transform: uppercase;">⚠️ Zastaralý odkaz</h2>
             <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1rem; line-height: 1.5;">
-                Tento odkaz obsahuje seznam z jiné instituce. Nemůžete importovat knihy mezi SPŠ a Gymnáziem, protože mají odlišné databáze a číslování děl.
+                Tento sdílený seznam byl vytvořen pro jinou verzi maturitního kánonu (škola v mezičase změnila nebo posunula díla).
             </p>
             <div style="background: rgba(218, 33, 40, 0.1); border-left: 3px solid var(--accent-red); padding: 10px; margin-bottom: 1.5rem; font-size: 0.85rem; color: var(--text-main);">
-                <strong>Zásah systému:</strong> Vaše stávající data zůstala v bezpečí a import byl zablokován.
+                <strong>Zásah systému:</strong> Import byl z bezpečnostních důvodů zablokován, aby nedošlo k poškození vašeho vlastního výběru.
             </div>
-            <button class="btn" onclick="document.getElementById('collision-modal').style.display='none'" style="width: 100%; background: var(--bg-surface); border: 1px solid var(--border); color: var(--text-main);">Rozumím</button>
+            <button class="btn" onclick="document.getElementById('outdated-modal').style.display='none'" style="width: 100%; background: var(--bg-surface); border: 1px solid var(--border); color: var(--text-main);">Rozumím</button>
         </div>
     </div>
     <script src="app.js"></script>
