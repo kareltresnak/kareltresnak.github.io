@@ -162,6 +162,9 @@ tr.selected td:nth-child(2) { color: var(--accent-primary-light); font-weight: b
 .mobile-nav { display: none; }
 
 @media screen and (max-width: 1100px) {
+
+    body { overflow-y: auto !important; height: auto !important; }
+    
     .mobile-nav {
         display: flex; position: fixed; bottom: 0; left: 0; right: 0;
         background: var(--bg-surface); border-top: 1px solid var(--border);
