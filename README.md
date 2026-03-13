@@ -5,7 +5,10 @@ Professional portfolio of informatics projects focused on automation, educationa
 ---
 
 ## 📚 Selekce Maturitní Četby
-**Live Demo:** [🏛️ SPŠ a VOŠ Příbram](https://kareltresnak.github.io/MAT-CETBA/?theme=spspb) | [ DEFAULT ](https://kareltresnak.github.io/MAT-CETBA/?theme=default) <br>
+**Live Demos:** 
+* [🏛️ Institutional Edition (SPŠPB)](https://kareltresnak.github.io/MAT-CETBA/?theme=spspb) – Full institutional branding; school logo acts as a persistent UI anchor.
+* [🦀 Rust Edition](https://kareltresnak.github.io/MAT-CETBA/?theme=default) – High-contrast "Rust" aesthetic; branding-on-demand (logo restricted to the export layer). <br>
+
 **Repository:** [📂 Source Code](https://github.com/kareltresnak/kareltresnak.github.io/tree/main/docs/MAT-CETBA)
 
 **Target:** Students of SPŠ a VOŠ Příbram
