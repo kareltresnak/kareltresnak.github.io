@@ -20,7 +20,6 @@ window.OMEGA_CONFIG = {
     RULES_HTML: "",
     FORM_FIELDS: ['name', 'dob', 'class', 'year'],
 
-    // ======= TISKOVÝ MODUL PRO SPŠ PŘÍBRAM (S Buckety) =======
     renderPdf: function(selectedBooks, student, sanitize) {
         const buckets = { do18: [], "19": [], svet20: [], cz20: [], dalsi: [] };
         const limits = { do18: 2, "19": 3, svet20: 4, cz20: 5 };
@@ -52,7 +51,6 @@ window.OMEGA_CONFIG = {
                 @page { size: A4 portrait; margin: 0 !important; }
                 
                 @media print {
-                    /* Likvidace UI */
                     body > * { display: none !important; }
                     body > #print-area { display: block !important; }
                     body, html { margin: 0 !important; padding: 0 !important; background: white !important; }
@@ -60,15 +58,13 @@ window.OMEGA_CONFIG = {
                 }
 
                 .print-page {
-                    /* Absolutní pixelová šířka eliminuje "zmačkaný" Android viewport */
                     width: 800px !important; 
                     min-width: 800px !important;
                     margin: 0 auto;
-                    /* Pixelový ekvivalent okrajů místo milimetrů */
                     padding: 55px 75px; 
                     background: white !important;
                     color: black !important;
-                    font-family: 'Times New Roman', 'Arial', sans-serif !important; /* Pro SPŠ použij Times New Roman */
+                    font-family: 'Times New Roman', 'Arial', sans-serif !important; 
                     position: relative;
                     box-sizing: border-box;
                     overflow: hidden;
@@ -198,6 +194,7 @@ window.OMEGA_CONFIG = {
         { id: 63, dilo: "Pes baskervillský", autor: "Arthur Conan Doyle", druh: "epika", obdobi: "svet20" },
         { id: 64, dilo: "Vražda v Orient-expresu", autor: "Agatha Christie", druh: "epika", obdobi: "svet20" },
         { id: 65, dilo: "Velký Gatsby", autor: "Francis Scott Fitzgerald", druh: "epika", obdobi: "svet20" },
-        { id: 66, dilo: "Pýcha a předsudek", autor: "Jane Austenová", druh: "epika", obdobi: "19" }
+        { id: 66, dilo: "Pýcha a předsudek", autor: "Jane Austenová", druh: "epika", obdobi: "19" },
+        { id: 67, dilo: "Bílá nemoc", autor: "Arnošt Lustig", druh: "epika", obdobi: "do18" }
     ]
 };
