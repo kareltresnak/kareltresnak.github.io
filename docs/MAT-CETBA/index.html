@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#0a0a0a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    
+    <script async defer src="https://cloud.umami.is/script.js" data-website-id="2d09c8e3-6ab3-414e-8e50-57c492a54ca9" data-domains="kareltresnak.github.io"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     
 
@@ -73,6 +73,11 @@
                     <tbody id="table-body">
                         </tbody>
                 </table>
+                <div id="empty-search-state">
+                    <div style="font-size: 2.5rem; margin-bottom: 1rem; opacity: 0.5;">🔍</div>
+                    <h3>Žádné dílo nenalezeno</h3>
+                    <p>Zkuste upravit vyhledávací dotaz nebo zrušit filtry.</p>
+                </div>
             </div>
         </main>
 
@@ -228,6 +233,56 @@
             </div>
             <button class="btn" onclick="document.getElementById('outdated-modal').style.display='none'" style="width: 100%; background: var(--bg-surface); border: 1px solid var(--border); color: var(--text-main);">Rozumím</button>
         </div>
+    </div>
+    <div id="admin-confirmation-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content" style="max-width: 480px;">
+            <button class="close-btn" onclick="closeAdminConfirmationModal()">×</button>
+            <h2 style="margin-bottom: 1rem; color: var(--accent-primary, var(--accent-rust)); text-transform: uppercase;">✅ Databáze připravena</h2>
+            
+            <p id="admin-confirmation-msg" style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1rem; line-height: 1.5;"></p>
+            
+            <div style="background: rgba(34, 197, 94, 0.05); border-left: 3px solid var(--accent-green); padding: 12px; margin-bottom: 1.5rem; font-size: 0.85rem; color: var(--text-main);">
+                <strong>Důležité instrukce pro Workflow:</strong><br>
+                Stáhněte si soubor pomocí tlačítka níže a pošlete jej <strong>správci repozitáře</strong> (např. emailem nebo přes školní Teams), aby mohl zaktualizovat školní kánon.
+            </div>
+            
+            <button id="btn-actual-download" class="btn success-btn" style="width: 100%; font-size: 0.9rem; padding: 12px;">⬇️ Stáhnout data-spspb.js</button>
+        </div>
+    </div>
+    <div id="omega-admin-portal" style="display: none; padding: 2rem; max-width: 800px; margin: 0 auto; background: var(--bg-surface); min-height: 100vh;">
+        <h2 style="color: var(--accent-primary, var(--accent-rust)); margin-bottom: 0.5rem;">⚙️ OMEGA: Reindexační Generátor</h2>
+        <p style="color: var(--text-muted); margin-bottom: 2rem;">Připravte nová díla do fronty (Staging Area). Systém matematicky přepočítá ID a vygeneruje hotový instalační soubor.</p>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 2rem; background: rgba(0,0,0,0.1); padding: 1.5rem; border-radius: 8px;">
+            <input type="text" id="admin-dilo" class="styled-input" placeholder="Název díla (např. Bílá nemoc)">
+            <input type="text" id="admin-autor" class="styled-input" placeholder="Autor (např. Karel Čapek)">
+            
+            <select id="admin-obdobi" class="styled-input">
+                <option value="do18">Do konce 18. st.</option>
+                <option value="19">19. století</option>
+                <option value="svet20">Svět 20. a 21. st.</option>
+                <option value="cz20">ČR 20. a 21. st.</option>
+            </select>
+            
+            <select id="admin-druh" class="styled-input">
+                <option value="epika">Epika</option>
+                <option value="lyrika">Lyrika</option>
+                <option value="drama">Drama</option>
+            </select>
+            
+            <input type="number" id="admin-index" class="styled-input" placeholder="Cílové ID (pozice v aktuálním seznamu)" min="1" style="grid-column: span 2;">
+            
+            <button class="btn" onclick="addToStagingQueue()" style="grid-column: span 2; padding: 12px; background: transparent; border: 2px dashed var(--accent-primary, var(--accent-rust)); color: var(--text-main);">+ Přidat do fronty</button>
+        </div>
+
+        <h3 style="margin-bottom: 1rem; color: var(--text-main);">Fronta k přidání (Staging Area)</h3>
+        <div id="staging-queue-list" style="margin-bottom: 2rem; border: 1px solid var(--border); border-radius: 6px; padding: 1rem; min-height: 50px;">
+            <em style="color: var(--text-muted);">Fronta je prázdná...</em>
+        </div>
+
+        <<button class="btn success-btn" onclick="prepareDatabaseExport()" style="width: 100%; padding: 15px; font-size: 1.1rem; font-weight: bold; background: var(--bg-active); border: 1px solid var(--accent-primary, var(--accent-rust)); color: var(--text-main);">
+            ⚙️ Vygenerovat databázi
+        </button>
     </div>
     <script src="app.js"></script>
     

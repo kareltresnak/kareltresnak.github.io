@@ -595,3 +595,30 @@ tr.selected td:nth-child(2) { color: var(--accent-green); font-weight: bold; }
 
 /* Fix flexboxu pro Top Bar */
 .top-bar { display: flex; gap: 10px; align-items: center; }
+
+/* ==========================================
+   v7.0.0 UX UPGRADES (Highlight & Empty State)
+   ========================================== */
+mark {
+    background-color: rgba(230, 81, 0, 0.25); /* Jemný oranžový podkres */
+    color: var(--accent-rust-light);
+    font-weight: 800;
+    padding: 0.1em 0.3em;
+    border-radius: 4px;
+    box-shadow: none; /* Odstranění ošklivé linky */
+}
+:root[data-theme="dark"] mark {
+    background-color: rgba(230, 81, 0, 0.4);
+    color: #ffffff;
+}
+
+#empty-search-state {
+    display: none;
+    text-align: center;
+    padding: 4rem 1rem;
+    color: var(--text-muted);
+}
+#empty-search-state h3 {
+    color: var(--text-main);
+    margin-bottom: 0.5rem;
+}
