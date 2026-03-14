@@ -19,6 +19,18 @@ const MAPA_OBDOBI = { "do18": "Do konce 18. st.", "19": "19. století", "cz20": 
 const STORAGE_KEY = 'kanon_selekce_state'; // Opět jen jeden pevný klíč
 const KNIHY_DB = window.OMEGA_CONFIG.KNIHY_DB;
 const REQUIREMENTS = window.OMEGA_CONFIG.REQUIREMENTS;
+
+/* ==========================================
+   OMEGA TELEMETRY ENGINE
+   ========================================== */
+const OMEGA_VERSION = '7.0.0-dev'; // Změněno na dev verzi
+
+function trackOmegaEvent(eventName, eventData = {}) {
+    if (typeof umami !== 'undefined') {
+        umami.track(eventName, { version: OMEGA_VERSION, ...eventData });
+    }
+}
+
 // ==========================================
 // INSTITUCIONÁLNÍ BRANDING A THEME ENGINE
 // ==========================================
@@ -53,6 +65,10 @@ if (themeToggleBtn) {
     themeToggleBtn.addEventListener('click', () => {
         const currentTheme = document.documentElement.getAttribute('data-theme');
         applyColorTheme(currentTheme === 'light' ? 'dark' : 'light');
+
+        // 🎯 TELEMETRIE: Změna motivu
+        trackOmegaEvent('Theme_Switched', { mode: nextTheme });
+
     });
 }
 // ==========================================
@@ -140,6 +156,9 @@ window.generateShareLink = function() {
         colorLight : "#ffffff",
         correctLevel : QRCode.CorrectLevel.M 
     });
+
+    trackOmegaEvent('Share_QR_Created', { books_count: state.selectedIds.size });
+
 };
 
 window.closeShareModal = function() {
@@ -149,6 +168,7 @@ window.closeShareModal = function() {
 window.copyShareUrl = function() {
     navigator.clipboard.writeText(currentShareUrl).then(() => {
         showToast("✅ Odkaz zkopírován do schránky");
+        trackOmegaEvent('Share_Link_Copied');
         closeShareModal();
     }).catch(err => {
         console.error("Schránka selhala: ", err);
@@ -193,6 +213,8 @@ function loadStateFromURL() {
     const incomingVersion = params.get('v');
     
     if (!payload) return;
+
+    trackOmegaEvent('Import_Loaded', { method: 'URL_Payload' });
 
     const ids = payload.split('-').map(Number);
     const validIds = ids.filter(id => KNIHY_DB.some(k => k.id === id));
@@ -395,7 +417,7 @@ document.addEventListener('keydown', (e) => {
 });
 
 function renderTable() {
-    const q = state.searchQuery.toLowerCase();
+    const q = state.searchQuery.toLowerCase().trim();
     const filtered = KNIHY_DB.filter(kniha => {
         if (state.filters.obdobi && state.filters.obdobi !== kniha.obdobi) return false;
         if (state.filters.druh && state.filters.druh !== kniha.druh) return false;
@@ -403,20 +425,61 @@ function renderTable() {
         return true;
     });
 
+    const tableEl = document.getElementById('data-table');
+    const emptyStateEl = document.getElementById('empty-search-state');
+
+    // UX: Empty State Logic
+    if (filtered.length === 0) {
+        tableEl.style.display = 'none';
+        emptyStateEl.style.display = 'block';
+        elements.tableBody.innerHTML = '';
+        return;
+    } else {
+        tableEl.style.display = 'table';
+        emptyStateEl.style.display = 'none';
+    }
+
+    // UX: Funkce pro zvýraznění textu (Highlighting)
+    const highlight = (text) => {
+        if (!q) return text;
+        const regex = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+        return text.replace(regex, '<mark>$1</mark>');
+    };
+
     elements.tableBody.innerHTML = filtered.map((kniha, index) => {
         const isSelected = state.selectedIds.has(kniha.id);
         const tIndex = index === 0 ? "0" : "-1";
         return `
             <tr data-id="${kniha.id}" class="${isSelected ? 'selected' : ''}" tabindex="${tIndex}">
                 <td>${kniha.id}</td>
-                <td>${isSelected ? '✔ ' : ''}${kniha.dilo}</td>
-                <td>${kniha.autor}</td>
+                <td>${isSelected ? '✔ ' : ''}${highlight(kniha.dilo)}</td>
+                <td>${highlight(kniha.autor)}</td>
                 <td>${kniha.druh}</td>
                 <td>${MAPA_OBDOBI[kniha.obdobi]}</td>
             </tr>
         `;
     }).join('');
 }
+
+// OMEGA Kvantové vyhledávání (Debouncing)
+let searchTelemetryTimeout;
+elements.searchBox.addEventListener('input', (e) => {
+    state.searchQuery = e.target.value;
+    renderTable();
+
+    // 🎯 TELEMETRIE: Vyhledávání (odešle se, až když uživatel na 1.5s přestane psát)
+    clearTimeout(searchTelemetryTimeout);
+    if (state.searchQuery.trim().length > 1) {
+        searchTelemetryTimeout = setTimeout(() => {
+            trackOmegaEvent('Search_Used', { query_length: state.searchQuery.length });
+            
+            // Sledování slepých uliček
+            if (document.getElementById('empty-search-state').style.display === 'block') {
+                trackOmegaEvent('Search_Zero_Results');
+            }
+        }, 1500);
+    }
+});
 
 function updateStatsAndSidebar() {
     const stats = { do18: 0, "19": 0, svet20: 0, cz20: 0, lyrika: 0, epika: 0, drama: 0 };
@@ -700,6 +763,7 @@ elements.btnExport.addEventListener('click', () => {
     
     // 2. Krátká prodleva pro mobilní telefony i PC, aby prohlížeč stihl vykreslit tabulku a CSS!
     setTimeout(() => {
+        trackOmegaEvent('Export_PDF_Generated', { books_count: state.selectedIds.size });
         window.print();
     }, 150);
 });
@@ -795,4 +859,478 @@ window.onload = () => {
     
     renderTable(); 
     updateStatsAndSidebar();
+
+    // 🎯 TELEMETRIE: Otevření aplikace
+    const isPWA = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+    trackOmegaEvent('App_Opened', { 
+        platform: isPWA ? 'PWA_Installed' : 'Web_Browser',
+        theme: localStorage.getItem('omega_theme') || 'default'
+    });
+};
+
+/* ==========================================
+   OMEGA ADMIN ENGINE v7.1.0 (Enterprise)
+   ========================================== */
+
+// 1. GLOBÁLNÍ KONFIGURACE (Single Source of Truth)
+const OMEGA_ADMIN_CONFIG = {
+    WORKER_URL: "https://spspb-mat-cet.tresnakkarel77.workers.dev"
+};
+
+// Deklarace stavu v RAM
+let stagingQueue = [];
+let sessionPassword = "";
+
+// --- 🛡️ DEFENSIVE LAYERS ---
+
+function populateAuthorDatalist() {
+    const datalist = document.getElementById('existujici-autori');
+    if (!datalist) return;
+    const unikatniAutori = [...new Set(window.OMEGA_CONFIG.KNIHY_DB.map(k => k.autor))].sort();
+    datalist.innerHTML = unikatniAutori.map(autor => `<option value="${autor}">`).join('');
+}
+
+function navrhniDalsiVolneId() {
+    const dbSize = window.OMEGA_CONFIG.KNIHY_DB.length;
+    const qSize = typeof stagingQueue !== 'undefined' ? stagingQueue.length : 0;
+    const idInput = document.getElementById('admin-index');
+    if (idInput) idInput.value = dbSize + qSize + 1;
+}
+
+window.addEventListener('beforeunload', (e) => {
+    if (stagingQueue.length > 0) {
+        e.preventDefault();
+        e.returnValue = 'Máte neuložená díla ve frontě.';
+    }
+});
+
+// --- 🚀 INICIALIZACE A ZERO-TRUST BRÁNA ---
+
+const adminUrlParams = new URLSearchParams(window.location.search);
+if (adminUrlParams.get('mat_cet_admin') === 'true') {
+    
+    // UI Lockdown
+    document.querySelector('.layout').style.display = 'none';
+    document.querySelector('.mobile-nav').style.display = 'none';
+    
+    const authModal = document.getElementById('omega-auth-modal');
+    const passInput = document.getElementById('admin-password-input');
+    const errorMsg = document.getElementById('auth-error-msg'); // Prvek v modálu
+    const submitBtn = document.getElementById('btn-auth-submit');
+    const cancelBtn = document.getElementById('btn-auth-cancel');
+
+    authModal.style.display = 'flex';
+    passInput.focus();
+
+    const unlockAdminPortal = async () => {
+        const inputVal = passInput.value.trim();
+        if (!inputVal) return;
+
+        // UI Reset před pokusem
+        errorMsg.style.display = 'none';
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = "⌛ Ověřuji...";
+
+        try {
+            const response = await fetch(OMEGA_ADMIN_CONFIG.WORKER_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ password: inputVal }) // Pre-auth check
+            });
+
+            if (response.ok) {
+                // AUTH SUCCESS
+                sessionPassword = inputVal;
+                authModal.style.display = 'none';
+                document.getElementById('omega-admin-portal').style.display = 'block';
+                
+                populateAuthorDatalist();
+                navrhniDalsiVolneId();
+                if (typeof trackOmegaEvent === 'function') trackOmegaEvent('Admin_Portal_Accessed');
+            } else {
+                // AUTH FAILURE (UX: Žádný alert!)
+                const data = await response.json();
+                errorMsg.innerHTML = "❌ " + (data.error || "Přístup odepřen.");
+                errorMsg.style.display = 'block';
+                passInput.value = "";
+                passInput.focus();
+            }
+        } catch (err) {
+            errorMsg.innerHTML = "⚠️ Server nedostupný (CORS/Internet).";
+            errorMsg.style.display = 'block';
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = "Vstoupit";
+        }
+    };
+
+    submitBtn.onclick = unlockAdminPortal;
+    passInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') unlockAdminPortal(); });
+    cancelBtn.onclick = () => { window.location.href = "?"; };
+}
+
+// --- 🧬 EXPORT ENGINE (Využívá sessionPassword) ---
+
+window.prepareDatabaseExport = function() {
+    // ... (Zde následuje tvoje Merge logika, která generuje fileContent) ...
+
+    const msgEl = document.getElementById('admin-confirmation-msg');
+    const downloadBtn = document.getElementById('btn-actual-download');
+    
+    document.getElementById('admin-confirmation-modal').style.display = 'flex';
+    msgEl.innerHTML = `⏳ <strong>Odesílám do GitHub repozitáře...</strong>`;
+    
+    if (downloadBtn) downloadBtn.style.display = 'none';
+
+    fetch(OMEGA_ADMIN_CONFIG.WORKER_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+            fileContent: fileContent, // Tato proměnná vznikne v Merge logice
+            password: sessionPassword 
+        })
+    })
+    .then(async (res) => {
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Chyba zápisu.");
+        
+        msgEl.innerHTML = `✅ <strong>HOTOVO!</strong><br>Databáze byla aktualizována.`;
+        stagingQueue = [];
+        renderStagingQueue();
+        navrhniDalsiVolneId();
+    })
+    .catch((error) => {
+        msgEl.innerHTML = `❌ <strong>CHYBA:</strong><br>${error.message}`;
+        if (downloadBtn) {
+            downloadBtn.style.display = 'block';
+            downloadBtn.textContent = "Zkusit znovu";
+        }
+    });
+};
+
+// --- ⚙️ JÁDRO: FRONT a VALIDACE ---
+
+window.addToStagingQueue = function() {
+    // Sanitizace (odstraní mezery na okrajích a zdvojené mezery uvnitř)
+    const dilo = document.getElementById('admin-dilo').value.trim().replace(/\s+/g, ' ');
+    const autor = document.getElementById('admin-autor').value.trim().replace(/\s+/g, ' ');
+    const obdobi = document.getElementById('admin-obdobi').value;
+    const druh = document.getElementById('admin-druh').value;
+    const targetId = parseInt(document.getElementById('admin-index').value, 10);
+
+    // Hard Check 1: Validace
+    if (!dilo || !autor || isNaN(targetId) || targetId < 1) {
+        showToast("⚠️ Vyplňte všechna pole a zadejte Cílové ID větší než 0.");
+        return;
+    }
+
+    // Hard Check 2: Kolize ID ve frontě
+    if (stagingQueue.some(b => b.targetId === targetId)) {
+        showToast(`⚠️ Ve frontě už čeká jiné dílo na ID ${targetId}.`);
+        return;
+    }
+
+    // Hard Check 3: Detekce duplicit (Databáze)
+    const diloNorm = dilo.toLowerCase();
+    const autorNorm = autor.toLowerCase();
+    
+    const existujeVDB = window.OMEGA_CONFIG.KNIHY_DB.find(
+        k => k.dilo.toLowerCase() === diloNorm && k.autor.toLowerCase() === autorNorm
+    );
+    if (existujeVDB) {
+        showToast(`⚠️ Toto dílo už v databázi existuje na pozici ${existujeVDB.id}.`);
+        return;
+    }
+
+    // Hard Check 4: Detekce duplicit (Fronta)
+    const existujeVeFronte = stagingQueue.find(k => k.dilo.toLowerCase() === diloNorm);
+    if (existujeVeFronte) {
+        showToast("⚠️ Toto dílo už máte připravené ve frontě.");
+        return;
+    }
+
+    // Zápis do stavu
+    stagingQueue.push({ targetId, dilo, autor, obdobi, druh });
+    renderStagingQueue();
+    
+    // UI Reset
+    document.getElementById('admin-dilo').value = "";
+    document.getElementById('admin-dilo').focus();
+    navrhniDalsiVolneId(); 
+};
+
+window.removeFromQueue = function(index) {
+    stagingQueue.splice(index, 1);
+    renderStagingQueue();
+    navrhniDalsiVolneId(); // Přepočet ID při smazání!
+};
+
+function renderStagingQueue() {
+    const container = document.getElementById('staging-queue-list');
+    if (stagingQueue.length === 0) {
+        container.innerHTML = '<em style="color: var(--text-muted);">Fronta je prázdná...</em>';
+        return;
+    }
+
+    container.innerHTML = stagingQueue.map((item, idx) => `
+        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border);">
+            <span><strong style="color: var(--accent-primary, var(--accent-rust));">[ID: ${item.targetId}]</strong> ${item.dilo} (${item.autor})</span>
+            <button onclick="removeFromQueue(${idx})" style="background: none; border: none; color: var(--accent-red); cursor: pointer;">❌ Smazat</button>
+        </div>
+    `).join('');
+}
+
+// --- 🧬 EXPORT ENGINE (Two-Pointer Merge & SPŠPB Injekce) ---
+
+window.prepareDatabaseExport = function() {
+    if (stagingQueue.length === 0) {
+        showToast("⚠️ Fronta je prázdná. Přidejte alespoň jedno dílo.");
+        return;
+    }
+
+    let newDb = [];
+    let origBooks = window.OMEGA_CONFIG.KNIHY_DB;
+    let origPtr = 0; 
+    let pendingBooks = [...stagingQueue]; 
+    
+    const finalSize = origBooks.length + pendingBooks.length;
+
+    for (let currentId = 1; currentId <= finalSize; currentId++) {
+        const newBookIndex = pendingBooks.findIndex(b => b.targetId === currentId);
+
+        if (newBookIndex !== -1) {
+            const newBook = pendingBooks[newBookIndex];
+            newDb.push({
+                id: currentId,
+                dilo: newBook.dilo,
+                autor: newBook.autor,
+                druh: newBook.druh,
+                obdobi: newBook.obdobi
+            });
+            pendingBooks.splice(newBookIndex, 1); 
+        } else {
+            if (origPtr < origBooks.length) {
+                const oldBook = origBooks[origPtr];
+                newDb.push({
+                    id: currentId,
+                    dilo: oldBook.dilo,
+                    autor: oldBook.autor,
+                    druh: oldBook.druh,
+                    obdobi: oldBook.obdobi
+                });
+                origPtr++; 
+            }
+        }
+    }
+
+    if (pendingBooks.length > 0) {
+        pendingBooks.forEach(orphanBook => {
+            newDb.push({
+                id: newDb.length + 1,
+                dilo: orphanBook.dilo,
+                autor: orphanBook.autor,
+                druh: orphanBook.druh,
+                obdobi: orphanBook.obdobi
+            });
+        });
+    }
+
+    const formattedDbString = "[\n" + newDb.map(k => 
+        `        { id: ${k.id}, dilo: "${k.dilo}", autor: "${k.autor}", druh: "${k.druh}", obdobi: "${k.obdobi}" }`
+    ).join(",\n") + "\n    ]";
+
+    const fileContent = `// =====================================================================
+// KONFIGURACE PROSTŘEDÍ: SPŠ a VOŠ PŘÍBRAM (VÝCHOZÍ)
+// Vektor: ?theme=spspb nebo žádný
+// =====================================================================
+
+window.OMEGA_CONFIG = {
+    REQUIREMENTS: { do18: 2, "19": 3, svet20: 4, cz20: 5, lyrika: 2, epika: 2, drama: 2 },
+    
+    FORM_HTML: \`
+        <div class="input-group">
+            <input type="text" id="student-name" class="styled-input" placeholder="Jméno a příjmení" autocomplete="name">
+            <input type="text" id="student-dob" class="styled-input" placeholder="Datum narození (např. 1. 1. 2005)" autocomplete="bday">
+            <div class="input-row">
+                <input type="text" id="student-class" class="styled-input" placeholder="Třída (např. 4.A)">
+                <input type="text" id="student-year" class="styled-input" placeholder="Školní rok">
+            </div>
+        </div>
+    \`,
+    // data-spspb.js
+    RULES_HTML: "",
+    FORM_FIELDS: ['name', 'dob', 'class', 'year'],
+
+    renderPdf: function(selectedBooks, student, sanitize) {
+        const buckets = { do18: [], "19": [], svet20: [], cz20: [], dalsi: [] };
+        const limits = { do18: 2, "19": 3, svet20: 4, cz20: 5 };
+        const counts = { do18: 0, "19": 0, svet20: 0, cz20: 0 };
+
+        selectedBooks.forEach(k => {
+            if (counts[k.obdobi] < limits[k.obdobi]) {
+                buckets[k.obdobi].push(k);
+                counts[k.obdobi]++;
+            } else {
+                buckets.dalsi.push(k);
+            }
+        });
+
+        let counter = 1; 
+        const renderRows = (books) => {
+            return books.map(k => \`
+                <tr>
+                    <td class="col-c">\${counter++}.</td>
+                    <td class="col-cs">\${k.id}</td>
+                    <td class="col-autor">\${k.autor}</td>
+                    <td class="col-nazev">\${k.dilo}</td>
+                </tr>
+            \`).join('');
+        };
+
+        return \`
+            <style>
+                @page { size: A4 portrait; margin: 0 !important; }
+                
+                @media print {
+                    body > * { display: none !important; }
+                    body > #print-area { display: block !important; }
+                    body, html { margin: 0 !important; padding: 0 !important; background: white !important; }
+                    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+                }
+
+                .print-page {
+                    width: 800px !important; 
+                    min-width: 800px !important;
+                    margin: 0 auto;
+                    padding: 55px 75px; 
+                    background: white !important;
+                    color: black !important;
+                    font-family: 'Times New Roman', 'Arial', sans-serif !important; 
+                    position: relative;
+                    box-sizing: border-box;
+                    overflow: hidden;
+                }
+            </style>
+            
+            <div class="print-page">
+                <table class="official-table">
+                    <colgroup>
+                        <col style="width: 5%;">
+                        <col style="width: 5%;">
+                        <col style="width: 40%;">
+                        <col style="width: 50%;">
+                    </colgroup>
+                    <tbody>
+                        <tr>
+                            <td colspan="4" class="title-cell">
+                                <table class="header-layout">
+                                    <tr>
+                                        <td class="header-logo-col"><img src="spspb-logo-2000px.png" class="print-logo" alt="Znak SPŠ"></td>
+                                        <td class="header-text-col">
+                                            Střední průmyslová škola a Vyšší odborná škola Příbram II,Hrabákova 271<br>
+                                            Seznam literárních děl: <strong>MATURITNÍ ZKOUŠKA Z ČJL - ústní část</strong>
+                                        </td>
+                                        <td class="header-spacer-col"></td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr><td colspan="3" class="info-label">jméno a příjmení:</td><td class="info-value">\${sanitize(student.name)}</td></tr>
+                        <tr><td colspan="3" class="info-label">datum narození:</td><td class="info-value">\${sanitize(student.dob)}</td></tr>
+                        <tr><td colspan="3" class="info-label">třída:</td><td class="info-value">\${sanitize(student.class)}</td></tr>
+                        <tr><td colspan="3" class="info-label">školní rok:</td><td class="info-value">\${sanitize(student.year)}</td></tr>
+
+                        <tr class="col-headers">
+                            <td class="col-c">č.</td><td class="col-cs">č.s.</td><td class="col-autor">autor:</td><td class="col-nazev">název díla:</td>
+                        </tr>
+
+                        <tr class="subheader"><td colspan="4">Světová a česká literatura do konce 18.století</td></tr>
+                        \${renderRows(buckets.do18)}
+
+                        <tr class="subheader"><td colspan="4">Světová a česká literatura 19.století</td></tr>
+                        \${renderRows(buckets['19'])}
+
+                        <tr class="subheader"><td colspan="4">Světová literatura 20. a 21. století</td></tr>
+                        \${renderRows(buckets.svet20)}
+
+                        <tr class="subheader"><td colspan="4">Česká literatura 20. a 21. století</td></tr>
+                        \${renderRows(buckets.cz20)}
+
+                        <tr class="subheader"><td colspan="4">Další četba</td></tr>
+                        \${renderRows(buckets.dalsi)}
+
+                        <tr>
+                            <td colspan="3" class="footer-cell">podpis:</td>
+                            <td class="footer-cell">zkontroloval:</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        \`;
+    },
+
+    KNIHY_DB: ${formattedDbString}
+};`;
+
+    // --- 5. ODESLÁNÍ DO CLOUDU (Serverless Deployment) ---
+    
+    // ⚠️ ZDE VLOŽ URL SVÉHO CLOUDFLARE WORKERU!
+    const WORKER_URL = "https://spspb-mat-cet.tresnakkarel77.workers.dev";
+
+    const modal = document.getElementById('admin-confirmation-modal');
+    const msgEl = document.getElementById('admin-confirmation-msg');
+    const downloadBtn = document.getElementById('btn-actual-download');
+    const emailBtn = document.getElementById('btn-send-email');
+    
+    // Zobrazení modálu ve stavu "Načítání"
+    modal.style.display = 'flex';
+    msgEl.innerHTML = `⏳ <strong>Kompiluji databázi a odesílám na server...</strong><br>Prosím, nezavírejte okno.`;
+    
+    if (downloadBtn) downloadBtn.style.display = 'none';
+    if (emailBtn) emailBtn.style.display = 'none';
+
+    // Asynchronní POST Request na tvůj Worker
+    fetch(WORKER_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fileContent: fileContent, password: sessionPassword })
+    })
+    .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Neznámá chyba serveru.");
+        
+        // ÚSPĚCH
+        msgEl.innerHTML = `✅ <strong>AKTUALIZACE ÚSPĚŠNÁ!</strong><br>Databáze byla přímo zapsána do repozitáře (obsahuje ${newDb.length} děl).<br><br><span style="color:var(--accent-primary, var(--accent-rust))">Změny se všem studentům projeví automaticky za cca 30 sekund.</span>`;
+        
+        if (typeof trackOmegaEvent === 'function') trackOmegaEvent('Admin_AutoDeploy_Success', { batch_size: stagingQueue.length });
+        
+        // Vyčištění fronty
+        stagingQueue = [];
+        renderStagingQueue();
+        if (typeof navrhniDalsiVolneId === 'function') navrhniDalsiVolneId();
+    })
+    .catch((error) => {
+        // CHYBA
+        msgEl.innerHTML = `❌ <strong>CHYBA PŘI ODESÍLÁNÍ:</strong><br>${error.message}<br><br>Zkontrolujte konzoli (F12) nebo zkuste operaci znovu.`;
+        
+        // Zobrazení tlačítka pro opakování
+        if (downloadBtn) {
+            downloadBtn.style.display = 'block';
+            downloadBtn.textContent = "Zkusit odeslat znovu";
+            downloadBtn.onclick = window.prepareDatabaseExport; 
+        }
+        
+        if (typeof trackOmegaEvent === 'function') trackOmegaEvent('Admin_AutoDeploy_Error', { error_msg: error.message });
+        console.error("OMEGA Deploy Error:", error);
+    });
+};
+
+window.closeAdminConfirmationModal = function() {
+    document.getElementById('admin-confirmation-modal').style.display = 'none';
+    
+    // Reset tlačítek při zavření
+    const downloadBtn = document.getElementById('btn-actual-download');
+    const emailBtn = document.getElementById('btn-send-email');
+    if (downloadBtn) downloadBtn.style.display = "block";
+    if (emailBtn) emailBtn.style.display = "none";
 };

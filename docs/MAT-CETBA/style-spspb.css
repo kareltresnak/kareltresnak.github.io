@@ -639,3 +639,29 @@ tr.selected td:nth-child(2) { color: var(--accent-primary-light); font-weight: b
     .sidebar .btn-back { margin-top: 5px; margin-bottom: 15px; }
     .top-bar { margin-bottom: 15px !important; }
 }
+/* ==========================================
+   v7.0.0 UX UPGRADES (Highlight & Empty State)
+   ========================================== */
+mark {
+    background-color: rgba(67, 119, 93, 0.2); /* Jemný zelený podkres */
+    color: var(--accent-primary);
+    font-weight: 800;
+    padding: 0.1em 0.3em;
+    border-radius: 4px;
+    box-shadow: none;
+}
+:root[data-theme="dark"] mark {
+    background-color: rgba(118, 203, 161, 0.3);
+    color: #ffffff;
+}
+
+#empty-search-state {
+    display: none;
+    text-align: center;
+    padding: 4rem 1rem;
+    color: var(--text-muted);
+}
+#empty-search-state h3 {
+    color: var(--text-main);
+    margin-bottom: 0.5rem;
+}
