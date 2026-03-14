@@ -195,6 +195,5 @@ window.OMEGA_CONFIG = {
         { id: 64, dilo: "Vražda v Orient-expresu", autor: "Agatha Christie", druh: "epika", obdobi: "svet20" },
         { id: 65, dilo: "Velký Gatsby", autor: "Francis Scott Fitzgerald", druh: "epika", obdobi: "svet20" },
         { id: 66, dilo: "Pýcha a předsudek", autor: "Jane Austenová", druh: "epika", obdobi: "19" },
-        { id: 67, dilo: "Bílá nemoc", autor: "Arnošt Lustig", druh: "epika", obdobi: "do18" }
     ]
 };
