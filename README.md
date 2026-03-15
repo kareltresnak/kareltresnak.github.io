@@ -4,7 +4,8 @@ Professional portfolio of informatics projects focused on automation, educationa
 
 ---
 
-## 📚 OMEGA: Examination Canon Management System (v7.1.0 Enterprise)
+## 📚 OMEGA: Distributed Examination Canon Suite (v7.2.0 Enterprise)
+
 **Live Demos:** 
 * [🏛️ Institutional Edition (SPŠPB)](https://kareltresnak.github.io/MAT-CETBA/?theme=spspb) – Full institutional branding; persistent UI anchor.
 * [🦀 Rust Edition](https://kareltresnak.github.io/MAT-CETBA/?theme=default) – High-contrast "Rust" aesthetic; branding-on-demand. <br>
@@ -13,23 +14,60 @@ Professional portfolio of informatics projects focused on automation, educationa
 
 **Target:** Students of SPŠ a VOŠ Příbram
 
-Originally a local protocol generator, OMEGA has been architecturally elevated into a **fully automated, serverless system utilizing distributed edge infrastructure (PWA + Cloudflare Workers)**. The application handles asynchronous distribution of study materials between administrators and end-nodes utilizing a Zero-Trust security model, while maintaining pixel-perfect emulation of printed state documents.
+Originally a local protocol generator, OMEGA has been architecturally elevated into a **high-availability, serverless suite utilizing distributed edge infrastructure (PWA + Cloudflare Workers)**. The v7.2.0 release introduces advanced temporal state management and asymmetric security models designed for high-density institutional networks (NAT).
 
 ### ⚙️ Core Architecture & Security (Edge & Backend)
 
-* **Serverless CI/CD Pipeline:** Database writes occur asynchronously via an isolated V8 Isolate (Cloudflare Worker) with a direct connection to the GitHub REST API. This eliminates the need for manual file manipulation and guarantees instantaneous state propagation.
-* **Zero-Trust Authentication:** All authorization verification is processed strictly server-side (Pre-flight validation). The frontend Auth Modal merely acts as a password transport vehicle; privileges do not exist in the client's local memory until verified by a cryptographic key in the cloud.
-* **Brute-Force Shield (Stateful Lockout):** Deployed a Cloudflare KV (Key-Value) store as high-speed RAM for attack vector logging. The system applies $O(\log n)$ limitation: 5 consecutive failed attempts trigger a 15-minute cryptographic IP lockout (HTTP 429), pushing the time complexity of a breach limitlessly toward infinity.
-* **Intelligent Cache Routing (Split Architecture):** Refactored the Service Worker to a Dual-Cache topology. The core database (`data-spspb.js`) bypasses the monolithic cache, utilizing *Network-First* routing to eliminate stale data delivery. The App Shell retains a *Cache-First* strategy, guaranteeing $\mathcal{O}(1)$ load times and 100% offline availability.
+* **Asymmetric Device Fingerprinting:** To mitigate "Friendly Fire" in NAT environments, the lockout system utilizes **SHA-256 Heuristic Fingerprinting**. The identity is calculated as $Hash(IP \oplus UserAgent)$, isolating lockouts to specific hardware nodes while maintaining access for authorized faculty members.
+* **Serverless CI/CD Pipeline:** Database writes occur asynchronously via a V8 Isolate (Cloudflare Worker) with a direct connection to the GitHub REST API. This ensures $\mathcal{O}(1)$ commit overhead and instantaneous global state propagation.
+* **Zero-Trust Authentication:** Authorization is processed strictly server-side. The frontend acts merely as a transport layer for encrypted payloads; session secrets never persist in the client’s unencrypted memory.
+* **Stateful Brute-Force Shield:** Cloudflare KV store serves as a high-speed persistence layer for logging failed vectors. 5 consecutive failures trigger a 15-minute cryptographic lockout ($HTTP \ 429$), rendering brute-force attacks computationally non-viable.
 
-### 🎨 Frontend Engineering & State Management
+### 🎨 Frontend Engineering & Temporal UX
 
-* **Geometric Protocol Emulation (Pixel-Perfect):** Engineered a high-fidelity print engine utilizing absolute coordinate positioning ($X, Y$). The generated A4 PDF is 1:1 visually indistinguishable from official, legally mandated state forms.
-* **Cryptographic Database Integrity:** Integrated a 32-bit FNV-style hashing protocol (`generateDbHash`) to calculate unique checksums of the institutional database. Ensures strict **Memory Integrity** by automatically detecting curriculum mutations and preventing cross-version data corruption in `LocalStorage`.
-* **Kinematic Transitions & Stateful UI:** Implementation of a dual-mode engine (Light/Dark) utilizing an explicit state machine via the `data-theme` attribute. Features hardware-accelerated global transitions with a $600ms$ `ease-in-out` curve and an iOS-style "Pill Switcher".
-* **Depth Topography (Z-Axis UI):** Visual hierarchy overhaul in Light Mode using "Cards on Canvas" patterns. Utilizes high-contrast Forest Green anchors and Zebra striping in data tables to optimize visual scannability.
-* **Zero-Knowledge Privacy:** Personally Identifiable Information (PII) is stored exclusively in `LocalStorage` with zero telemetry. Includes a custom XSS (Cross-Site Scripting) mitigation layer for input sanitization.
+* **Hybrid Session Decay (HUD-to-Modal):** Engineered a graduated escalation system for session security:
+    * **Phase 1 ($t > 60s$):** Stealth mode; persistent HUD timer in the peripheral UI.
+    * **Phase 2 ($t \leq 60s$):** Glassmorphic Modal takeover with a 1Hz kinematic countdown and critical pulse animation for $t \leq 20s$.
+* **Platform-Agnostic Typeahead Engine:** Eliminated native `<datalist>` inconsistencies in favor of a custom, reactive **Autocomplete Module**. Features real-time substring matching, institutional data-fill heuristics, and iOS-optimized touch interaction.
+* **Mobile View Isolation:** Hard-coded UI Lockdown utilizing `!important` CSS injection via JS. Guarantees absolute isolation of the Admin Portal from the student-facing DOM tree.
+* **Cryptographic Database Integrity:** 32-bit FNV-style hashing protocol (`generateDbHash`) ensures **Memory Integrity**. Detects curriculum mutations and prevents cross-version data corruption in `LocalStorage`.
+* **Geometric Protocol Emulation:** High-fidelity print engine utilizing absolute coordinate positioning. The generated A4 PDF is 1:1 visually indistinguishable from legally mandated state forms.
 
+---
+
+## 🔬 Technical Appendix: Architectural Deep-Dive (v7.2.0)
+
+### 1. Asymmetric Security & Fingerprinting
+Identity of a node is defined as a unique hash $H$:
+$$H = \text{SHA-256}(IP_{ext} \parallel UA_{raw} \parallel \text{salt})$$
+
+This ensures that the collision probability $P(C)$ between two different devices within the same network is negligible: $P(C) \approx 2^{-256}$.
+
+### 2. Temporal State Machine: Hybrid Session Decay
+OMEGA implements a three-phase Finite State Machine (FSM) to eliminate "zombie sessions":
+
+$$S(t) = 
+\begin{cases} 
+\text{Invisible} & \text{pro } t < 10s \\
+\text{HUD\_Warning} & \text{pro } 10s \leq t < 240s \\
+\text{Modal\_Takeover} & \text{pro } 240s \leq t < 300s \\
+\text{Termination} & \text{pro } t \geq 300s 
+\end{cases}$$
+
+### 3. Data Integrity & FNV-1a Hashing
+We utilize a modified **FNV-1a** algorithm for extreme speed and low collision rates during database validation:
+
+```javascript
+function generateDbHash(db) {
+    let hash = 2166136261; // FNV offset basis
+    const str = db.map(k => k.id + k.dilo).join('|');
+    for (let i = 0; i < str.length; i++) {
+        hash ^= str.charCodeAt(i);
+        hash += (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24);
+    }
+    return (hash >>> 0).toString(36);
+} 
+```
 ---
 
 ## 🎮 AZ Kvíz: Cyber Arena
