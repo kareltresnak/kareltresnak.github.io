@@ -46,13 +46,15 @@ This ensures that the collision probability $P(C)$ between two different devices
 ### 2. Temporal State Machine: Hybrid Session Decay
 OMEGA implements a three-phase Finite State Machine (FSM) to eliminate "zombie sessions":
 
-$$S(t) = 
+$$
+S(t) = 
 \begin{cases} 
 \text{Invisible} & \text{pro } t < 10s \\
-\text{HUD\_Warning} & \text{pro } 10s \leq t < 240s \\
-\text{Modal\_Takeover} & \text{pro } 240s \leq t < 300s \\
-\text{Termination} & \text{pro } t \geq 300s 
-\end{cases}$$
+\text{HUD-Warning} & \text{pro } 10s \le t < 240s \\
+\text{Modal-Takeover} & \text{pro } 240s \le t < 300s \\
+\text{Termination} & \text{pro } t \ge 300s 
+\end{cases}
+$$
 
 ### 3. Data Integrity & State Management
 The system utilizes a lightweight **String-Hashing** algorithm to monitor the integrity of the institutional database. This ensures that any curriculum updates trigger a notification, prompting the user to synchronize their local list with the new standard.
