@@ -896,28 +896,73 @@ let deleteQueue = [];
 let sessionPassword = "";
 let pendingExportPayload = null;
 
-// --- ⏳ SECURITY: SESSION DECAY (Dead Man's Switch) ---
+// --- ⏳ SECURITY: HYBRIDNÍ SESSION DECAY (HUD -> MODAL) ---
 let adminIdleTime = 0;
-const ADMIN_IDLE_LIMIT = 5; // 5 minut
+const ADMIN_IDLE_LIMIT = 300; 
+const ADMIN_IDLE_HUD_START = 10;   // Zobrazení HUD (4:50)
+const ADMIN_IDLE_MODAL_START = 240; // Bod zlomu: Modál (1:00)
 
-document.addEventListener('mousemove', () => adminIdleTime = 0);
-document.addEventListener('keypress', () => adminIdleTime = 0);
+let decayInterval = null;
 
-setInterval(() => {
+const resetDecayTimer = () => {
+    adminIdleTime = 0;
+    const hud = document.getElementById('omega-idle-timer-small');
+    const modal = document.getElementById('omega-session-modal');
+    if (hud) hud.style.display = 'none';
+    if (modal) modal.style.display = 'none';
+};
+
+// Senzory aktivity
+['mousemove', 'keypress', 'click', 'touchstart'].forEach(ev => 
+    window.addEventListener(ev, resetDecayTimer)
+);
+
+const formatDecayTime = (s) => 
+    `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`;
+
+decayInterval = setInterval(() => {
     const portal = document.getElementById('omega-admin-portal');
     if (portal && portal.style.display === 'block') {
         adminIdleTime++;
+        const timeRemaining = ADMIN_IDLE_LIMIT - adminIdleTime;
+
         if (adminIdleTime >= ADMIN_IDLE_LIMIT) {
+            clearInterval(decayInterval);
             isSafeToExit = true; 
-            
-            // TADY JE ZMĚNA: Zapíšeme do paměti, že došlo k timeoutu
             sessionStorage.setItem('omega_session_expired', 'true');
-            
-            // Okamžitý reload, žádné čekání na Toast
             window.location.href = window.location.pathname;
+            return;
+        }
+
+        const hud = document.getElementById('omega-idle-timer-small');
+        const modal = document.getElementById('omega-session-modal');
+        const hudVal = document.getElementById('idle-time-val-small');
+        const modalVal = document.getElementById('session-timer-val');
+
+        // --- ZÓNA 3: MODÁL (Poslední minuta: 01:00 - 00:00) ---
+        if (adminIdleTime >= ADMIN_IDLE_MODAL_START) {
+            if (hud) hud.style.display = 'none';
+            if (modal) {
+                modal.style.display = 'flex';
+                modalVal.textContent = formatDecayTime(timeRemaining);
+                
+                // Kritický vizuální puls (posledních 20s)
+                if (timeRemaining <= 20) {
+                    modalVal.style.color = '#da2128';
+                    document.getElementById('omega-session-card').style.boxShadow = '0 0 30px rgba(218, 33, 40, 0.3)';
+                }
+            }
+        } 
+        // --- ZÓNA 2: HUD (Od 4:50 do 1:01) ---
+        else if (adminIdleTime >= ADMIN_IDLE_HUD_START) {
+            if (modal) modal.style.display = 'none';
+            if (hud) {
+                hud.style.display = 'flex';
+                hudVal.textContent = formatDecayTime(timeRemaining);
+            }
         }
     }
-}, 60000);
+}, 1000);
 
 // --- 🤖 CUSTOM AUTOCOMPLETE & HEURISTICS ---
 let unikatniAutori = [];
