@@ -54,19 +54,19 @@ $$S(t) =
 \text{Termination} & \text{pro } t \geq 300s 
 \end{cases}$$
 
-### 3. Data Integrity & FNV-1a Hashing
-We utilize a modified **FNV-1a** algorithm for extreme speed and low collision rates during database validation:
+### 3. Data Integrity & State Management
+The system utilizes a lightweight **String-Hashing** algorithm to monitor the integrity of the institutional database. This ensures that any curriculum updates trigger a notification, prompting the user to synchronize their local list with the new standard.
 
 ```javascript
 function generateDbHash(db) {
-    let hash = 2166136261; // FNV offset basis
     const str = db.map(k => k.id + k.dilo).join('|');
+    let hash = 0;
     for (let i = 0; i < str.length; i++) {
-        hash ^= str.charCodeAt(i);
-        hash += (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24);
+        hash = ((hash << 5) - hash) + str.charCodeAt(i);
+        hash |= 0; 
     }
-    return (hash >>> 0).toString(36);
-} 
+    return hash.toString(36);
+}
 ```
 ---
 
