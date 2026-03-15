@@ -25,12 +25,12 @@ Originally a local protocol generator, OMEGA has been architecturally elevated i
 
 ### 🎨 Frontend Engineering & Temporal UX
 
-* **Hybrid Session Decay (HUD-to-Modal):** Engineered a graduated escalation system for session security:
-    * **Phase 1 ($t > 60s$):** Stealth mode; persistent HUD timer in the peripheral UI.
-    * **Phase 2 ($t \leq 60s$):** Glassmorphic Modal takeover with a 1Hz kinematic countdown and critical pulse animation for $t \leq 20s$.
+* **Hybrid Session Decay (HUD-to-Modal):** Engineered a graduated escalation system for session security based on elapsed idle time ($t$):
+    * **Phase 1 ($t < 240s$):** Stealth mode; persistent HUD timer in the peripheral UI.
+    * **Phase 2 ($t \geq 240s$):** Glassmorphic Modal takeover with a 1Hz kinematic countdown and critical pulse animation for $t \geq 280s$.
 * **Platform-Agnostic Typeahead Engine:** Eliminated native `<datalist>` inconsistencies in favor of a custom, reactive **Autocomplete Module**. Features real-time substring matching, institutional data-fill heuristics, and iOS-optimized touch interaction.
 * **Mobile View Isolation:** Hard-coded UI Lockdown utilizing `!important` CSS injection via JS. Guarantees absolute isolation of the Admin Portal from the student-facing DOM tree.
-* **Cryptographic Database Integrity:** 32-bit FNV-style hashing protocol (`generateDbHash`) ensures **Memory Integrity**. Detects curriculum mutations and prevents cross-version data corruption in `LocalStorage`.
+* **Stateful Database Integrity:** A robust **String-Hashing protocol** (`generateDbHash`) ensures **Memory Integrity**. Detects curriculum mutations and prevents cross-version data corruption in `LocalStorage` without breaking backwards compatibility.
 * **Geometric Protocol Emulation:** High-fidelity print engine utilizing absolute coordinate positioning. The generated A4 PDF is 1:1 visually indistinguishable from legally mandated state forms.
 
 ---
