@@ -919,30 +919,81 @@ setInterval(() => {
     }
 }, 60000);
 
-// --- 🛡️ DEFENSIVE LAYERS & HEURISTICS ---
+// --- 🤖 CUSTOM AUTOCOMPLETE & HEURISTICS ---
+let unikatniAutori = [];
 
-function populateAuthorDatalist() {
-    const datalist = document.getElementById('existujici-autori');
-    if (!datalist) return;
-    const unikatniAutori = [...new Set(window.OMEGA_CONFIG.KNIHY_DB.map(k => k.autor))]
-        .sort((a, b) => a.localeCompare(b, 'cs'));
-    datalist.innerHTML = unikatniAutori.map(autor => `<option value="${autor}">`).join('');
-}
+function initAuthorAutocomplete() {
+    // 1. Vytažení a seřazení autorů z DB
+    unikatniAutori = [...new Set(window.OMEGA_CONFIG.KNIHY_DB.map(k => k.autor))].sort((a, b) => a.localeCompare(b, 'cs'));
+    
+    const input = document.getElementById('admin-autor');
+    const dropdown = document.getElementById('custom-author-dropdown');
+    if (!input || !dropdown) return;
 
-document.getElementById('admin-autor').addEventListener('input', (e) => {
-    const hledanyAutor = e.target.value.trim().toLowerCase();
-    if (!hledanyAutor) return;
-    const nalezeneDilo = window.OMEGA_CONFIG.KNIHY_DB.find(k => k.autor.toLowerCase() === hledanyAutor);
-    if (nalezeneDilo) {
-        const obdobiSelect = document.getElementById('admin-obdobi');
-        if (obdobiSelect.value !== nalezeneDilo.obdobi) {
-            obdobiSelect.value = nalezeneDilo.obdobi;
-            obdobiSelect.style.transition = "background-color 0.3s";
-            obdobiSelect.style.backgroundColor = "var(--bg-active)";
-            setTimeout(() => obdobiSelect.style.backgroundColor = "transparent", 600);
+    // 2. Renderovací funkce
+    const renderDropdown = (query) => {
+        const hledano = query.trim().toLowerCase();
+        // Pokud je prázdno, ukážeme všechny. Jinak filtrujeme.
+        const filtered = hledano ? unikatniAutori.filter(a => a.toLowerCase().includes(hledano)) : unikatniAutori;
+        
+        if (filtered.length === 0) {
+            dropdown.style.display = 'none';
+            return;
         }
-    }
-});
+
+        dropdown.innerHTML = filtered.map(autor => {
+            // Zvýraznění shodujícího se textu (Highlighting)
+            const regex = new RegExp(`(${hledano})`, 'gi');
+            const highlighted = hledano ? autor.replace(regex, '<strong style="color: var(--accent-primary, #e67e22); font-weight: 900;">$1</strong>') : autor;
+            
+            return `<div class="autocomplete-item" style="padding: 12px 15px; cursor: pointer; border-bottom: 1px solid var(--border); font-size: 0.9rem; color: var(--text-main); transition: background 0.1s;" onmouseover="this.style.background='var(--bg-active)'" onmouseout="this.style.background='transparent'" data-val="${autor}">${highlighted}</div>`;
+        }).join('');
+        
+        dropdown.style.display = 'flex';
+    };
+
+    // 3. Posluchače událostí (Otevření při kliknutí a psaní)
+    input.addEventListener('focus', () => renderDropdown(input.value));
+    
+    input.addEventListener('input', (e) => {
+        renderDropdown(e.target.value);
+        
+        // Původní heuristika období (Auto-fill)
+        const hledanyAutor = e.target.value.trim().toLowerCase();
+        const nalezeneDilo = window.OMEGA_CONFIG.KNIHY_DB.find(k => k.autor.toLowerCase() === hledanyAutor);
+        if (nalezeneDilo) {
+            const obdobiSelect = document.getElementById('admin-obdobi');
+            if (obdobiSelect && obdobiSelect.value !== nalezeneDilo.obdobi) {
+                obdobiSelect.value = nalezeneDilo.obdobi;
+                obdobiSelect.style.transition = "background-color 0.3s";
+                obdobiSelect.style.backgroundColor = "var(--bg-active)";
+                setTimeout(() => obdobiSelect.style.backgroundColor = "transparent", 600);
+            }
+        }
+    });
+
+    // 4. Výběr autora kliknutím/dotykem
+    dropdown.addEventListener('click', (e) => {
+        const item = e.target.closest('.autocomplete-item');
+        if (item) {
+            input.value = item.dataset.val;
+            dropdown.style.display = 'none';
+            
+            // Uměle vyvoláme input event, aby heuristika doplnila období i po kliknutí myší
+            input.dispatchEvent(new Event('input'));
+            
+            // UX Kinetika: Přepneme focus na další pole (Druh)
+            document.getElementById('admin-druh')?.focus();
+        }
+    });
+
+    // 5. Zavření při kliknutí mimo (Click-away listener)
+    document.addEventListener('click', (e) => {
+        if (e.target !== input && e.target !== dropdown && !dropdown.contains(e.target)) {
+            dropdown.style.display = 'none';
+        }
+    });
+}
 
 function navrhniDalsiVolneId() {
     const dbSize = window.OMEGA_CONFIG.KNIHY_DB.length;
@@ -989,8 +1040,18 @@ window.addEventListener('beforeunload', (e) => {
 
 const adminUrlParams = new URLSearchParams(window.location.search);
 if (adminUrlParams.get('mat_cet_admin') === 'true') {
-    document.querySelector('.layout').style.display = 'none';
-    if(document.querySelector('.mobile-nav')) document.querySelector('.mobile-nav').style.display = 'none';
+    // --- NUKLEÁRNÍ UI LOCKDOWN ---
+    // Agresivní skrytí všech prvků studentské aplikace i přes CSS Media Queries
+    const appElements = ['.layout', 'header', '.mobile-nav', 'footer', '.brand', 'main'];
+    appElements.forEach(selector => {
+        const el = document.querySelector(selector);
+        if (el) el.style.setProperty('display', 'none', 'important');
+    });
+    
+    // Zajištění, že body půjde scrollovat, pokud by ho mobilní nav blokovala
+    document.body.style.setProperty('overflow-y', 'auto', 'important');
+    document.body.style.setProperty('padding-bottom', '0', 'important');
+    // ------------------------------
     
     const authModal = document.getElementById('omega-auth-modal');
     const passInput = document.getElementById('admin-password-input');
@@ -1020,7 +1081,7 @@ if (adminUrlParams.get('mat_cet_admin') === 'true') {
                 sessionPassword = inputVal;
                 authModal.style.display = 'none';
                 document.getElementById('omega-admin-portal').style.display = 'block';
-                populateAuthorDatalist();
+                initAuthorAutocomplete();
                 navrhniDalsiVolneId();
                 if (typeof trackOmegaEvent === 'function') trackOmegaEvent('Admin_Portal_Accessed');
             } else {

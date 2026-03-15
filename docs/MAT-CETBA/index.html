@@ -275,8 +275,11 @@
 
             <div id="admin-form-add" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                 <input type="text" id="admin-dilo" class="styled-input" placeholder="Název díla (např. Bílá nemoc)">
-                <input type="text" id="admin-autor" class="styled-input" placeholder="Autor (např. Karel Čapek)" list="existujici-autori" autocomplete="off">
-                <datalist id="existujici-autori"></datalist>
+                <div style="position: relative; width: 100%;">
+                    <input type="text" id="admin-autor" class="styled-input" placeholder="Autor (např. Karel Čapek)" autocomplete="off">
+                
+                    <div id="custom-author-dropdown" style="display: none; position: absolute; top: 100%; left: 0; width: 100%; max-height: 220px; overflow-y: auto; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 0 0 6px 6px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 1000; flex-direction: column;"></div>
+                </div>
                 
                 <select id="admin-obdobi" class="styled-input">
                     <option value="do18">Do konce 18. st.</option>
