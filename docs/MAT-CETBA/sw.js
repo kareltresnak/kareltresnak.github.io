@@ -1,4 +1,4 @@
-const CACHE_NAME = 'SPS_Selekce_MAT_CETBY_v7.0.0'; 
+const CACHE_NAME = 'SPS_Selekce_MAT_CETBY_v7.1.0'; 
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
@@ -17,7 +17,7 @@ self.addEventListener('install', (event) => {
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then((cache) => {
-                console.log('[Service Worker] Přednačítání offline dat (v7.0.0)');
+                console.log('[Service Worker] Přednačítání offline dat (v7.1.0)');
                 return cache.addAll(ASSETS_TO_CACHE);
             })
             .then(() => self.skipWaiting())
