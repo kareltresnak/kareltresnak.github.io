@@ -898,7 +898,7 @@ let pendingExportPayload = null;
 
 // --- ⏳ SECURITY: SESSION DECAY (Dead Man's Switch) ---
 let adminIdleTime = 0;
-const ADMIN_IDLE_LIMIT = 1; // 5 minut
+const ADMIN_IDLE_LIMIT = 5; // 5 minut
 
 document.addEventListener('mousemove', () => adminIdleTime = 0);
 document.addEventListener('keypress', () => adminIdleTime = 0);
