@@ -157,8 +157,9 @@
                 <div class="section-header">Můj seznam</div>
                 <div id="my-list" class="my-list">Zatím prázdno...</div>
                 
-                <div class="app-version">
+                <div class="app-version" id="app-build-info" style="cursor: default; user-select: none;">
                     Selekce četby // <span id="app-version-val">...</span>
+                    <span style="font-size: 0.7rem; opacity: 0.7;" id="audit-trail-date"></span>
                 </div>
             </div>
         </aside>
@@ -239,7 +240,7 @@
         <div class="modal-content" style="max-width: 450px;">
             <h2 style="margin-bottom: 1rem; color: var(--accent-red); text-transform: uppercase;">⚠️ Zastaralý odkaz</h2>
             <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1rem; line-height: 1.5;">
-                Tento sdílený seznam byl vytvořen pro jinou verzi maturitního kánonu (škola v mezičase změnila nebo posunula díla).
+                Tento sdílený seznam byl vytvořen pro jinou verzi maturitního seznamu (škola v mezičase změnila nebo posunula díla).
             </p>
             <div style="background: rgba(218, 33, 40, 0.1); border-left: 3px solid var(--accent-red); padding: 10px; margin-bottom: 1.5rem; font-size: 0.85rem; color: var(--text-main);">
                 <strong>Zásah systému:</strong> Import byl z bezpečnostních důvodů zablokován, aby nedošlo k poškození vašeho vlastního výběru.
@@ -256,55 +257,152 @@
             <button id="btn-actual-download" class="btn success-btn" style="width: 100%; font-size: 0.9rem; padding: 12px;">⬇️ Stáhnout data-spspb.js</button>
         </div>
     </div>
-    <div id="omega-admin-portal" style="display: none; padding: 2rem; max-width: 800px; margin: 0 auto; background: var(--bg-surface); min-height: 100vh;">
-        <h2 style="color: var(--accent-primary, var(--accent-rust)); margin-bottom: 0.5rem;">⚙️ OMEGA: Reindexační Generátor</h2>
-        <p style="color: var(--text-muted); margin-bottom: 2rem;">Připravte nová díla do fronty (Staging Area). Systém matematicky přepočítá ID a vygeneruje hotový instalační soubor.</p>
+    <div id="omega-admin-portal" style="display: none; padding: 2rem; max-width: 800px; margin: 0 auto; background: transparent; height: 100vh; overflow-y: auto; box-sizing: border-box; padding-bottom: 5rem;">
+        <div style="margin-bottom: 2rem;">
+            <button onclick="attemptAdminExit()" style="background: transparent; border: 1px solid var(--border); color: var(--text-muted); padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: 0.2s;" onmouseover="this.style.color='var(--text-main)'; this.style.borderColor='var(--text-main)';" onmouseout="this.style.color='var(--text-muted)'; this.style.borderColor='var(--border)';">
+                🔙 Opustit administraci a vrátit se do aplikace
+            </button>
+        </div>
+        <h2 style="color: var(--accent-primary); margin-bottom: 0.5rem;">📚 Úprava maturitního seznamu</h2>
+        <p style="color: var(--text-muted); margin-bottom: 2rem;">Připravte změny do fronty. Systém je automaticky zpracuje a zaktualizuje školní databázi pro všechny studenty.</p>
         
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 2rem; background: rgba(0,0,0,0.1); padding: 1.5rem; border-radius: 8px;">
-            <input type="text" id="admin-dilo" class="styled-input" placeholder="Název díla (např. Bílá nemoc)">
-            <input type="text" id="admin-autor" class="styled-input" placeholder="Autor (např. Karel Čapek)" list="existujici-autori" autocomplete="off">
-            <datalist id="existujici-autori"></datalist>
+        <div style="background: var(--bg-surface); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 2rem;">
             
-            <select id="admin-obdobi" class="styled-input">
-                <option value="do18">Do konce 18. st.</option>
-                <option value="19">19. století</option>
-                <option value="svet20">Svět 20. a 21. st.</option>
-                <option value="cz20">ČR 20. a 21. st.</option>
-            </select>
-            
-            <select id="admin-druh" class="styled-input">
-                <option value="epika">Epika</option>
-                <option value="lyrika">Lyrika</option>
-                <option value="drama">Drama</option>
-            </select>
-            
-            <input type="number" id="admin-index" class="styled-input" placeholder="Cílové ID (pozice v aktuálním seznamu)" min="1" style="grid-column: span 2;">
-            
-            <button class="btn" onclick="addToStagingQueue()" style="grid-column: span 2; padding: 12px; background: transparent; border: 2px dashed var(--accent-primary, var(--accent-rust)); color: var(--text-main);">+ Přidat do fronty</button>
+            <div style="display: flex; gap: 20px; border-bottom: 1px solid var(--border); margin-bottom: 1.5rem; padding-bottom: 10px;">
+                <button id="tab-add" onclick="switchAdminMode('add')" style="background: transparent; border: none; border-bottom: 2px solid var(--accent-primary); color: var(--text-main); font-weight: bold; cursor: pointer; padding-bottom: 5px; opacity: 1; transition: 0.2s;">➕ Přidat dílo</button>
+                <button id="tab-remove" onclick="switchAdminMode('remove')" style="background: transparent; border: none; border-bottom: 2px solid transparent; color: var(--text-main); font-weight: bold; cursor: pointer; padding-bottom: 5px; opacity: 0.5; transition: 0.2s;">🗑️ Odebrat dílo</button>
+            </div>
+
+            <div id="admin-form-add" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <input type="text" id="admin-dilo" class="styled-input" placeholder="Název díla (např. Bílá nemoc)">
+                <input type="text" id="admin-autor" class="styled-input" placeholder="Autor (např. Karel Čapek)" list="existujici-autori" autocomplete="off">
+                <datalist id="existujici-autori"></datalist>
+                
+                <select id="admin-obdobi" class="styled-input">
+                    <option value="do18">Do konce 18. st.</option>
+                    <option value="19">19. století</option>
+                    <option value="svet20">Svět 20. a 21. st.</option>
+                    <option value="cz20">ČR 20. a 21. st.</option>
+                </select>
+                
+                <select id="admin-druh" class="styled-input">
+                    <option value="epika">Epika</option>
+                    <option value="lyrika">Lyrika</option>
+                    <option value="drama">Drama</option>
+                </select>
+                
+                <input type="number" id="admin-index" class="styled-input" placeholder="Cílové ID (pozice v seznamu)" min="1" style="grid-column: span 2;">
+                
+                <button class="btn" onclick="addToStagingQueue()" style="grid-column: span 2; padding: 12px; background: transparent; border: 2px dashed var(--accent-primary); color: var(--text-main);">+ Přidat do fronty</button>
+            </div>
+
+            <div id="admin-form-remove" style="display: none; grid-template-columns: 1fr; gap: 15px;">
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0;">Zadejte ID knihy, kterou chcete trvale vyřadit. Ostatní knihy se automaticky posunou níže.</p>
+                <div style="display: flex; gap: 15px;">
+                    <input type="number" id="admin-delete-id" class="styled-input" placeholder="ID k odstranění" min="1" style="flex: 2;">
+                    <button class="btn danger-btn" onclick="addToDeleteQueue()" style="flex: 1; font-weight: bold;">🗑️ Přidat k odstranění</button>
+                </div>
+            </div>
+            <div id="omega-confirm-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(4px); z-index: 10000; justify-content: center; align-items: center;">
+                <div style="background: var(--bg-surface); padding: 30px; border-radius: 12px; border: 1px solid var(--accent-red); width: 90%; max-width: 450px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
+        
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">⚠️</div>
+                    <h3 style="margin-top: 0; color: var(--text-main); font-size: 1.4rem;">Potvrdit nevratné změny?</h3>
+        
+                    <div id="confirm-modal-summary" style="background: rgba(218, 33, 40, 0.05); border: 1px solid rgba(218, 33, 40, 0.2); border-radius: 8px; padding: 15px; margin: 20px 0; text-align: left; font-size: 0.9rem; color: var(--text-main);"></div>
+
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 25px; line-height: 1.5;">
+                        Tato akce okamžitě přepíše produkční databázi školy. Změny se projeví všem studentům během několika sekund.
+                    </p>
+        
+                    <div style="display: flex; gap: 15px;">
+                        <button onclick="closeConfirmModal()" class="btn" style="flex: 1; background: transparent; border: 1px solid var(--border); color: var(--text-muted);">Zrušit</button>
+                        <button id="btn-final-execute" class="btn danger-btn" style="flex: 1; font-weight: bold; background: var(--accent-red); color: white;">Provést zápis</button>
+                    </div>
+                </div>
+            </div>
+            <div id="omega-recovery-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); backdrop-filter: blur(8px); z-index: 10000; justify-content: center; align-items: center;">
+                <div style="background: var(--bg-surface); padding: 30px; border-radius: 12px; border: 2px solid var(--accent-red, #da2128); width: 90%; max-width: 450px; text-align: center; box-shadow: 0 20px 50px rgba(218,33,40,0.2);">
+                    
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">☢️</div>
+                    <h3 style="margin-top: 0; color: var(--text-main); font-size: 1.4rem;">Kritická obnova systému</h3>
+                    
+                    <div id="recovery-step-1">
+                        <p style="color: var(--text-main); font-size: 0.95rem; margin-bottom: 15px;">Chystáte se přepsat celou databázi nahraným záložním souborem.</p>
+                        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 25px;">Tato akce okamžitě nahradí stávající maturitní seznam. Jste si jisti, že nahráváte správný soubor?</p>
+                        
+                        <div style="display: flex; gap: 15px;">
+                            <button onclick="closeRecoveryModal()" class="btn" style="flex: 1; background: transparent; border: 1px solid var(--border); color: var(--text-muted);">Zrušit</button>
+                            <button onclick="showRecoveryStep2()" class="btn" style="flex: 1; background: var(--accent-primary, #e67e22); color: white; border: none; font-weight: bold;">Ano, pokračovat</button>
+                        </div>
+                    </div>
+
+                    <div id="recovery-step-2" style="display: none;">
+                        <div style="background: rgba(218, 33, 40, 0.1); border: 1px solid rgba(218, 33, 40, 0.3); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+                            <strong style="color: var(--accent-red, #da2128); display: block; margin-bottom: 5px;">POSLEDNÍ VAROVÁNÍ</strong>
+                            <span style="color: var(--text-main); font-size: 0.85rem;">Tento krok je naprosto nevratný. Jakékoliv novější změny budou navždy ztraceny.</span>
+                        </div>
+                        
+                        <div style="display: flex; gap: 15px;">
+                            <button onclick="closeRecoveryModal()" class="btn" style="flex: 1; background: transparent; border: 1px solid var(--border); color: var(--text-muted);">Zrušit obnovu</button>
+                            <button onclick="executeFinalRecovery()" class="btn danger-btn" style="flex: 1; font-weight: bold; background: var(--accent-red, #da2128); color: white; border: none;">🔥 Přepsat databázi</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <h3 style="margin-bottom: 1rem; color: var(--text-main);">Fronta k přidání (Staging Area)</h3>
-        <div id="staging-queue-list" style="margin-bottom: 2rem; border: 1px solid var(--border); border-radius: 6px; padding: 1rem; min-height: 50px;">
-            <em style="color: var(--text-muted);">Fronta je prázdná...</em>
+        <h3 style="margin-bottom: 1rem; color: var(--text-main);">Fronta změn k odeslání</h3>
+        <div id="staging-queue-list" style="margin-bottom: 2rem; border: 1px solid var(--border); border-radius: 6px; padding: 1rem; background: var(--bg-surface); min-height: 50px;">
+            <em style="color: var(--text-muted);">Zatím nebyla připravena žádná díla ke změně...</em>
         </div>
 
-        <button class="btn success-btn" onclick="prepareDatabaseExport()" style="width: 100%; padding: 15px; font-size: 1.1rem; font-weight: bold; background: var(--bg-active); border: 1px solid var(--accent-primary, var(--accent-rust)); color: var(--text-main);">
-            ⚙️ Vygenerovat databázi
+        <button class="btn success-btn" onclick="prepareDatabaseExport()" style="width: 100%; padding: 15px; font-size: 1.1rem; font-weight: bold;">
+            💾 Uložit změny a přepsat databázi
         </button>
+
+        <div style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--border);">
+            <h3 style="margin-bottom: 0.5rem; color: var(--text-muted);">🚑 Obnova ze zálohy</h3>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;">Pokud jste udělali chybu, nahrajte sem automaticky staženou zálohu (soubor .js).</p>
+            <input type="file" id="restore-file-input" accept=".js" style="display: none;" onchange="executeDisasterRecovery(event)">
+            <button class="btn" onclick="document.getElementById('restore-file-input').click()" style="width: 100%; padding: 12px; background: transparent; border: 1px dashed var(--text-muted); color: var(--text-muted);">
+                ⏪ Nahrát záložní soubor
+            </button>
+        </div>
     </div>
-    <div id="omega-auth-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); backdrop-filter: blur(10px); z-index: 9999; justify-content: center; align-items: center;">
-        <div style="background: #1a1a1a; padding: 30px; border-radius: 12px; border: 1px solid #333; width: 90%; max-width: 350px; text-align: center; box-shadow: 0 10px 50px rgba(0,0,0,1);">
+
+    <div id="omega-auth-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px); z-index: 9999; justify-content: center; align-items: center;">
+        <div style="background: var(--bg-surface); padding: 30px; border-radius: 12px; border: 1px solid var(--border); width: 90%; max-width: 350px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
             
-            <h3 style="margin-top: 0; color: #ffffff !important; font-size: 1.2rem; font-weight: bold; letter-spacing: 0.5px;">🔐 OMEGA Oprávnění</h3>
-            <div id="auth-error-msg" style="display: none; color: #ff4d4d; font-size: 0.8rem; margin-bottom: 10px; font-weight: bold;"></div>
-            <p style="color: #cccccc !important; font-size: 0.85rem; margin-bottom: 25px; line-height: 1.4;">Zadejte administrátorské heslo pro manipulaci s databází.</p>
+            <h3 style="margin-top: 0; color: var(--text-main); font-size: 1.2rem; font-weight: bold;">🔐 Správa databáze</h3>
+            <div id="auth-error-msg" style="display: none; color: var(--accent-red, #ff4d4d); font-size: 0.8rem; margin-bottom: 10px; font-weight: bold;"></div>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 25px; line-height: 1.4;">Zadejte heslo pro úpravu seznamu četby.</p>
             
-            <input type="password" id="admin-password-input" class="styled-input" placeholder="Heslo..." style="margin-bottom: 20px; text-align: center; letter-spacing: 4px; background: #222; color: #fff; border: 1px solid #444;">
+            <input type="password" id="admin-password-input" class="styled-input" placeholder="Heslo..." style="margin-bottom: 20px; text-align: center; letter-spacing: 4px; width: 100%; box-sizing: border-box;">
             
             <div style="display: flex; gap: 12px;">
-                <button id="btn-auth-cancel" class="btn" style="flex: 1; background: transparent; border: 1px solid #444; color: #888; font-size: 0.8rem;">Zrušit</button>
-                <button id="btn-auth-submit" class="btn" style="flex: 1; background: var(--accent-primary, #e67e22); border: none; font-weight: bold; color: #fff;">Vstoupit</button>
+                <button id="btn-auth-cancel" class="btn" style="flex: 1; background: transparent; border: 1px solid var(--border); color: var(--text-muted); font-size: 0.8rem;">Zrušit</button>
+                <button id="btn-auth-submit" class="btn success-btn" style="flex: 1; font-weight: bold;">Vstoupit</button>
             </div>
+        </div>
+    </div>
+    <div id="omega-exit-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(4px); z-index: 10000; justify-content: center; align-items: center;">
+        <div style="background: var(--bg-surface); padding: 30px; border-radius: 12px; border: 1px solid var(--accent-primary, #e67e22); width: 90%; max-width: 400px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">🏃‍♂️</div>
+            <h3 style="margin-top: 0; color: var(--text-main);">Máte neuložené změny</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 25px;">Ve frontě jsou připravené úpravy. Pokud nyní odejdete, všechny tyto změny budou ztraceny.</p>
+            <div style="display: flex; gap: 15px;">
+                <button onclick="closeExitModal()" class="btn" style="flex: 1; background: transparent; border: 1px solid var(--border); color: var(--text-muted);">Zůstat</button>
+                <button onclick="confirmAdminExit()" class="btn danger-btn" style="flex: 1; font-weight: bold; background: var(--accent-red, #da2128); color: white; border: none;">Zahodit změny</button>
+            </div>
+        </div>
+    </div>
+    <div id="omega-timeout-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(4px); z-index: 10000; justify-content: center; align-items: center;">
+        <div style="background: var(--bg-surface); padding: 30px; border-radius: 12px; border: 1px solid var(--accent-primary, #e67e22); width: 90%; max-width: 400px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">⏱️</div>
+            <h3 style="margin-top: 0; color: var(--text-main);">Relace uzamčena</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 25px;">Z bezpečnostních důvodů byla administrace po 5 minutách nečinnosti automaticky ukončena. Případné neuložené změny ve frontě byly zahozeny.</p>
+            <button onclick="document.getElementById('omega-timeout-modal').style.display='none'" class="btn" style="width: 100%; font-weight: bold; background: var(--accent-primary, #e67e22); color: white; border: none;">Rozumím</button>
         </div>
     </div>
     <script src="app.js"></script>
