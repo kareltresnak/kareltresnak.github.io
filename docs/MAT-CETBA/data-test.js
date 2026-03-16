@@ -1,9 +1,9 @@
 // =====================================================================
 // KONFIGURACE PROSTŘEDÍ: SPŠ a VOŠ PŘÍBRAM (VÝCHOZÍ)
+// Vektor: ?theme=spspb nebo žádný
 // =====================================================================
 
 window.OMEGA_CONFIG = {
-    LAST_UPDATE: "16. 3. 2026",
     REQUIREMENTS: { do18: 2, "19": 3, svet20: 4, cz20: 5, lyrika: 2, epika: 2, drama: 2 },
     
     FORM_HTML: `
@@ -16,6 +16,7 @@ window.OMEGA_CONFIG = {
             </div>
         </div>
     `,
+    // data-spspb.js
     RULES_HTML: "",
     FORM_FIELDS: ['name', 'dob', 'class', 'year'],
 
@@ -137,7 +138,7 @@ window.OMEGA_CONFIG = {
             </div>
         `;
     },
-
+    
     KNIHY_DB: [
         { id: 1, dilo: "Ilias", autor: "Homér", druh: "epika", obdobi: "do18" },
         { id: 2, dilo: "Romeo a Julie", autor: "William Shakespeare", druh: "drama", obdobi: "do18" },
@@ -205,6 +206,5 @@ window.OMEGA_CONFIG = {
         { id: 64, dilo: "Vražda v Orient-expresu", autor: "Agatha Christie", druh: "epika", obdobi: "svet20" },
         { id: 65, dilo: "Velký Gatsby", autor: "Francis Scott Fitzgerald", druh: "epika", obdobi: "svet20" },
         { id: 66, dilo: "Pýcha a předsudek", autor: "Jane Austenová", druh: "epika", obdobi: "19" },
-        { id: 67, dilo: "Bílá nemoc", autor: "Karel Čapek", druh: "epika", obdobi: "cz20" }
     ]
 };
