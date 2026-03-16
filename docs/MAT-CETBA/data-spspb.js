@@ -40,8 +40,8 @@ window.OMEGA_CONFIG = {
                 <tr>
                     <td class="col-c">${counter++}.</td>
                     <td class="col-cs">${k.id}</td>
-                    <td class="col-autor">${k.autor}</td>
-                    <td class="col-nazev">${k.dilo}</td>
+                    <td class="col-autor">${sanitize(k.autor)}</td>
+                    <td class="col-nazev">${sanitize(k.dilo)}</td>
                 </tr>
             `).join('');
         };
@@ -58,16 +58,27 @@ window.OMEGA_CONFIG = {
                 }
 
                 .print-page {
-                    width: 800px !important; 
-                    min-width: 800px !important;
+                    /* Topologie A4 formátu */
+                    width: 210mm !important; 
+                    min-height: 297mm !important;
                     margin: 0 auto;
-                    padding: 55px 75px; 
+                    padding: 20mm 15mm; 
                     background: white !important;
                     color: black !important;
                     font-family: 'Times New Roman', 'Arial', sans-serif !important; 
                     position: relative;
                     box-sizing: border-box;
-                    overflow: hidden;
+                }
+
+                /* 📐 ANTI-FRACTURE PROTOKOL: Ochrana proti zlomení textu */
+                .official-table { width: 100%; border-collapse: collapse; }
+                .official-table tr { 
+                    page-break-inside: avoid; 
+                    break-inside: avoid; 
+                }
+                .official-table .subheader { 
+                    page-break-after: avoid; 
+                    break-after: avoid; 
                 }
             </style>
             
@@ -86,7 +97,7 @@ window.OMEGA_CONFIG = {
                                     <tr>
                                         <td class="header-logo-col"><img src="spspb-logo-2000px.png" class="print-logo" alt="Znak SPŠ"></td>
                                         <td class="header-text-col">
-                                            Střední průmyslová škola a Vyšší odborná škola Příbram II,Hrabákova 271<br>
+                                            Střední průmyslová škola a Vyšší odborná škola Příbram II, Hrabákova 271<br>
                                             Seznam literárních děl: <strong>MATURITNÍ ZKOUŠKA Z ČJL - ústní část</strong>
                                         </td>
                                         <td class="header-spacer-col"></td>
@@ -127,7 +138,7 @@ window.OMEGA_CONFIG = {
             </div>
         `;
     },
-
+    
     KNIHY_DB: [
         { id: 1, dilo: "Ilias", autor: "Homér", druh: "epika", obdobi: "do18" },
         { id: 2, dilo: "Romeo a Julie", autor: "William Shakespeare", druh: "drama", obdobi: "do18" },

@@ -73,7 +73,7 @@ if (themeToggleBtn) {
 }
 // ==========================================
 
-// ======= KRYPTOGRAFICKÝ CHECKSUM DATABÁZE (TOTO PŘIDEJ) =======
+
 function generateDbHash(db) {
     const str = db.map(k => k.id + k.dilo).join('|');
     let hash = 0;
@@ -84,7 +84,7 @@ function generateDbHash(db) {
     return hash.toString(36); // Generuje např. "1j4k2a"
 }
 const DB_VERSION = generateDbHash(KNIHY_DB);
-// ==============================================================
+
 
 // Dynamická injekce formuláře a navázání event listenerů
 document.getElementById('dynamic-form-container').innerHTML = window.OMEGA_CONFIG.FORM_HTML;
@@ -1086,14 +1086,12 @@ window.addEventListener('beforeunload', (e) => {
 const adminUrlParams = new URLSearchParams(window.location.search);
 if (adminUrlParams.get('mat_cet_admin') === 'true') {
     // --- NUKLEÁRNÍ UI LOCKDOWN ---
-    // Agresivní skrytí všech prvků studentské aplikace i přes CSS Media Queries
     const appElements = ['.layout', 'header', '.mobile-nav', 'footer', '.brand', 'main'];
     appElements.forEach(selector => {
         const el = document.querySelector(selector);
         if (el) el.style.setProperty('display', 'none', 'important');
     });
     
-    // Zajištění, že body půjde scrollovat, pokud by ho mobilní nav blokovala
     document.body.style.setProperty('overflow-y', 'auto', 'important');
     document.body.style.setProperty('padding-bottom', '0', 'important');
     // ------------------------------
@@ -1107,22 +1105,43 @@ if (adminUrlParams.get('mat_cet_admin') === 'true') {
     authModal.style.display = 'flex';
     passInput.focus();
 
+    // 🔐 OMEGA AUTHENTICATION ENGINE (Zero-Trust Edition)
     const unlockAdminPortal = async () => {
-        const inputVal = passInput.value.trim();
-        if (!inputVal) return;
+        const inputVal = passInput.value;
+        
+        // 1. Extrakce kryptografického důkazu (Turnstile) z přihlašovacího okna
+        const authTurnstileInput = document.querySelector('#omega-auth-modal [name="cf-turnstile-response"]');
+        const turnstileToken = authTurnstileInput ? authTurnstileInput.value : null;
+
+        if (!turnstileToken) {
+            errorMsg.innerHTML = "⚠️ Vyčkejte na ověření Cloudflare (bezpečnostní check).";
+            errorMsg.style.display = 'block';
+            return;
+        }
+
+        if (!inputVal) {
+            errorMsg.innerHTML = "⚠️ Zadejte administrátorské heslo.";
+            errorMsg.style.display = 'block';
+            return;
+        }
 
         errorMsg.style.display = 'none';
         submitBtn.disabled = true;
-        submitBtn.innerHTML = "⌛ Ověřuji...";
+        submitBtn.innerHTML = "⌛ Ověřuji přes Edge...";
 
         try {
+            // 2. Odeslání asymetrického payloadu (Heslo + Důkaz) na Worker
             const response = await fetch(OMEGA_ADMIN_CONFIG.WORKER_URL, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ password: inputVal })
+                body: JSON.stringify({ 
+                    password: inputVal,
+                    cf_token: turnstileToken
+                })
             });
 
             if (response.ok) {
+                // 3. ÚSPĚCH
                 sessionPassword = inputVal;
                 authModal.style.display = 'none';
                 document.getElementById('omega-admin-portal').style.display = 'block';
@@ -1130,6 +1149,7 @@ if (adminUrlParams.get('mat_cet_admin') === 'true') {
                 navrhniDalsiVolneId();
                 if (typeof trackOmegaEvent === 'function') trackOmegaEvent('Admin_Portal_Accessed');
             } else {
+                // 4. SELHÁNÍ (Heslo nebo Token)
                 const data = await response.json();
                 errorMsg.innerHTML = "❌ " + (data.error || "Přístup odepřen.");
                 errorMsg.style.display = 'block';
@@ -1142,8 +1162,24 @@ if (adminUrlParams.get('mat_cet_admin') === 'true') {
         } finally {
             submitBtn.disabled = false;
             submitBtn.innerHTML = "Vstoupit";
-        }
-    };
+            
+            // 🛡️ Bezpečnostní destrukce: Exaktní reset konkrétního uzlu
+            if (typeof turnstile !== 'undefined') {
+                try {
+                    // Zamíříme přesně na přihlašovací widget
+                    turnstile.reset('#omega-auth-ts');
+                } catch (e) {
+                    turnstile.reset(); // Fallback
+                }
+                
+                // 🔄 Vizuální reset stavového automatu
+                const statusEl = document.getElementById('ts-status-auth');
+                if (statusEl) {
+                    statusEl.innerHTML = "⏳ Generuji nový klíč...";
+                    statusEl.style.color = "var(--accent-primary, #e67e22)";
+                }
+            }
+        }};
 
     submitBtn.onclick = unlockAdminPortal;
     passInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') unlockAdminPortal(); });
@@ -1443,9 +1479,20 @@ window.executeFinalRecovery = function() {
     pushToCloudflare(pendingRecoveryPayload); 
 };
 
-// --- 🧬 OMEGA EXPORT ENGINE ---
+// --- 🧬 OMEGA EXPORT ENGINE (Zero-Trust Edition) ---
 
 window.prepareDatabaseExport = async function() {
+    // 1. 🛡️ ZERO-TRUST BARIÉRA: Extrakce Turnstile Tokenu
+    const turnstileInput = document.querySelector('[name="cf-turnstile-response"]');
+    const turnstileToken = turnstileInput ? turnstileInput.value : null;
+
+    if (!turnstileToken) {
+        showToast("⚠️ Bezpečnostní systém Cloudflare vás ještě neověřil. Zkuste to za okamžik znovu.");
+        console.warn("OMEGA Edge Security: Chybí Turnstile token.");
+        return; // Zastaví exekuci, modál se vůbec neotevře
+    }
+
+    // 2. Kontrola logiky aplikace
     if (stagingQueue.length === 0 && deleteQueue.length === 0) {
         showToast("⚠️ Fronta změn je prázdná. Připravte alespoň jedno dílo.");
         return;
@@ -1471,13 +1518,13 @@ window.prepareDatabaseExport = async function() {
             origPtr++; 
         }
     }
+    
     if (pendingBooks.length > 0) {
         pendingBooks.forEach(orphan => {
             newDb.push({ id: newDb.length + 1, dilo: orphan.dilo, autor: orphan.autor, druh: orphan.druh, obdobi: orphan.obdobi });
         });
     }
 
-    // Pomocná funkce pro bezpečný únik (Escaping)
     const bezpecnyText = (str) => str.replace(/"/g, '\\"');
 
     const formattedDbString = "[\n" + newDb.map(k => 
@@ -1525,7 +1572,8 @@ window.OMEGA_CONFIG = {
     
     document.getElementById('btn-final-execute').onclick = () => {
         closeConfirmModal();
-        pushToCloudflare(pendingExportPayload);
+        // 3. 🛡️ TRANSPORTNÍ VRSTVA: Přidáváme token jako druhý argument
+        pushToCloudflare(pendingExportPayload, turnstileToken);
     };
 };
 
@@ -1533,39 +1581,71 @@ window.closeConfirmModal = function() {
     document.getElementById('omega-confirm-modal').style.display = 'none';
 };
 
-// --- 🌐 CLOUDFLARE TRANSPORT ---
+// --- 🌐 CLOUDFLARE TRANSPORT (Zero-Trust Edition) ---
 
-function pushToCloudflare(fileContent) {
+function pushToCloudflare(fileContent, turnstileToken) {
     const modal = document.getElementById('admin-confirmation-modal');
     const msgEl = document.getElementById('admin-confirmation-msg');
     const downloadBtn = document.getElementById('btn-actual-download');
     
     modal.style.display = 'flex';
-    msgEl.innerHTML = `⏳ <strong>Kompiluji databázi a odesílám na server...</strong><br>Prosím, nezavírejte okno.`;
+    msgEl.innerHTML = `⏳ <strong>Kompiluji databázi a ověřuji identitu přes Edge...</strong><br>Prosím, nezavírejte okno.`;
     if (downloadBtn) downloadBtn.style.display = 'none';
 
     fetch(OMEGA_ADMIN_CONFIG.WORKER_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fileContent: fileContent, password: sessionPassword })
+        // 🛡️ ZERO-TRUST: Integrace tokenu do tělíčka požadavku
+        body: JSON.stringify({ 
+            fileContent: fileContent, 
+            password: sessionPassword,
+            cf_token: turnstileToken 
+        })
     })
     .then(async (response) => {
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "Neznámá chyba serveru.");
         
-        msgEl.innerHTML = `✅ <strong>AKTUALIZACE ÚSPĚŠNÁ!</strong><br>Databáze byla přímo zapsána do repozitáře.<br><br><span style="color:var(--accent-primary)">Změny se projeví za cca 30-60 sekund.</span>`;
+        msgEl.innerHTML = `✅ <strong>AKTUALIZACE ÚSPĚŠNÁ!</strong><br>Databáze byla exaktně zapsána do repozitáře.<br><br><span style="color:var(--accent-primary)">Změny se plně propagují za cca 30-60 sekund.</span>`;
         
         stagingQueue = [];
         deleteQueue = [];
         renderStagingQueue();
         if (typeof navrhniDalsiVolneId === 'function') navrhniDalsiVolneId();
+        
+        // 🛡️ Bezpečnostní reset pro EXPORT widget (Exaktní zacílení v paměti DOMu)
+        if (typeof turnstile !== 'undefined') {
+            try { turnstile.reset('#omega-export-ts'); } catch (e) { turnstile.reset(); }
+            const statusEl = document.getElementById('ts-status-export');
+            if (statusEl) {
+                statusEl.innerHTML = "⏳ Zajišťuji kryptografický podpis pro zápis...";
+                statusEl.style.color = "var(--accent-primary, #e67e22)";
+            }
+        }
     })
     .catch((error) => {
-        msgEl.innerHTML = `❌ <strong>CHYBA PŘI ODESÍLÁNÍ:</strong><br>${error.message}`;
+        msgEl.innerHTML = `❌ <strong>BEZPEČNOSTNÍ NEBO SÍŤOVÁ CHYBA:</strong><br>${error.message}`;
         if (downloadBtn) {
             downloadBtn.style.display = 'block';
-            downloadBtn.textContent = "Zkusit odeslat znovu";
-            downloadBtn.onclick = () => pushToCloudflare(fileContent); 
+            downloadBtn.textContent = "Zavřít a vygenerovat nový podpis";
+            // Obrana proti Replay Attack: Zavřeme okno a nutíme uživatele vygenerovat čerstvý token.
+            downloadBtn.onclick = () => {
+                if (typeof closeAdminConfirmationModal === 'function') {
+                    closeAdminConfirmationModal();
+                } else {
+                    modal.style.display = 'none';
+                }
+            }; 
+        }
+        
+        // 🛡️ Bezpečnostní reset pro EXPORT widget při chybě
+        if (typeof turnstile !== 'undefined') {
+            try { turnstile.reset('#omega-export-ts'); } catch (e) { turnstile.reset(); }
+            const statusEl = document.getElementById('ts-status-export');
+            if (statusEl) {
+                statusEl.innerHTML = "⏳ Generuji nový klíč po chybě...";
+                statusEl.style.color = "var(--accent-primary, #e67e22)";
+            }
         }
     });
 }
@@ -1597,3 +1677,40 @@ window.closeAdminConfirmationModal = function() {
         }, 1500);
     });
 })();
+
+// ==========================================
+// 🛡️ ZERO-TRUST: EDGE CALLBACK LISTENERS
+// ==========================================
+
+window.turnstileSuccessAuth = function(token) {
+    const statusEl = document.getElementById('ts-status-auth');
+    if (statusEl) {
+        statusEl.innerHTML = "✅ Pásmo zajištěno";
+        statusEl.style.color = "var(--accent-green, #22c55e)";
+    }
+};
+
+window.turnstileExpiredAuth = function() {
+    const statusEl = document.getElementById('ts-status-auth');
+    if (statusEl) {
+        statusEl.innerHTML = "⚠️ Kryptografický klíč vypršel. Obnovuji...";
+        statusEl.style.color = "var(--accent-red, #da2128)";
+    }
+    // Turnstile se sám pokusí o auto-refresh, pokud je v interakčním módu.
+};
+
+window.turnstileSuccessExport = function(token) {
+    const statusEl = document.getElementById('ts-status-export');
+    if (statusEl) {
+        statusEl.innerHTML = "✅ Podpis připraven. Můžete bezpečně zapsat data.";
+        statusEl.style.color = "var(--accent-green, #22c55e)";
+    }
+};
+
+window.turnstileExpiredExport = function() {
+    const statusEl = document.getElementById('ts-status-export');
+    if (statusEl) {
+        statusEl.innerHTML = "⚠️ Platnost podpisu vypršela. Obnovuji...";
+        statusEl.style.color = "var(--accent-red, #da2128)";
+    }
+};
