@@ -1483,10 +1483,15 @@ window.executeFinalRecovery = function() {
         return;
     }
 
-    closeRecoveryModal();
+    // 2. 💾 KOPIE DO BEZPEČÍ: Vytáhneme payload před destrukcí
+    const payloadToPush = pendingRecoveryPayload;
+
+    // 3. 🧹 LOKÁLNÍ ÚKLID: Zavřeme modál napřímo (bez vyvolání Toastu o zrušení)
+    document.getElementById('omega-recovery-modal').style.display = 'none';
+    pendingRecoveryPayload = null; // Bezpečnostní výmaz RAM
     
-    // 2. 🚀 TRANSPORT: Odeslání zálohy včetně kryptografického důkazu
-    pushToCloudflare(pendingRecoveryPayload, turnstileToken); 
+    // 4. 🚀 TRANSPORT: Odeslání plných dat + důkazu
+    pushToCloudflare(payloadToPush, turnstileToken); 
 };
 
 // --- 🧬 OMEGA EXPORT ENGINE (Zero-Trust Edition) ---
