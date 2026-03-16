@@ -1474,9 +1474,19 @@ window.closeRecoveryModal = function() {
 };
 
 window.executeFinalRecovery = function() {
+    // 1. 🛡️ ZERO-TRUST BARIÉRA: Získání tokenu z administračního uzlu
+    const turnstileInput = document.querySelector('#omega-export-ts [name="cf-turnstile-response"]');
+    const turnstileToken = turnstileInput ? turnstileInput.value : null;
+
+    if (!turnstileToken) {
+        showToast("⚠️ Bezpečnostní systém Edge ještě nevygeneroval podpis. Vyčkejte sekundu a zkuste to znovu.");
+        return;
+    }
+
     closeRecoveryModal();
-    // Odpalujeme hlavní transportní funkci se záložními daty!
-    pushToCloudflare(pendingRecoveryPayload); 
+    
+    // 2. 🚀 TRANSPORT: Odeslání zálohy včetně kryptografického důkazu
+    pushToCloudflare(pendingRecoveryPayload, turnstileToken); 
 };
 
 // --- 🧬 OMEGA EXPORT ENGINE (Zero-Trust Edition) ---
