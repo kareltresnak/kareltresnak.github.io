@@ -813,7 +813,7 @@ elements.btnScrollTop?.addEventListener('click', () => {
 // Zobrazení času poslední aktualizace
 const auditEl = document.getElementById('audit-trail-date');
 if (auditEl && window.OMEGA_CONFIG.LAST_UPDATE) {
-    auditEl.innerHTML = `Aktualizováno: <strong>${window.OMEGA_CONFIG.LAST_UPDATE}</strong>`;
+    auditEl.innerHTML = `AKTUALIZOVÁNO: <span style="white-space: nowrap;"><strong>${window.OMEGA_CONFIG.LAST_UPDATE}</strong></span>`;
 }
 
 if ('caches' in window) {
