@@ -1,4 +1,4 @@
-const CACHE_NAME = 'SPS_Selekce_MAT_CETBY_v7.4.0'; 
+const CACHE_NAME = 'SPS_Selekce_MAT_CETBY_v7.4.1'; 
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
@@ -9,7 +9,7 @@ const ASSETS_TO_CACHE = [
     './spspb-logo-2000px.png',
     './manifest.json',
     // Nativní offline generátor QR kódů
-    'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js'
+    './qrcode.min.js'
 ];
 
 // Fáze 1: Instalace a nabití Cache

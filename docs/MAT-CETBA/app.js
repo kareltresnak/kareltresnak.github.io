@@ -23,7 +23,7 @@ const REQUIREMENTS = window.OMEGA_CONFIG.REQUIREMENTS;
 /* ==========================================
    OMEGA TELEMETRY ENGINE
    ========================================== */
-const OMEGA_VERSION = '7.0.0-dev'; // Změněno na dev verzi
+const OMEGA_VERSION = '7.4.1';
 
 function trackOmegaEvent(eventName, eventData = {}) {
     if (typeof umami !== 'undefined') {
@@ -35,16 +35,25 @@ function trackOmegaEvent(eventName, eventData = {}) {
 // INSTITUCIONÁLNÍ BRANDING A THEME ENGINE
 // ==========================================
 
-// 1. Dynamická injekce loga (Pouze pro SPŠPB režim)
+// 1. 🛡️ URL SYNC: Adresa má vždy přednost před lokální pamětí
+const urlInitParams = new URLSearchParams(window.location.search);
+const themeFromUrl = urlInitParams.get('theme');
+
+if (themeFromUrl) {
+    // Pokud je v odkazu explicitní téma (např. někdo nám poslal link), uložíme ho jako pravdu
+    localStorage.setItem('omega_theme', themeFromUrl);
+}
+
+// Nyní můžeme bezpečně načíst aktuální instituci
 const currentRozcestnik = localStorage.getItem('omega_theme') || 'default';
+
+// 2. Dynamická injekce loga (Pouze pro SPŠPB režim)
 if (currentRozcestnik === 'spspb') {
     const brandEl = document.querySelector('.brand');
     if (brandEl && !document.getElementById('brand-logo')) {
-        // Vložení loga před text nadpisu s optickým zarovnáním
         brandEl.innerHTML = `<img id="brand-logo" src="spspb-logo-2000px.png" alt="SPŠ Logo" style="height: 1.1em; vertical-align: text-bottom; margin-right: 8px; border-radius: 2px;">` + brandEl.innerHTML;
     }
 }
-
 // 2. State Machine pro Dark/Light Mode
 const themeToggleBtn = document.getElementById('theme-toggle');
 const themeIcon = document.getElementById('theme-icon');
@@ -64,11 +73,12 @@ applyColorTheme(initialTheme);
 if (themeToggleBtn) {
     themeToggleBtn.addEventListener('click', () => {
         const currentTheme = document.documentElement.getAttribute('data-theme');
-        applyColorTheme(currentTheme === 'light' ? 'dark' : 'light');
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light'; // 🚀 Definice nového stavu
+        
+        applyColorTheme(newTheme);
 
         // 🎯 TELEMETRIE: Změna motivu
-        trackOmegaEvent('Theme_Switched', { mode: nextTheme });
-
+        trackOmegaEvent('Theme_Switched', { mode: newTheme });
     });
 }
 // ==========================================
@@ -279,11 +289,12 @@ function showPreviewModal(importedIds, newCount) {
     }
 
     // Vykreslení posuvného seznamu
+    // Vykreslení posuvného seznamu
     listEl.innerHTML = importedBooks.map((k) => {
         const alreadyHave = state.selectedIds.has(k.id);
         return `<div style="padding: 6px 0; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
             <span style="color: ${alreadyHave ? 'var(--text-muted)' : 'var(--text-main)'};">
-                <strong>${k.id}.</strong> ${k.dilo} <small style="opacity:0.7">(${k.autor})</small>
+                <strong>${k.id}.</strong> ${sanitize(k.dilo)} <small style="opacity:0.7">(${sanitize(k.autor)})</small>
             </span>
             ${alreadyHave ? '<span style="font-size: 0.7rem; color: var(--accent-green);">Již máte</span>' : '<span style="font-size: 0.7rem; color: var(--accent-primary-light);">Nové</span>'}
         </div>`;
@@ -452,8 +463,8 @@ function renderTable() {
         return `
             <tr data-id="${kniha.id}" class="${isSelected ? 'selected' : ''}" tabindex="${tIndex}">
                 <td>${kniha.id}</td>
-                <td>${isSelected ? '✔ ' : ''}${highlight(kniha.dilo)}</td>
-                <td>${highlight(kniha.autor)}</td>
+                <td>${isSelected ? '✔ ' : ''}${highlight(sanitize(kniha.dilo))}</td>
+                <td>${highlight(sanitize(kniha.autor))}</td>
                 <td>${kniha.druh}</td>
                 <td>${MAPA_OBDOBI[kniha.obdobi]}</td>
             </tr>
@@ -574,8 +585,8 @@ function updateStatsAndSidebar() {
         elements.myList.innerHTML = sortedSelected.map(k => 
             `<div class="selected-item">
                 <div class="selected-item-info">
-                    <strong>${k.id}. ${k.dilo}</strong>
-                    <small>${k.autor}</small>
+                    <strong>${k.id}. ${sanitize(k.dilo)}</strong>
+                    <small>${sanitize(k.autor)}</small>
                 </div>
                 <button type="button" class="remove-btn" data-id="${k.id}" aria-label="Odstranit">×</button>
             </div>`
@@ -819,14 +830,19 @@ if (auditEl && window.OMEGA_CONFIG.LAST_UPDATE) {
 if ('caches' in window) {
     caches.keys().then(keys => {
         const cacheName = keys.find(key => key.includes('SPS_Selekce_MAT_CETBY'));
-        if (cacheName) {
-            const version = cacheName.split('_').pop(); 
-            const versionEl = document.getElementById('app-version-val');
-            if (versionEl) {
-                versionEl.textContent = version;
+        const versionEl = document.getElementById('app-version-val');
+        if (versionEl) {
+            if (cacheName) {
+                const version = cacheName.split('_').pop(); 
+                versionEl.textContent = version.startsWith('v') ? version : 'v' + version;
+            } else {
+                versionEl.textContent = 'v' + OMEGA_VERSION; // Fallback na konstantu 7.4.0
             }
         }
-    }).catch(err => console.error("Nelze načíst verzi z Cache API:", err));
+    }).catch(err => {
+        const versionEl = document.getElementById('app-version-val');
+        if (versionEl) versionEl.textContent = 'v' + OMEGA_VERSION;
+    });
 }
 
 // ======= MOBILE NAVIGATION ENGINE =======
@@ -1066,6 +1082,7 @@ window.attemptAdminExit = function() {
 window.confirmAdminExit = function() {
     // Uživatel potvrdil zahození změn v našem modálu -> deaktivujeme nativní dialog a odejdeme
     isSafeToExit = true;
+    sessionPassword = "";
     window.location.href = window.location.pathname;
 };
 
@@ -1073,11 +1090,25 @@ window.closeExitModal = function() {
     document.getElementById('omega-exit-modal').style.display = 'none';
 };
 
-// Tento nativní blok chytá POUZE pokusy o zavření celého panelu/prohlížeče
-window.addEventListener('beforeunload', (e) => {
+// 🛡️ OBRANNÝ PERIMETR 1: Zachycení zavření karty (BOM Level)
+window.addEventListener('beforeunload', (event) => {
+    // 1. Validace stavu: Jsme v nebezpečí ztráty dat?
+    if (!isSafeToExit && (typeof stagingQueue !== 'undefined' && (stagingQueue.length > 0 || deleteQueue.length > 0))) {
+        
+        // 2. Exekuce blokády (Trojkombinace pro všechny enginy)
+        event.preventDefault(); // Uspokojení moderního standardu
+        event.returnValue = ''; // Uspokojení Chrome/Edge
+        return '';              // Fallback pro starší Safari/Firefox
+    }
+});
+
+window.addEventListener('popstate', (event) => {
     if (!isSafeToExit && (stagingQueue.length > 0 || deleteQueue.length > 0)) {
-        e.preventDefault();
-        e.returnValue = 'Máte neuložená díla ve frontě.';
+        // 1. Zastavení kroku zpět
+        history.pushState(null, document.title, window.location.href);
+        
+        // 2. EXEKUCE: Zobrazení tvého reálného modálu pro odchod
+        document.getElementById('omega-exit-modal').style.display = 'flex';
     }
 });
 
@@ -1088,8 +1119,9 @@ if (adminUrlParams.get('mat_cet_admin') === 'true') {
     // --- NUKLEÁRNÍ UI LOCKDOWN ---
     const appElements = ['.layout', 'header', '.mobile-nav', 'footer', '.brand', 'main'];
     appElements.forEach(selector => {
-        const el = document.querySelector(selector);
-        if (el) el.style.setProperty('display', 'none', 'important');
+        document.querySelectorAll(selector).forEach(el => {
+            el.style.setProperty('display', 'none', 'important');
+        });
     });
     
     document.body.style.setProperty('overflow-y', 'auto', 'important');
@@ -1145,9 +1177,14 @@ if (adminUrlParams.get('mat_cet_admin') === 'true') {
                 sessionPassword = inputVal;
                 authModal.style.display = 'none';
                 document.getElementById('omega-admin-portal').style.display = 'block';
+                
+                // 🚀 INJEKCE HISTORIE: Vytvoříme virtuální krok, aby fungovala šipka zpět
+                history.pushState({ page: 'admin_active' }, "Administrace OMEGA", window.location.href);
+
                 initAuthorAutocomplete();
                 navrhniDalsiVolneId();
                 if (typeof trackOmegaEvent === 'function') trackOmegaEvent('Admin_Portal_Accessed');
+
             } else {
                 // 4. SELHÁNÍ (Heslo nebo Token)
                 const data = await response.json();
@@ -1394,8 +1431,8 @@ window.renderStagingQueue = function() {
         <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; margin-bottom: 8px; background: rgba(34, 197, 94, 0.05); border: 1px solid rgba(34, 197, 94, 0.2); border-radius: 6px;">
             <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 4px;">
                 <span style="${badgeStyle} background: rgba(34, 197, 94, 0.1); color: #16a34a;">Nové ID ${item.targetId}</span>
-                <strong style="color: var(--text-main); font-size: 0.95rem;">${item.dilo}</strong>
-                <span style="color: var(--text-muted); font-size: 0.85rem; margin-left: 4px;">(${item.autor})</span>
+                <strong style="color: var(--text-main); font-size: 0.95rem;">${sanitize(item.dilo)}</strong>
+                <span style="color: var(--text-muted); font-size: 0.85rem; margin-left: 4px;">(${sanitize(item.autor)})</span>
             </div>
             <button type="button" onclick="removeFromQueue(${originalIndex}, 'add')" style="background: var(--bg-surface); border: 1px solid var(--border); border-radius: 4px; padding: 4px 10px; cursor: pointer; color: var(--text-muted); font-size: 0.75rem; font-weight: bold;">Zrušit</button>
         </div>`;
@@ -1441,6 +1478,13 @@ let pendingRecoveryPayload = null; // Buffer pro záložní data
 window.executeDisasterRecovery = async function(event) {
     const file = event.target.files[0];
     if (!file) return;
+
+    // 🛡️ OBRANA PROTI RAM OVERFLOW: Max 1 MB (Databáze má reálně cca 20 KB)
+    if (file.size > 1048576) { 
+        showToast("❌ Soubor je abnormálně velký. Operace zablokována.");
+        event.target.value = '';
+        return;
+    }
 
     try {
         const text = await file.text();
@@ -1540,11 +1584,18 @@ window.prepareDatabaseExport = async function() {
         });
     }
 
-    const bezpecnyText = (str) => str.replace(/"/g, '\\"');
+    // 🛡️ ZERO-TRUST SERIALIZACE: Extrémní sanitizace a bezpečný formát
+    const sanitizedDb = newDb.map(k => ({
+        id: k.id,
+        dilo: sanitize(k.dilo),     // Trvalá ochrana proti Stored XSS
+        autor: sanitize(k.autor),   // Trvalá ochrana proti Stored XSS
+        druh: k.druh,
+        obdobi: k.obdobi
+    }));
 
-    const formattedDbString = "[\n" + newDb.map(k => 
-        `        { id: ${k.id}, dilo: "${bezpecnyText(k.dilo)}", autor: "${bezpecnyText(k.autor)}", druh: "${k.druh}", obdobi: "${k.obdobi}" }`
-    ).join(",\n") + "\n    ]";
+    // V8 JSON.stringify zaručuje matematicky čistý syntax bez Backslash Crashů
+    // Parametr 'null, 8' zajistí nádherné odsazení, aby kód na GitHubu vypadal profesionálně
+    const formattedDbString = JSON.stringify(sanitizedDb, null, 8).replace(/^/gm, '    ');
 
     const today = new Date().toLocaleDateString('cs-CZ');
 
@@ -1585,9 +1636,12 @@ window.OMEGA_CONFIG = {
 
     modal.style.display = 'flex';
     
-    document.getElementById('btn-final-execute').onclick = () => {
+    const finalExecuteBtn = document.getElementById('btn-final-execute');
+    finalExecuteBtn.disabled = false; // Reset při otevření modálu (kdyby náhodou)
+    
+    finalExecuteBtn.onclick = () => {
+        finalExecuteBtn.disabled = true; // 🛡️ OBRANA PROTI DOUBLE-CLICK RACE CONDITION
         closeConfirmModal();
-        // 3. 🛡️ TRANSPORTNÍ VRSTVA: Přidáváme token jako druhý argument
         pushToCloudflare(pendingExportPayload, turnstileToken);
     };
 };
@@ -1625,6 +1679,7 @@ function pushToCloudflare(fileContent, turnstileToken) {
         
         stagingQueue = [];
         deleteQueue = [];
+        pendingExportPayload = null;
         renderStagingQueue();
         if (typeof navrhniDalsiVolneId === 'function') navrhniDalsiVolneId();
         
@@ -1645,6 +1700,8 @@ function pushToCloudflare(fileContent, turnstileToken) {
             downloadBtn.textContent = "Zavřít a vygenerovat nový podpis";
             // Obrana proti Replay Attack: Zavřeme okno a nutíme uživatele vygenerovat čerstvý token.
             downloadBtn.onclick = () => {
+                // 🧹 DRUHÝ VÝMAZ RAM: Zničení payloadu při zavření chybového modálu
+                pendingExportPayload = null;
                 if (typeof closeAdminConfirmationModal === 'function') {
                     closeAdminConfirmationModal();
                 } else {
