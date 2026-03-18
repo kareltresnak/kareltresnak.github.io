@@ -9,9 +9,13 @@ window.OMEGA_CONFIG = {
     FORM_HTML: `
         <div class="input-group">
             <input type="text" id="student-name" class="styled-input" placeholder="Jméno a příjmení" autocomplete="name">
-            <input type="text" id="student-dob" class="styled-input" placeholder="Datum narození (např. 1. 1. 2005)" autocomplete="bday">
-            <input type="text" id="student-class" class="styled-input" placeholder="Třída (např. 4.A)">
-            <input type="text" id="student-year" class="styled-input" placeholder="Školní rok (např. 2025/2026)">
+            <input type="text" id="student-dob" class="styled-input" placeholder="Datum nar. (např. 1. 1. 2007)" autocomplete="bday">
+            <input type="text" id="student-class" class="styled-input" placeholder="Třída (např. 4.IT)">
+            <div class="styled-input" id="year-wrapper" style="display: flex; align-items: center; gap: 6px; color: var(--text-muted); cursor: text;" onclick="document.getElementById('student-year').focus()">
+                <span>Školní rok: 20</span>
+                <input type="text" id="student-year" maxlength="2" placeholder="25" autocomplete="off" style="width: 30px; border: none; background: transparent; color: var(--text-main); font-weight: 900; font-family: inherit; font-size: 1.15em; outline: none; text-align: center; border-bottom: 2px solid var(--accent-primary); padding: 0 0 2px 0; border-radius: 0; box-shadow: none; -webkit-appearance: none; appearance: none;">
+                <span> / 20</span><span id="student-year-next" style="color: var(--text-main); font-weight: bold;">26</span>
+            </div>
         </div>
     `,
     // data-spspb.js
