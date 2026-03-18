@@ -23,7 +23,7 @@ const REQUIREMENTS = window.OMEGA_CONFIG.REQUIREMENTS;
 /* ==========================================
    OMEGA TELEMETRY ENGINE
    ========================================== */
-const OMEGA_VERSION = '7.4.1';
+const OMEGA_VERSION = '7.4.3';
 
 function trackOmegaEvent(eventName, eventData = {}) {
     if (typeof umami !== 'undefined') {
