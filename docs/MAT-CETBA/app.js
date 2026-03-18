@@ -1611,10 +1611,8 @@ window.OMEGA_CONFIG = {
         <div class="input-group">
             <input type="text" id="student-name" class="styled-input" placeholder="Jméno a příjmení" autocomplete="name">
             <input type="text" id="student-dob" class="styled-input" placeholder="Datum narození (např. 1. 1. 2005)" autocomplete="bday">
-            <div class="input-row">
-                <input type="text" id="student-class" class="styled-input" placeholder="Třída (např. 4.A)">
-                <input type="text" id="student-year" class="styled-input" placeholder="Školní rok (např. 2025/2026)">
-            </div>
+            <input type="text" id="student-class" class="styled-input" placeholder="Třída (např. 4.A)">
+            <input type="text" id="student-year" class="styled-input" placeholder="Školní rok (např. 2025/2026)">
         </div>
     \`,
     RULES_HTML: "",
