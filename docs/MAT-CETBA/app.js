@@ -387,13 +387,41 @@ function loadState() {
     }
 }
 
-// Data-binding pro osobní údaje
+// Data-binding pro osobní údaje s OMEGA Kvantovou Validací
 window.OMEGA_CONFIG.FORM_FIELDS.forEach(key => {
     const el = document.getElementById(`student-${key}`);
     if (el) {
         el.addEventListener('input', (e) => {
-            state.student[key] = e.target.value;
+            let val = e.target.value;
+            
+            // 🛡️ KINETICKÁ AUTO-KOREKCE: Destrukce entropie v reálném čase
+            if (key === 'class') {
+                val = val.toUpperCase().replace(/\s/g, ''); // Násilné odstranění mezer a vynucení CapsLocku
+                el.value = val; // Okamžitý přepis v DOMu
+                const isValid = /^[1-4]\.(IT|EA|EB|EM|SP|PA|PB)$/.test(val);
+                el.style.borderColor = (val === '' || isValid) ? 'var(--border)' : 'var(--accent-red)';
+            } else if (key === 'year') {
+                val = val.replace(/\s/g, ''); // Žádné mezery
+                el.value = val;
+                
+                let isValid = false;
+                const yearMatch = val.match(/^(\d{4})\/(\d{4})$/);
+                
+                if (yearMatch) {
+                    const y1 = parseInt(yearMatch[1], 10);
+                    const y2 = parseInt(yearMatch[2], 10);
+                    // 🛡️ ARITMETICKÝ DŮKAZ: Druhý rok musí být exaktně Y1 + 1
+                    if (y2 === y1 + 1) isValid = true; 
+                }
+                
+                el.style.borderColor = (val === '' || isValid) ? 'var(--border)' : 'var(--accent-red)';
+            }
+
+            state.student[key] = val;
             saveState();
+            
+            // 🚀 Přepočet stavu při každém stisku klávesy (okamžitě zablokuje/odblokuje Export)
+            updateStatsAndSidebar();
         });
     }
 });
@@ -514,16 +542,39 @@ function updateStatsAndSidebar() {
             break;
         }
     }
-    // ======= INVERSION OF CONTROL: EXTERNÍ VALIDACE =======
+    // ======= INVERSION OF CONTROL: EXTERNÍ VALIDACE & PII STRICT MODE =======
     let customErrorsHtml = "";
-    const selectedBooks = Array.from(state.selectedIds).map(id => KNIHY_DB.find(k => k.id === id));
+    let localErrors = [];
 
+    // 1. Regulární validace osobních údajů (PII)
+    const classVal = state.student.class || "";
+    const yearVal = state.student.year || "";
+
+    if (classVal && !/^[1-4]\.(IT|EA|EB|EM|SP|PA|PB)$/.test(classVal)) {
+        isFullyValid = false; // Tvrďák blokující export
+        localErrors.push("Třída musí být ve formátu 'Ročník.Obor' (např. 4.IT)");
+    }
+    if (yearVal) {
+        const yearMatch = yearVal.match(/^(\d{4})\/(\d{4})$/);
+        if (!yearMatch || parseInt(yearMatch[2], 10) !== parseInt(yearMatch[1], 10) + 1) {
+            isFullyValid = false; // Tvrďák blokující export
+            localErrors.push("Školní rok musí tvořit po sobě jdoucí roky (např. 2025/2026)");
+        }
+    }
+
+    // 2. Externí maturitní pravidla školy
+    const selectedBooks = Array.from(state.selectedIds).map(id => KNIHY_DB.find(k => k.id === id));
     if (typeof window.OMEGA_CONFIG.customValidation === 'function') {
         const validation = window.OMEGA_CONFIG.customValidation(selectedBooks);
         if (!validation.isValid) {
-            isFullyValid = false; // Tvrďák blokující export
-            customErrorsHtml = validation.errors.map(err => `<div>❌ ${err}</div>`).join('');
+            isFullyValid = false; 
+            localErrors.push(...validation.errors);
         }
+    }
+
+    // 3. Vykreslení chybových stavů do frontendu
+    if (localErrors.length > 0) {
+        customErrorsHtml = localErrors.map(err => `<div>❌ ${err}</div>`).join('');
     }
 
     const errorBox = document.getElementById('validation-errors');
