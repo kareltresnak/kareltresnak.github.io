@@ -31,6 +31,19 @@ function trackOmegaEvent(eventName, eventData = {}) {
     }
 }
 
+// ⏱️ OMEGA CHRONOMETRY ENGINE
+const getOmegaChronology = () => {
+    const now = new Date();
+    const y = now.getFullYear();
+    const startYear = now.getMonth() >= 8 ? y : y - 1;
+    return {
+        start: startYear,
+        short1: startYear.toString().slice(-2),
+        short2: (startYear + 1).toString().slice(-2),
+        format: `${startYear}/${startYear + 1}`
+    };
+};
+
 // ==========================================
 // INSTITUCIONÁLNÍ BRANDING A THEME ENGINE
 // ==========================================
@@ -107,7 +120,7 @@ const state = {
     selectedIds: new Set(), 
     filters: { obdobi: null, druh: null }, 
     searchQuery: "",
-    student: { name: "", dob: "", klasa: "", year: "" }
+    student: { name: "", dob: "", klasa: "", year: getOmegaChronology().format } // Vynucený startovní rok
 };
 
 const elements = {
@@ -354,37 +367,74 @@ function saveState() {
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
 }
+// 🛡️ OMEGA MEMORY: Obnova paměti a pre-fill
 function loadState() {
     const savedData = localStorage.getItem(STORAGE_KEY);
+    const chrono = getOmegaChronology();
+
     if (savedData) {
         try {
             const parsed = JSON.parse(savedData);
             
-            // 🛡️ OCHRANA INTEGRITY PAMĚTI
             if (parsed.v && parsed.v !== DB_VERSION) {
-                console.warn("Detekována mutace osnov (Hash Mismatch). Paměť vymazána.");
+                console.warn("Detekována mutace osnov. Paměť vymazána.");
                 localStorage.removeItem(STORAGE_KEY);
-                setTimeout(() => showToast("⚠️ Maturitní seznam byl školou aktualizován. Váš výběr byl z bezpečnostních důvodů resetován."), 1000);
-                return; // Tvrdé ukončení načítání mrtvých dat
+                setTimeout(() => showToast("⚠️ Maturitní seznam byl školou aktualizován. Váš výběr byl resetován."), 1000);
+                return; 
             }
 
             if (Array.isArray(parsed.selectedIds)) {
-                // Převod pole zpět na Set a vynucení číselného typu (ID jsou Int)
                 state.selectedIds = new Set(parsed.selectedIds.map(Number));
             }
             
             if (parsed.filters) state.filters = parsed.filters;
+            
             if (parsed.student) {
                 state.student = parsed.student;
                 window.OMEGA_CONFIG.FORM_FIELDS.forEach(key => {
                     const el = document.getElementById(`student-${key}`);
-                    if (el) el.value = state.student[key] || "";
+                    if (el) {
+                        if (key === 'year' && state.student.year) {
+                            const match = state.student.year.match(/^20(\d{2})\/20(\d{2})$/);
+                            if (match) {
+                                el.value = match[1];
+                                const nextSpan = document.getElementById('student-year-next');
+                                if (nextSpan) nextSpan.textContent = match[2];
+                            } else {
+                                state.student.year = chrono.format;
+                                el.value = chrono.short1;
+                                const nextSpan = document.getElementById('student-year-next');
+                                if (nextSpan) nextSpan.textContent = chrono.short2;
+                            }
+                        } else {
+                            el.value = state.student[key] || "";
+                        }
+                    }
                 });
+            } else {
+                preFillChronology();
             }
         } catch (error) {
             localStorage.removeItem(STORAGE_KEY);
+            preFillChronology();
         }
+    } else {
+        preFillChronology();
     }
+}
+
+// ⏱️ OMEGA CHRONOMETRY: Deterministický pre-fill hodnot
+function preFillChronology() {
+    const chrono = getOmegaChronology();
+    const el = document.getElementById('student-year');
+    const nextSpan = document.getElementById('student-year-next');
+    
+    if (el) el.value = chrono.short1; // 🚀 Vynucená HODNOTA (ne placeholder)
+    if (nextSpan) nextSpan.textContent = chrono.short2;
+    
+    // Zapíšeme defaultní hodnotu i do stavu aplikace
+    state.student.year = chrono.format;
+    saveState();
 }
 
 // Data-binding pro osobní údaje s OMEGA Kvantovou Validací
@@ -394,34 +444,73 @@ window.OMEGA_CONFIG.FORM_FIELDS.forEach(key => {
         el.addEventListener('input', (e) => {
             let val = e.target.value;
             
-            // 🛡️ KINETICKÁ AUTO-KOREKCE: Destrukce entropie v reálném čase
-            if (key === 'class') {
-                val = val.toUpperCase().replace(/\s/g, ''); // Násilné odstranění mezer a vynucení CapsLocku
-                el.value = val; // Okamžitý přepis v DOMu
-                const isValid = /^[1-4]\.(IT|EA|EB|EM|SP|PA|PB)$/.test(val);
-                el.style.borderColor = (val === '' || isValid) ? 'var(--border)' : 'var(--accent-red)';
-            } else if (key === 'year') {
-                val = val.replace(/\s/g, ''); // Žádné mezery
+            if (key === 'name') {
+                // 🛡️ OMEGA PURIFIER: Povolí pouze písmena, mezery a pomlčky.
+                val = val.replace(/[^a-zA-ZěščřžýáíéóúůďťňĚŠČŘŽÝÁÍÉÓÚŮĎŤŇ\s-]/g, '')
+                         .replace(/\s{2,}/g, ' ') // Zploštění vícenásobných mezer
+                         .trimStart();
                 el.value = val;
                 
+                // Oprava: Odřízneme mezery na konci, než zkontrolujeme, zda je jméno ze dvou slov
+                const isValid = val.trim().length >= 5 && val.trim().includes(' ');
+                el.style.borderColor = (val === '' || isValid) ? 'var(--border)' : 'var(--accent-red)';
+            } else if (key === 'class') {
+                // ... (ponech CapsLock pro třídu beze změny)
+                val = val.toUpperCase().replace(/\s/g, '');
+                el.value = val;
+                const isValid = /^[1-4]\.(IT|EA|EB|EM|SP|PA|PB)$/.test(val);
+                el.style.borderColor = (val === '' || isValid) ? 'var(--border)' : 'var(--accent-red)';
+            
+            } else if (key === 'dob') {
+                val = val.replace(/^0+([1-9])/, '$1').replace(/\.\s*0+([1-9])/g, '. $1').replace(/\s+/g, ' ').replace(/\.([^\s])/g, '. $1').trim();
+                el.value = val;
+
                 let isValid = false;
-                const yearMatch = val.match(/^(\d{4})\/(\d{4})$/);
+                const dobMatch = val.match(/^([1-9]|[12][0-9]|3[01])\.\s*([1-9]|1[0-2])\.\s*(\d{4})$/);
                 
-                if (yearMatch) {
-                    const y1 = parseInt(yearMatch[1], 10);
-                    const y2 = parseInt(yearMatch[2], 10);
-                    // 🛡️ ARITMETICKÝ DŮKAZ: Druhý rok musí být exaktně Y1 + 1
-                    if (y2 === y1 + 1) isValid = true; 
+                if (dobMatch) {
+                    const bYear = parseInt(dobMatch[3], 10);
+                    const currentY = getOmegaChronology().start;
+                    
+                    // 🛡️ OMEGA DYNAMIC BOUNDS: Věk 14 až 21 let
+                    if (bYear >= (currentY - 21) && bYear <= (currentY - 14)) {
+                        isValid = true;
+                    }
                 }
                 
                 el.style.borderColor = (val === '' || isValid) ? 'var(--border)' : 'var(--accent-red)';
+            
+            } else if (key === 'year') {
+                // Vezme pouze 2 číslice
+                val = val.replace(/\D/g, '').slice(0, 2);
+                el.value = val;
+
+                const nextSpan = document.getElementById('student-year-next');
+                let isValid = false;
+
+                if (val.length === 2) {
+                    const y1 = parseInt("20" + val, 10);
+                    isValid = true; // Absolutní svoboda: Cokoliv zadají, to platí
+                    const y2Short = (y1 + 1).toString().slice(-2);
+                    
+                    if (nextSpan) nextSpan.textContent = y2Short;
+                    state.student.year = `20${val}/20${y2Short}`; // Uloží plný formát do PDF
+                } else {
+                    if (nextSpan) nextSpan.textContent = "--";
+                    state.student.year = "";
+                }
+
+                // Obarvení spodní linky
+                el.style.borderBottomColor = (val === '' || isValid) ? 'var(--accent-primary)' : 'var(--accent-red)';
+                
+                saveState();
+                if (typeof updateStatsAndSidebar === 'function') updateStatsAndSidebar();
+                return; 
             }
 
             state.student[key] = val;
             saveState();
-            
-            // 🚀 Přepočet stavu při každém stisku klávesy (okamžitě zablokuje/odblokuje Export)
-            updateStatsAndSidebar();
+            updateStatsAndSidebar(); // Real-time přepočet
         });
     }
 });
@@ -470,12 +559,12 @@ function renderTable() {
     // UX: Empty State Logic
     if (filtered.length === 0) {
         tableEl.style.display = 'none';
-        emptyStateEl.style.display = 'block';
+        if (emptyStateEl) emptyStateEl.style.display = 'block'; // 🛡️ Ochrana proti null pointeru
         elements.tableBody.innerHTML = '';
         return;
     } else {
         tableEl.style.display = 'table';
-        emptyStateEl.style.display = 'none';
+        if (emptyStateEl) emptyStateEl.style.display = 'none';  // 🛡️ Ochrana proti null pointeru
     }
 
     // UX: Funkce pro zvýraznění textu (Highlighting)
@@ -545,34 +634,76 @@ function updateStatsAndSidebar() {
     // ======= INVERSION OF CONTROL: EXTERNÍ VALIDACE & PII STRICT MODE =======
     let customErrorsHtml = "";
     let localErrors = [];
+    let emptyFields = 0; // Agregátor prázdných polí
 
-    // 1. Regulární validace osobních údajů (PII)
+    const nameVal = state.student.name || "";
     const classVal = state.student.class || "";
     const yearVal = state.student.year || "";
+    const dobVal = state.student.dob || "";
+    const chrono = getOmegaChronology();
 
-    if (classVal && !/^[1-4]\.(IT|EA|EB|EM|SP|PA|PB)$/.test(classVal)) {
-        isFullyValid = false; // Tvrďák blokující export
-        localErrors.push("Třída musí být ve formátu 'Ročník.Obor' (např. 4.IT)");
+    // 1. Jméno
+    if (!nameVal) emptyFields++;
+    else if (nameVal.trim().length < 5 || !nameVal.trim().includes(' ')) {
+        localErrors.push("Jméno musí obsahovat i příjmení.");
     }
-    if (yearVal) {
-        const yearMatch = yearVal.match(/^(\d{4})\/(\d{4})$/);
-        if (!yearMatch || parseInt(yearMatch[2], 10) !== parseInt(yearMatch[1], 10) + 1) {
-            isFullyValid = false; // Tvrďák blokující export
-            localErrors.push("Školní rok musí tvořit po sobě jdoucí roky (např. 2025/2026)");
+
+    // 2. Datum narození s dynamickou kontrolou věku
+    if (!dobVal) emptyFields++;
+    else {
+        const dobMatch = dobVal.match(/^([1-9]|[12][0-9]|3[01])\.\s*([1-9]|1[0-2])\.\s*(\d{4})$/);
+        if (!dobMatch) {
+            localErrors.push("Datum narození musí být bez nul (např. 1. 1. 2005).");
+        } else {
+            const bYear = parseInt(dobMatch[3], 10);
+            const minYear = chrono.start - 21;
+            const maxYear = chrono.start - 14;
+            
+            if (bYear < minYear || bYear > maxYear) {
+                localErrors.push(`Věková anomálie: Rok narození musí ležet v intervalu ${minYear} až ${maxYear}.`);
+            }
         }
     }
 
-    // 2. Externí maturitní pravidla školy
+    // 3. Třída
+    if (!classVal) emptyFields++;
+    else if (!/^[1-4]\.(IT|EA|EB|EM|SP|PA|PB)$/.test(classVal)) {
+        localErrors.push("Třída musí být ve formátu 'Ročník.Obor' (např. 4.IT).");
+    }
+
+    // 4. Školní rok
+    if (!yearVal) emptyFields++;
+    else {
+        const yearMatch = yearVal.match(/^(\d{4})\/(\d{4})$/);
+        if (!yearMatch || parseInt(yearMatch[2], 10) !== parseInt(yearMatch[1], 10) + 1) {
+            localErrors.push("Školní rok není kompletní.");
+        } else {
+            const y1 = parseInt(yearMatch[1], 10);
+            if (y1 < chrono.start || y1 > chrono.start + 3) {
+                localErrors.push(`Časová anomálie: Školní rok je omezen na interval ${chrono.start}/${chrono.start + 1} až ${chrono.start + 3}/${chrono.start + 4}`);
+            }
+        }
+    }
+
+    // UX: Konsolidace prázdných polí do jedné jediné výzvy
+    if (emptyFields > 0) {
+        isFullyValid = false;
+        localErrors.unshift("Doplňte chybějící osobní údaje.");
+    }
+    
+    if (localErrors.length > 0) {
+        isFullyValid = false;
+    }
+
     const selectedBooks = Array.from(state.selectedIds).map(id => KNIHY_DB.find(k => k.id === id));
     if (typeof window.OMEGA_CONFIG.customValidation === 'function') {
         const validation = window.OMEGA_CONFIG.customValidation(selectedBooks);
         if (!validation.isValid) {
-            isFullyValid = false; 
+            isFullyValid = false;
             localErrors.push(...validation.errors);
         }
     }
 
-    // 3. Vykreslení chybových stavů do frontendu
     if (localErrors.length > 0) {
         customErrorsHtml = localErrors.map(err => `<div>❌ ${err}</div>`).join('');
     }
@@ -762,13 +893,22 @@ const clearListLogic = () => {
 
 // Modul 2: Výmaz PII (osobních údajů) - Robustní verze
 const clearDataLogic = () => {
-    // 1. Reset vnitřního stavu
-    state.student = { name: "", dob: "", klasa: "", year: "" };
+    const chrono = getOmegaChronology();
+    state.student = { name: "", dob: "", klasa: "", year: chrono.format };
 
-    // 2. Bezpečný výmaz inputů (jen těch, které v dané škole existují)
     window.OMEGA_CONFIG.FORM_FIELDS.forEach(key => {
         const el = document.getElementById(`student-${key}`);
-        if (el) el.value = "";
+        if (el) {
+            if (key === 'year') {
+                el.value = chrono.short1;
+                const nextSpan = document.getElementById('student-year-next');
+                if (nextSpan) nextSpan.textContent = chrono.short2;
+                el.style.borderBottomColor = 'var(--accent-primary)'; // 🛡️ Reset červené čáry
+            } else {
+                el.value = "";
+                el.style.borderColor = 'var(--border)'; // 🛡️ Reset červených okrajů
+            }
+        }
     });
 };
 
@@ -797,6 +937,7 @@ document.getElementById("btn-clear-list").addEventListener('click', () => {
 document.getElementById("btn-clear-data").addEventListener('click', () => {
     clearDataLogic();
     saveState();
+    updateStatsAndSidebar(); // 🚀 Exaktní synchronizace s UI (smazání fantomové chyby)
     closeClearModal();
     showToast("🗑️ Osobní údaje byly vymazány.");
 });
@@ -806,6 +947,7 @@ document.getElementById("btn-clear-all").addEventListener('click', () => {
     clearListLogic();
     clearDataLogic();
     saveState();
+    updateStatsAndSidebar(); // 🚀 Exaktní synchronizace s UI
     closeClearModal();
     showToast("☢️ Kompletní paměť byla vymazána.");
 });
@@ -921,12 +1063,13 @@ mobileTabs.forEach(tab => {
     });
 });
 
-// 🚀 ZERO-LATENCY INICIALIZACE: Spuštění okamžitě po parsování DOMu, nečekáme na síť!
-document.addEventListener('DOMContentLoaded', () => {
+// ==========================================
+// 🚀 ZERO-LATENCY INICIALIZACE (Brute-Force)
+// ==========================================
+const initOmegaEngine = () => {
     loadState(); 
     loadStateFromURL(); 
     
-    // SMART AUTOFOCUS: Zabrání vyskočení klávesnice na dotykových zařízeních
     if (window.matchMedia("(pointer: fine)").matches) {
         elements.searchBox.focus(); 
     }
@@ -934,21 +1077,15 @@ document.addEventListener('DOMContentLoaded', () => {
     renderTable(); 
     updateStatsAndSidebar();
 
-    // --- ⏱️ KONTROLA EXPIRACE RELACE ---
     if (sessionStorage.getItem('omega_session_expired') === 'true') {
         sessionStorage.removeItem('omega_session_expired'); 
         const timeoutModal = document.getElementById('omega-timeout-modal');
         if (timeoutModal) timeoutModal.style.display = 'flex';
     }
-    // -----------------------------------
+};
 
-    // 🎯 TELEMETRIE: Otevření aplikace
-    const isPWA = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-    trackOmegaEvent('App_Opened', { 
-        platform: isPWA ? 'PWA_Installed' : 'Web_Browser',
-        theme: localStorage.getItem('omega_theme') || 'default'
-    });
-});
+// Spouštíme okamžitě, bez čekání na prohlížeč.
+initOmegaEngine();
 
 /* ==========================================
    OMEGA ADMIN ENGINE v7.1.0 (Enterprise)
@@ -1661,9 +1798,13 @@ window.OMEGA_CONFIG = {
     FORM_HTML: \`
         <div class="input-group">
             <input type="text" id="student-name" class="styled-input" placeholder="Jméno a příjmení" autocomplete="name">
-            <input type="text" id="student-dob" class="styled-input" placeholder="Datum narození (např. 1. 1. 2005)" autocomplete="bday">
-            <input type="text" id="student-class" class="styled-input" placeholder="Třída (např. 4.A)">
-            <input type="text" id="student-year" class="styled-input" placeholder="Školní rok (např. 2025/2026)">
+            <input type="text" id="student-dob" class="styled-input" placeholder="Datum nar. (např. 1. 1. 2007)" autocomplete="bday">
+            <input type="text" id="student-class" class="styled-input" placeholder="Třída (např. 4.IT)">
+            <div class="styled-input" id="year-wrapper" style="display: flex; align-items: center; gap: 6px; color: var(--text-muted); cursor: text;" onclick="document.getElementById('student-year').focus()">
+                <span>Školní rok: 20</span>
+                <input type="text" id="student-year" maxlength="2" placeholder="25" autocomplete="off" style="width: 30px; border: none; background: transparent; color: var(--text-main); font-weight: 900; font-family: inherit; font-size: 1.15em; outline: none; text-align: center; border-bottom: 2px solid var(--accent-primary); padding: 0 0 2px 0; border-radius: 0; box-shadow: none; -webkit-appearance: none; appearance: none;">
+                <span> / 20</span><span id="student-year-next" style="color: var(--text-main); font-weight: bold;">26</span>
+            </div>
         </div>
     \`,
     RULES_HTML: "",
