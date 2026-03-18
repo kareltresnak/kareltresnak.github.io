@@ -23,7 +23,7 @@ const REQUIREMENTS = window.OMEGA_CONFIG.REQUIREMENTS;
 /* ==========================================
    OMEGA TELEMETRY ENGINE
    ========================================== */
-const OMEGA_VERSION = '7.4.3';
+const OMEGA_VERSION = '7.4.5';
 
 function trackOmegaEvent(eventName, eventData = {}) {
     if (typeof umami !== 'undefined') {
@@ -870,12 +870,12 @@ mobileTabs.forEach(tab => {
     });
 });
 
-window.onload = () => {
+// 🚀 ZERO-LATENCY INICIALIZACE: Spuštění okamžitě po parsování DOMu, nečekáme na síť!
+document.addEventListener('DOMContentLoaded', () => {
     loadState(); 
     loadStateFromURL(); 
     
     // SMART AUTOFOCUS: Zabrání vyskočení klávesnice na dotykových zařízeních
-    // Focus se provede pouze pokud má zařízení přesný ukazatel (myš)
     if (window.matchMedia("(pointer: fine)").matches) {
         elements.searchBox.focus(); 
     }
@@ -885,7 +885,7 @@ window.onload = () => {
 
     // --- ⏱️ KONTROLA EXPIRACE RELACE ---
     if (sessionStorage.getItem('omega_session_expired') === 'true') {
-        sessionStorage.removeItem('omega_session_expired'); // Ihned smazat, ať to nevyskakuje při dalším F5
+        sessionStorage.removeItem('omega_session_expired'); 
         const timeoutModal = document.getElementById('omega-timeout-modal');
         if (timeoutModal) timeoutModal.style.display = 'flex';
     }
@@ -897,7 +897,7 @@ window.onload = () => {
         platform: isPWA ? 'PWA_Installed' : 'Web_Browser',
         theme: localStorage.getItem('omega_theme') || 'default'
     });
-};
+});
 
 /* ==========================================
    OMEGA ADMIN ENGINE v7.1.0 (Enterprise)
