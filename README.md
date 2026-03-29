@@ -10,12 +10,12 @@ The architecture has been intentionally decoupled from a monolithic structure to
 
 ### Active Nodes ($V$)
 
-1.  **[OMEGA Canon Suite](https://github.com/kareltresnak/MAT-CETBA)**
+1.  **[Selekce četby](https://github.com/kareltresnak/MAT-CETBA)**
     *   **Vector:** `git://kareltresnak/MAT-CETBA`
     *   **Architecture:** Zero-Trust Edge compute.
     *   **Description:** A highly secure, distributed examination generator utilizing Cloudflare Workers, Turnstile cryptographic challenges, and physical print topology defense mechanisms.
 
-2.  **[AZ-Kvíz Engine](https://github.com/kareltresnak/AZ-KVIZ)**
+2.  **[AZ-Kvíz](https://github.com/kareltresnak/AZ-KVIZ)**
     *   **Vector:** `git://kareltresnak/AZ-KVIZ`
     *   **Architecture:** Client-side SPA.
     *   **Description:** Web-based interactive game logic simulator featuring complex DOM state manipulation and event-driven architecture.
