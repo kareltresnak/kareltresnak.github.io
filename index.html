@@ -1,17 +1,20 @@
 <!DOCTYPE html>
-<html lang="cs">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>System.Root | Rozcestník</title>
+    <title>System.Root | Distributed Gateway</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23050505'/><path d='M50 32 L28 68 M50 32 L72 68' stroke='%23e65100' stroke-width='7' stroke-linecap='round'/><circle cx='50' cy='32' r='11' fill='%23e65100'/><circle cx='28' cy='68' r='8' fill='%23e65100'/><circle cx='72' cy='68' r='8' fill='%23e65100'/></svg>">
     <style>
         :root {
-            --bg-base: #0a0a0a;
-            --bg-surface: #141414;
+            --bg-base: #050505;
+            --bg-surface: #111111;
             --text-main: #e0e0e0;
-            --text-muted: #737373;
+            --text-muted: #666666;
             --accent-rust: #e65100;
-            --border: #262626;
+            --border: #222222;
+            --badge-bg: #151515;
+            --badge-text: #a3a3a3;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -23,65 +26,196 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 100vh;
-            overflow: hidden;
+            min-height: 100vh;
+            padding: 2rem 1rem;
         }
 
         .container {
             width: 100%;
-            max-width: 600px;
-            padding: 2rem;
+            max-width: 760px;
             display: flex;
             flex-direction: column;
-            gap: 2rem;
+            gap: 2.5rem;
         }
 
         .header {
-            border-bottom: 2px solid var(--border);
-            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 1.5rem;
         }
 
         .header h1 {
-            font-size: 2rem;
+            font-size: 2.4rem;
             text-transform: uppercase;
             letter-spacing: 2px;
+            font-weight: 900;
         }
-        .header h1 span { color: var(--accent-rust); }
-        .header p { color: var(--text-muted); font-family: monospace; margin-top: 0.5rem; }
 
-        .links {
+        .header h1 span { color: var(--accent-rust); }
+        .header p { 
+            color: var(--text-muted); 
+            font-family: 'Courier New', Courier, monospace; 
+            margin-top: 0.5rem; 
+            font-size: 0.95rem;
+        }
+
+        .nodes {
             display: grid;
             grid-template-columns: 1fr;
-            gap: 1rem;
+            gap: 1.5rem;
         }
 
-        .link-card {
+        /* Projektový uzel (Card) */
+        .node-card {
             background: var(--bg-surface);
             border: 1px solid var(--border);
-            padding: 1.5rem;
             border-radius: 6px;
-            text-decoration: none;
-            color: var(--text-main);
-            transition: all 0.2s ease;
+            padding: 1.8rem;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            flex-direction: column;
+            gap: 1.2rem;
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.2s ease, transform 0.2s ease;
         }
 
-        .link-card:hover {
-            border-color: var(--accent-rust);
-            transform: translateX(5px);
+        /* Technický boční indikátor */
+        .node-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 4px; height: 100%;
+            background: var(--border);
+            transition: background 0.2s ease;
+        }
+
+        .node-card:hover {
+            border-color: #333;
+            transform: translateY(-2px);
+        }
+
+        .node-card:hover::before {
+            background: var(--accent-rust);
+        }
+
+        /* Explicitní směrový vektor */
+        .repo-vector {
+            font-family: monospace;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: -0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .repo-vector::before {
+            content: 'git://';
+            color: var(--accent-rust);
+            opacity: 0.7;
+        }
+
+        .node-header strong {
+            display: block;
+            font-size: 1.4rem;
+            letter-spacing: 0.5px;
+            color: #fff;
+        }
+
+        .node-header small {
+            display: block;
+            color: #888;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        /* Technologické indikátory - VYLEPŠENÉ */
+        .tech-stack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            margin-top: auto;
+        }
+
+        .badge {
+            font-family: monospace;
+            font-size: 0.7rem;
+            font-weight: bold;
+            background: var(--badge-bg);
+            color: var(--badge-text);
+            padding: 5px 12px;
+            border-radius: 20px; /* Pill shape */
+            border: 1px solid var(--border);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            transition: all 0.2s ease-in-out;
+            user-select: none;
+            cursor: pointer;
+        }
+
+        /* Kinetická reakce badges na hover karty */
+        .node-card:hover .badge {
+            border-color: #3a3a3a;
+            color: var(--text-main);
+            transform: scale(1.02);
+        }
+        
+        /* Individuální interakce na hover samotného badge */
+        .badge:hover {
+            border-color: var(--accent-rust) !important;
+            color: #fff !important;
             background: rgba(230, 81, 0, 0.05);
         }
 
-        .link-card div strong { display: block; font-size: 1.2rem; margin-bottom: 0.3rem; }
-        .link-card div small { color: var(--text-muted); }
-        .link-card .arrow { color: var(--accent-rust); font-weight: bold; font-size: 1.5rem; }
+        /* Akční tlačítka */
+        .actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
 
-        /* Přepnutí na dvouproudý Grid na větších obrazovkách */
+        .btn {
+            padding: 0.7rem;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            font-family: monospace;
+            text-transform: uppercase;
+            transition: all 0.2s ease;
+            letter-spacing: 1px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: rgba(230, 81, 0, 0.08);
+            color: var(--accent-rust);
+            border: 1px solid rgba(230, 81, 0, 0.2);
+        }
+
+        .btn-primary:hover {
+            background: rgba(230, 81, 0, 0.15);
+            border-color: rgba(230, 81, 0, 0.5);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            color: #fff;
+            border-color: #555;
+        }
+
         @media (min-width: 768px) {
-            .links { grid-template-columns: 1fr 1fr; }
-            .link-card.full-width { grid-column: 1 / -1; } /* Fundamentální blok přes celou šířku */
+            .nodes { grid-template-columns: 1fr 1fr; }
         }
     </style>
 </head>
@@ -90,34 +224,46 @@
     <div class="container">
         <header class="header">
             <h1>System<span>.Root</span></h1>
-            <p>~/projects_2026</p>
+            <p>~/kareltresnak.github.io/gateway</p>
         </header>
 
-        <nav class="links">
-            <a href="/MAT-CETBA/" class="link-card">
-                <div>
-                    <strong>MATURITA SELECTION</strong>
-                    <small>Selekce maturitní četby</small>
+        <main class="nodes">
+            
+            <article class="node-card">
+                <div class="repo-vector">kareltresnak/MAT-CETBA</div>
+                <header class="node-header">
+                    <strong>OMEGA Canon Suite</strong>
+                    <small>Distributed examination generator with Zero-Trust Edge architecture and physical print topology.</small>
+                </header>
+                <div class="tech-stack">
+                    <span class="badge">ES6 Modules</span>
+                    <span class="badge">CF Workers</span>
+                    <span class="badge">Turnstile</span>
                 </div>
-                <span class="arrow">→</span>
-            </a>
+                <nav class="actions">
+                    <a href="/MAT-CETBA/" class="btn btn-primary">Launch ↗</a>
+                    <a href="https://github.com/kareltresnak/MAT-CETBA" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">Source 📂</a>
+                </nav>
+            </article>
 
-            <a href="/AZ-KVIZ/" class="link-card">
-                <div>
-                    <strong>AZ Kvíz</strong>
-                    <small>Play AZ Kvíz</small>
+            <article class="node-card">
+                <div class="repo-vector">kareltresnak/AZ-KVIZ</div>
+                <header class="node-header">
+                    <strong>AZ-Kvíz Engine</strong>
+                    <small>Web-based interactive game logic simulator featuring dynamic DOM manipulation.</small>
+                </header>
+                <div class="tech-stack">
+                    <span class="badge">Vanilla JS</span>
+                    <span class="badge">HTML5</span>
+                    <span class="badge">CSS3</span>
                 </div>
-                <span class="arrow">→</span>
-            </a>
+                <nav class="actions">
+                    <a href="/AZ-KVIZ/" class="btn btn-primary">Launch ↗</a>
+                    <a href="https://github.com/kareltresnak/AZ-KVIZ" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">Source 📂</a>
+                </nav>
+            </article>
 
-            <a href="https://github.com/kareltresnak/kareltresnak.github.io" target="_blank" rel="noopener noreferrer" class="link-card full-width">
-                <div>
-                    <strong>SOURCE & DOCS</strong>
-                    <small>Veřejný repozitář na GitHubu</small>
-                </div>
-                <span class="arrow">↗</span>
-            </a>
-        </nav>
+        </main>
     </div>
 
 </body>
